@@ -1,9 +1,10 @@
 depth = -y;
 
+var can_move = true;
 
 // Only run movement, collision, animation, and interaction code if NOT in a cutscene
-// Freeze if in cutscene OR if a transition exists
-if (isInCutscene || instance_exists(obj_transition)) 
+// Freeze if in cutscene OR if a transition exists OR if battle is active
+if (isInCutscene || instance_exists(obj_transition) || (instance_exists(obj_path) || instance_exists(obj_cipher) || instance_exists(obj_qte))) 
 {
     // Optional: Stop animation so he doesn't "moonwalk"
     image_speed = 0; 
