@@ -11,3 +11,9 @@ if (visible) {
         draw_set_halign(fa_left);
     }
 }
+
+// --- DEBUGGING OVERLAY (Delete this after fixing) ---
+draw_set_color(c_red);
+draw_text(10, 10, "Global Last Battle: " + string(global.last_battle_id));
+draw_text(10, 30, "My Battle ID: " + string(battle_id));
+draw_text(10, 50, "Battle Result: " + string(global.battle_result));
