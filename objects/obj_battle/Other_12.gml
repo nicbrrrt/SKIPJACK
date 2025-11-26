@@ -5,6 +5,7 @@ show_debug_message("BATTLE: Player HP: " + string(player_hp));
 if (player_hp <= 0) {
     show_debug_message("BATTLE: GAME OVER!");
     // Show game over and restart button
+	room_goto(global.return_room);
     with (obj_start_combat) {
         visible = true; // Show start button again
 		// Add this line in both victory and defeat sections

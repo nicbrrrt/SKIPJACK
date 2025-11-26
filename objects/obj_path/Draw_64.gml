@@ -4,17 +4,26 @@ draw_set_color(c_white);
 var gui_width = display_get_gui_width();
 var gui_height = display_get_gui_height();
 
-// Instructions at top
-draw_set_halign(fa_center);
-draw_text(gui_width / 2, 20, "PATHFINDING: Use ARROWS to draw path automatically");
-draw_text(gui_width / 2, 45, "BACKSPACE: undo, DELETE: clear, ENTER: submit");
-draw_set_halign(fa_left);
-
-// Grid position - SIMPLE CENTERING
+// Grid position
 origin_x = gui_width / 2 - (grid_w * cell) / 2;
 origin_y = gui_height / 2 - (grid_h * cell) / 2;
 
-// Draw grid (your existing code)
+// --- DRAW DARK BACKGROUND PANEL ---
+// This makes the text pop and hides the sprites behind the grid
+draw_set_alpha(0.8);
+draw_set_color(c_black);
+draw_rectangle(0, origin_y - 60, gui_width, origin_y + (grid_h * cell) + 20, false);
+draw_set_alpha(1);
+draw_set_color(c_white);
+
+// Instructions (Moved DOWN to Y=80 to avoid overlapping HP text)
+draw_set_halign(fa_center);
+draw_text(gui_width / 2, origin_y - 50, "PATHFINDING: Connect S to G");
+draw_text(gui_width / 2, origin_y - 25, "ARROWS: Draw | BACKSPACE: Undo | ENTER: Submit");
+draw_set_halign(fa_left);
+
+
+// Draw grid
 for (var gx = 0; gx < grid_w; gx++) {
     for (var gy = 0; gy < grid_h; gy++) {
         var draw_x = origin_x + gx * cell;
@@ -41,7 +50,7 @@ for (var gx = 0; gx < grid_w; gx++) {
 // Start position
 var start_draw_x = origin_x + start[0] * cell + cell/2;
 var start_draw_y = origin_y + start[1] * cell + cell/2;
-draw_sprite(spr_start, 0, start_draw_x, start_draw_y);
+draw_sprite(spr_start74, 0, start_draw_x, start_draw_y);
 draw_text(start_draw_x - 10, start_draw_y - 10, "S");
 
 // Target position

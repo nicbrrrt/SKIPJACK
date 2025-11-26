@@ -1,37 +1,45 @@
+// --- Step Event of obj_qte ---
+
 if (active) {
     timer -= 1;
     
-    // Time's up - fail
+    // FAIL CONDITION: Timer runs out OR we hit the player
+    // Since we calculated speed based on timer, they happen at the same time.
     if (timer <= 0) {
         active = false;
-        show_debug_message("QTE FAILED: Time's up!");
-        with (obj_battle) event_user(2); // QTE fail
+        hspeed = 0; // Stop moving
+        show_debug_message("QTE FAILED: Packet hit the player!");
+        
+        with (obj_battle) event_user(2); // Trigger Damage
         instance_destroy();
-    } else {
-        // Check for arrow key presses
+    } 
+    else {
+        // --- INPUT LOGIC (Same as before) ---
         if (keyboard_check_pressed(vk_up) || keyboard_check_pressed(vk_down) || 
             keyboard_check_pressed(vk_left) || keyboard_check_pressed(vk_right)) {
             
             var pressed_key = keyboard_lastkey;
-            
-            // Check if it matches the current pattern step
+
             if (pressed_key == pattern[index]) {
-                // Correct input!
+                // Correct!
                 index += 1;
-                show_debug_message("QTE: Correct! Step " + string(index) + "/" + string(pattern_length));
                 
-                // Success if finished entire pattern
+                // WIN CONDITION
                 if (index >= array_length(pattern)) {
                     active = false;
-                    show_debug_message("QTE SUCCESS: Packet caught!");
-                    with (obj_battle) event_user(3); // QTE success
+                    hspeed = 0; // Stop moving
+                    show_debug_message("QTE SUCCESS: Caught!");
+                    
+                    with (obj_battle) event_user(3); // Trigger Success
                     instance_destroy();
                 }
             } else {
-                // Wrong key - fail
+                // Wrong Key - Fail immediately
                 active = false;
+                hspeed = 0;
                 show_debug_message("QTE FAILED: Wrong input!");
-                with (obj_battle) event_user(2); // QTE fail
+                
+                with (obj_battle) event_user(2); // Trigger Damage
                 instance_destroy();
             }
         }

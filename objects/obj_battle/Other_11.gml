@@ -17,6 +17,7 @@ if (cipher_mode == "first") {
     
     if (enemy_hp <= 0) {
         show_debug_message("BATTLE: VICTORY!");
+		room_goto(global.return_room);
         // Show victory message and restart button
         with (obj_start_combat) {
             visible = true; // Show start button again

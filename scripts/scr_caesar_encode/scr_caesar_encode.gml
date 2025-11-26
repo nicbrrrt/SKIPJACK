@@ -7,7 +7,12 @@ function scr_caesar_encode(text, key) {
             continue; 
         }
         var idx = ord(c) - ord("A");
+        
+        // --- UPDATED MATH FOR NEGATIVE KEYS ---
         var s = (idx + key) mod 26;
+        if (s < 0) s += 26; // This ensures -1 wraps to 25 (Z)
+        // --------------------------------------
+        
         res += chr(s + ord("A"));
     }
     return res;

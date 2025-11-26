@@ -1,7 +1,13 @@
 // Get cipher_key from battle manager (fallback random)
 if (variable_instance_exists(obj_battle, "cipher_key")) {
     key = obj_battle.cipher_key;
-} else key = irandom_range(1,25);
+} else {
+    // Generate -5 to 5, excluding 0
+    key = 0;
+    while (key == 0) {
+        key = irandom_range(-5, 5);
+    }
+}
 
 letters_len = 4;
 plaintext = scr_random_letters(letters_len);   // generate random plaintext

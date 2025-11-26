@@ -105,7 +105,11 @@ if (keyboard_check_pressed(vk_enter)) {
     
     if (valid) {
         success = true;
-        var the_key = irandom_range(1, 25);
+        // Generate a key between -5 and 5, but skip 0 (because 0 is no shift)
+		var the_key = 0;
+		while (the_key == 0) {
+			the_key = irandom_range(-5, 5);
+		}
         
         // ADDED DEBUG MESSAGES
         show_debug_message("=== PATH: SUCCESS! Valid path found ===");
