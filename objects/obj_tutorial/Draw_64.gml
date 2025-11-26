@@ -15,8 +15,15 @@ draw_rectangle(cx - box_width/2, cy - box_height/2, cx + box_width/2, cy + box_h
 // 2. Draw Text
 draw_set_halign(fa_center);
 draw_set_valign(fa_middle);
+// --- Create Event of obj_tutorial ---
 
-// Title
+// FORCE TO FRONT
+// In GameMaker, lower depth means "closer to the camera".
+// -10000 is extremely close, ensuring it draws on top of the battle sprites.
+depth = -10000; 
+
+// ... The rest of your existing create code (tutorial_type, box_width, etc) ...
+
 draw_set_color(c_lime);
 draw_text_transformed(cx, cy - 60, text_title, 1.5, 1.5, 0);
 
