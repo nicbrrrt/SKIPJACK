@@ -82,18 +82,32 @@ if (pause_menu_state == "main")
     // EXIT
     draw_set_color(hover_exit ? c_yellow : c_white);
     draw_text(_x, _y3, "EXIT THE GAME");
+    
     if (hover_exit && _clicked)
     {
         audio_play_sound(snd_button_click, 10, false);
+        
+        // 1. Unpause everything FIRST (Important!)
+        // We cannot destroy objects if they are deactivated/frozen.
         instance_activate_all();
         audio_resume_all();
         global.is_paused = false;
+
+        // 2. KILL THE GHOSTS (The Fix)
+        // Since Jack is persistent, we must destroy him manually before going to the menu.
+        if (instance_exists(obj_jack)) instance_destroy(obj_jack);
+        if (instance_exists(obj_transition)) instance_destroy(obj_transition);
+        if (instance_exists(obj_warp)) instance_destroy(obj_warp);
+        if (instance_exists(obj_textevent)) instance_destroy(obj_textevent);
+
+        // 3. Reset Menu State
         pause_menu_state = "main";
         hovered_button = noone;
-        mouse_locked_until_release = true;
+        mouse_locked_until_release = true; // Lock mouse so we don't click "Play" instantly on menu
+        
+        // 4. Go to Menu
         room_goto(rm_menu);
     }
-}
 else if (pause_menu_state == "settings")
 {
     draw_set_font(fnt_title);
@@ -132,3 +146,4 @@ else if (pause_menu_state == "settings")
 draw_set_color(c_white);
 draw_set_halign(fa_left);
 draw_set_valign(fa_top);
+}

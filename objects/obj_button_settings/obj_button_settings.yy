@@ -8,8 +8,8 @@
   "name":"obj_button_settings",
   "overriddenProperties":[],
   "parent":{
-    "name":"Objects",
-    "path":"folders/Objects.yy",
+    "name":"Button",
+    "path":"folders/Objects/Button.yy",
   },
   "parentObjectId":{
     "name":"obj_button_master",

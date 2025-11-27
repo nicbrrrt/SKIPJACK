@@ -1,5 +1,9 @@
 // In o_transition's STEP Event
 
+if (mouse_check_button_pressed(mb_left)) {
+    show_debug_message("Clicked! Overlapping Transition? " + string(instance_exists(obj_transition)));
+}
+
 if (fade_mode == "fading_in")
 {
     fade_alpha = fade_alpha - fade_speed;

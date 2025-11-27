@@ -9,8 +9,8 @@
   "name":"obj_menu_title",
   "overriddenProperties":[],
   "parent":{
-    "name":"Objects",
-    "path":"folders/Objects.yy",
+    "name":"Game Objects",
+    "path":"folders/Objects/Game Objects.yy",
   },
   "parentObjectId":null,
   "persistent":false,
@@ -30,7 +30,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"spr_title_logo",
+    "path":"sprites/spr_title_logo/spr_title_logo.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

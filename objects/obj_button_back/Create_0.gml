@@ -1,4 +1,6 @@
 // --- Create Event for obj_button_master ---
+// Make the button draw ON TOP of everything (Lower depth = Closer)
+depth = -10000;
 
 // Stop the sprite from animating
 image_speed = 0;
