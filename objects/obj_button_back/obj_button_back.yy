@@ -9,7 +9,7 @@
   "name":"obj_button_back",
   "overriddenProperties":[],
   "parent":{
-    "name":"Button",
+    "name":"Objects",
     "path":"folders/Objects/Button.yy",
   },
   "parentObjectId":{
