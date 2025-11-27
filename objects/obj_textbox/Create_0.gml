@@ -8,8 +8,8 @@ up_key				= ord("W");		//for dialogue choices
 down_key			= ord("S");		//for dialogue choices
 
 scale				= 1;
-x_buffer			= 12 * scale;
-y_buffer			= 11 * scale;
+x_buffer			= 10 * scale;
+y_buffer			= 5 * scale;
 
 portrait_frame		= spr_portraitframe;
 dialogue_box		= spr_dialoguebox;
@@ -20,7 +20,7 @@ emote_sprite		= spr_emotes;
 choice_snd_effect	= snd_moveselect;
 select_snd_effect	= snd_select;
 
-default_col			= c_black;
+default_col			= c_white;
 choice_col			= c_yellow;
 select_col			= c_orange;
 name_col			= c_orange;

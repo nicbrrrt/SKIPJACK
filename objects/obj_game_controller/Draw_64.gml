@@ -13,17 +13,20 @@ var _clicked = mouse_check_button_pressed(mb_left) && !mouse_locked_until_releas
 
 // Dim background
 draw_set_alpha(0.7);
-draw_rectangle_color(0, 0, _screen_w, _screen_h, c_black, c_black, c_black, c_black, false);
+draw_set_color(c_black);
+draw_rectangle(0, 0, _screen_w, _screen_h, false);
 draw_set_alpha(1.0);
+draw_set_color(c_white);
 
 draw_set_font(fnt_button);
 draw_set_halign(fa_center);
 draw_set_valign(fa_middle);
 
-// Helper: reset hovered when switching states
-// (we will reset hovered when we actually switch, too)
 var _x = _screen_w / 2;
 
+// ============================================================
+// STATE: MAIN PAUSE MENU
+// ============================================================
 if (pause_menu_state == "main")
 {
     draw_set_font(fnt_title);
@@ -31,14 +34,14 @@ if (pause_menu_state == "main")
     draw_set_font(fnt_button);
 
     var _y1 = _screen_h * 0.5;      // Continue
-    var _y2 = _y1 + 50;            // Settings
-    var _y3 = _y2 + 50;            // Exit
+    var _y2 = _y1 + 50;             // Settings
+    var _y3 = _y2 + 50;             // Exit
 
     var hover_continue = point_in_rectangle(_mx, _my, _x - 100, _y1 - 20, _x + 100, _y1 + 20);
     var hover_settings = point_in_rectangle(_mx, _my, _x - 100, _y2 - 20, _x + 100, _y2 + 20);
     var hover_exit     = point_in_rectangle(_mx, _my, _x - 100, _y3 - 20, _x + 100, _y3 + 20);
 
-    // Hover sound only when hovered changes and button exists in this state
+    // Hover sound logic
     var current_hover = noone;
     if (hover_continue) current_hover = "continue";
     else if (hover_settings) current_hover = "settings";
@@ -54,7 +57,7 @@ if (pause_menu_state == "main")
         hovered_button = noone;
     }
 
-    // CONTINUE
+    // --- BUTTON: CONTINUE ---
     draw_set_color(hover_continue ? c_yellow : c_white);
     draw_text(_x, _y1, "CONTINUE");
     if (hover_continue && _clicked)
@@ -68,18 +71,18 @@ if (pause_menu_state == "main")
         mouse_locked_until_release = true;
     }
 
-    // SETTINGS
+    // --- BUTTON: SETTINGS ---
     draw_set_color(hover_settings ? c_yellow : c_white);
     draw_text(_x, _y2, "SETTINGS");
     if (hover_settings && _clicked)
     {
         audio_play_sound(snd_button_click, 10, false);
-        pause_menu_state = "settings";
-        hovered_button = noone;         // RESET hover so old button doesn't stay active
-        mouse_locked_until_release = true; // prevent carry-over of the same click
+        pause_menu_state = "settings"; // Switch state
+        hovered_button = noone;        
+        mouse_locked_until_release = true; 
     }
 
-    // EXIT
+    // --- BUTTON: EXIT ---
     draw_set_color(hover_exit ? c_yellow : c_white);
     draw_text(_x, _y3, "EXIT THE GAME");
     
@@ -87,27 +90,29 @@ if (pause_menu_state == "main")
     {
         audio_play_sound(snd_button_click, 10, false);
         
-        // 1. Unpause everything FIRST (Important!)
-        // We cannot destroy objects if they are deactivated/frozen.
+        // 1. Unpause everything first
         instance_activate_all();
         audio_resume_all();
         global.is_paused = false;
 
-        // 2. KILL THE GHOSTS (The Fix)
-        // Since Jack is persistent, we must destroy him manually before going to the menu.
+        // 2. Clean up persistent objects
         if (instance_exists(obj_jack)) instance_destroy(obj_jack);
         if (instance_exists(obj_transition)) instance_destroy(obj_transition);
         if (instance_exists(obj_warp)) instance_destroy(obj_warp);
         if (instance_exists(obj_textevent)) instance_destroy(obj_textevent);
 
-        // 3. Reset Menu State
+        // 3. Reset state and Go to Menu
         pause_menu_state = "main";
         hovered_button = noone;
-        mouse_locked_until_release = true; // Lock mouse so we don't click "Play" instantly on menu
-        
-        // 4. Go to Menu
+        mouse_locked_until_release = true;
         room_goto(rm_menu);
     }
+
+} // <--- THIS CLOSING BRACKET WAS MISSING!
+
+// ============================================================
+// STATE: SETTINGS MENU
+// ============================================================
 else if (pause_menu_state == "settings")
 {
     draw_set_font(fnt_title);
@@ -119,7 +124,7 @@ else if (pause_menu_state == "settings")
     var _y_back = _screen_h * 0.8;
     var hover_back = point_in_rectangle(_mx, _my, _x - 100, _y_back - 20, _x + 100, _y_back + 20);
 
-    // Hover sound (only for BACK, because only BACK is active in settings)
+    // Hover sound for Back button
     if (hover_back && hovered_button != "back")
     {
         audio_play_sound(snd_button_hover, 10, false);
@@ -130,15 +135,16 @@ else if (pause_menu_state == "settings")
         hovered_button = noone;
     }
 
+    // --- BUTTON: BACK ---
     draw_set_color(hover_back ? c_yellow : c_white);
     draw_text(_x, _y_back, "BACK");
 
     if (hover_back && _clicked)
     {
         audio_play_sound(snd_button_click, 10, false);
-        pause_menu_state = "main";  // return to main pause menu (not to rm_menu)
-        hovered_button = noone;     // reset
-        mouse_locked_until_release = true; // lock until release so we don't click the main menu immediately
+        pause_menu_state = "main";  // Go back to main pause menu
+        hovered_button = noone;     
+        mouse_locked_until_release = true;
     }
 }
 
@@ -146,4 +152,3 @@ else if (pause_menu_state == "settings")
 draw_set_color(c_white);
 draw_set_halign(fa_left);
 draw_set_valign(fa_top);
-}

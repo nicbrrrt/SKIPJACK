@@ -10,7 +10,8 @@ if (global.last_battle_id == battle_id && battle_id != "none") {
             active_dialogue = true;
             var _text = [
                 "Well that was easy",
-                "You know, for someone who's so academically challenged, you're pretty good at decrypting ciphers",
+                "You know, for someone who's so academically challenged,",
+				"You're pretty good at decrypting ciphers",
                 "Well, everyone has their specialti- Wait... WHAT DO YOU MEAN ACADEMICALLY CHALLENGED"
             ];
             // Ensure obj_npc2 exists in the room!
@@ -57,7 +58,7 @@ if (instance_exists(obj_jack)) {
                 
                 var _text = [
                     "I heard you needed help with something?",
-                    "Yeah, it's about the video game we made that simulates fighting real viruses!",
+                    "Yeah, it's about the video game we made!",
                     "Oh right! The game you made me test last time!",
                     "That's right! We need you to test it for us again! Is that okay?",
                     "Of course!",
