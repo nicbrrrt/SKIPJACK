@@ -45,13 +45,32 @@ if (keyboard_check_pressed(vk_enter)) {
     }
     
     if (answer == plaintext) {
-        show_debug_message("CIPHER SUCCESS! Decoded: " + answer);
-        with (obj_battle) {
-            event_user(1); // Notify battle system
+        // --- SUCCESS SEQUENCE ---
+        if (success_timer == 0) { // Only trigger once
+            text_color = c_lime;
+            status_msg = "ACCESS GRANTED";
+            // audio_play_sound(snd_success, 1, false); // Optional sound
+            success_timer = 60; // Wait 1 second (60 frames) before closing
         }
-        instance_destroy();
     } else {
-        show_debug_message("CIPHER FAILED! Expected: " + plaintext + " Got: " + answer);
-        // Optional: Add visual feedback like screen shake or red flash
+        // --- FAILURE SEQUENCE ---
+        shake_timer = 10; // Shake for 10 frames
+        text_color = c_red;
+        status_msg = "ERROR: INVALID KEY";
+        // audio_play_sound(snd_error, 1, false); // Optional sound
     }
 }
+
+// Handle the Success Delay
+if (success_timer > 0) {
+    success_timer--;
+    if (success_timer <= 0) {
+        // ACTUALLY FINISH THE GAME NOW
+        show_debug_message("CIPHER SUCCESS!");
+        with (obj_battle) event_user(1);
+        instance_destroy();
+    }
+}
+
+// Reduce shake over time
+if (shake_timer > 0) shake_timer--;
