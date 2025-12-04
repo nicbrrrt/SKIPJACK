@@ -25,16 +25,21 @@ if (keyboard_check_pressed(vk_escape))
     }
     else
     {
-        // --- PAUSE ---
-        if (instance_exists(obj_jack))
+        // --- PAUSE CONDITION FIX ---
+        // Allow pause if Jack exists OR if we are in a battle (even if Jack is hidden)
+        if (instance_exists(obj_jack) || instance_exists(obj_battle_scramble))
         {
             global.is_paused = true;
+            
+            // 1. Freeze everyone
             instance_deactivate_all(true); 
+            
+            // 2. Wake controller up
             instance_activate_object(id); 
-            audio_pause_all();
 
+            audio_pause_all();
             pause_menu_state = "main";
-            mouse_locked_until_release = true; 
+            mouse_locked_until_release = true;
         }
     }
 }

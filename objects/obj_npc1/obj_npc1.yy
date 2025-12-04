@@ -9,8 +9,8 @@
   "name":"obj_npc1",
   "overriddenProperties":[],
   "parent":{
-    "name":"Objects",
-    "path":"folders/Objects.yy",
+    "name":"Character Object",
+    "path":"folders/Objects/Character Object.yy",
   },
   "parentObjectId":{
     "name":"par_npc",

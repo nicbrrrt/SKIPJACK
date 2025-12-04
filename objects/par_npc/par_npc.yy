@@ -10,8 +10,8 @@
   "name":"par_npc",
   "overriddenProperties":[],
   "parent":{
-    "name":"Game Objects",
-    "path":"folders/Objects.yy",
+    "name":"Character Object",
+    "path":"folders/Objects/Character Object.yy",
   },
   "parentObjectId":{
     "name":"obj_wall",

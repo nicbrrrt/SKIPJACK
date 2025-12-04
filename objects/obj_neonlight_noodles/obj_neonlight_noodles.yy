@@ -8,8 +8,8 @@
   "name":"obj_neonlight_noodles",
   "overriddenProperties":[],
   "parent":{
-    "name":"Objects",
-    "path":"folders/Objects.yy",
+    "name":"Design",
+    "path":"folders/Objects/Design.yy",
   },
   "parentObjectId":{
     "name":"obj_designbuilding",

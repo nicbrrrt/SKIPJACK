@@ -135,16 +135,36 @@ else if (pause_menu_state == "settings")
         hovered_button = noone;
     }
 
-    // --- BUTTON: BACK ---
-    draw_set_color(hover_back ? c_yellow : c_white);
-    draw_text(_x, _y_back, "BACK");
-
-    if (hover_back && _clicked)
+    // --- BUTTON: EXIT ---
+    draw_set_color(hover_exit ? c_yellow : c_white);
+    draw_text(_x, _y3, "EXIT THE GAME");
+    
+    if (hover_exit && _clicked)
     {
+        // 1. Play click sound first (so you hear it)
         audio_play_sound(snd_button_click, 10, false);
-        pause_menu_state = "main";  // Go back to main pause menu
-        hovered_button = noone;     
+        
+        // 2. Unpause
+        instance_activate_all();
+        global.is_paused = false;
+
+        // 3. --- THE FIX: STOP ALL MUSIC ---
+        // This kills the battle music, ambient noise, footsteps, etc.
+        audio_stop_all(); 
+
+        // 4. Clean up persistent objects
+        if (instance_exists(obj_jack)) instance_destroy(obj_jack);
+        if (instance_exists(obj_transition)) instance_destroy(obj_transition);
+        if (instance_exists(obj_warp)) instance_destroy(obj_warp);
+        if (instance_exists(obj_textevent)) instance_destroy(obj_textevent);
+        // Also destroy the battle controller if it leaked out
+        if (instance_exists(obj_battle_scramble)) instance_destroy(obj_battle_scramble);
+
+        // 5. Reset state and Go to Menu
+        pause_menu_state = "main";
+        hovered_button = noone;
         mouse_locked_until_release = true;
+        room_goto(rm_menu);
     }
 }
 

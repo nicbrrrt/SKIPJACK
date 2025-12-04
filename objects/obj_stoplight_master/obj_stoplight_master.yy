@@ -13,8 +13,8 @@
   "name":"obj_stoplight_master",
   "overriddenProperties":[],
   "parent":{
-    "name":"Objects",
-    "path":"folders/Objects.yy",
+    "name":"Design",
+    "path":"folders/Objects/Design.yy",
   },
   "parentObjectId":{
     "name":"obj_wall",

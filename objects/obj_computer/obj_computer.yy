@@ -9,8 +9,8 @@
   "name":"obj_computer",
   "overriddenProperties":[],
   "parent":{
-    "name":"Objects",
-    "path":"folders/Objects.yy",
+    "name":"Design",
+    "path":"folders/Objects/Design.yy",
   },
   "parentObjectId":null,
   "persistent":false,

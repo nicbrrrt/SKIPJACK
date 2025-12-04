@@ -9,8 +9,8 @@
   "name":"obj_menu_title",
   "overriddenProperties":[],
   "parent":{
-    "name":"Game Objects",
-    "path":"folders/Objects.yy",
+    "name":"Design",
+    "path":"folders/Objects/Design.yy",
   },
   "parentObjectId":null,
   "persistent":false,

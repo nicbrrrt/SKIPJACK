@@ -6,8 +6,8 @@
   "name":"obj_wall",
   "overriddenProperties":[],
   "parent":{
-    "name":"Objects",
-    "path":"folders/Objects.yy",
+    "name":"Game Object Controls",
+    "path":"folders/Objects/Game Object Controls.yy",
   },
   "parentObjectId":null,
   "persistent":false,

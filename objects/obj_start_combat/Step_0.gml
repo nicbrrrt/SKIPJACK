@@ -10,8 +10,7 @@ if (global.last_battle_id == battle_id && battle_id != "none") {
             active_dialogue = true;
             var _text = [
                 "Well that was easy",
-                "You know, for someone who's so academically challenged,",
-				"You're pretty good at decrypting ciphers",
+                "You're pretty good at decrypting ciphers",
                 "Well, everyone has their specialti- Wait... WHAT DO YOU MEAN ACADEMICALLY CHALLENGED"
             ];
             // Ensure obj_npc2 exists in the room!
