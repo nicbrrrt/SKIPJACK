@@ -40,37 +40,25 @@ questions = [
     { word: "SPYWARE",  hint: "Software that gathers info without consent." }
 ];
 
-// --- 4. START DELAY ---
-// We trigger the start in 1 frame to let the Camera setup finish first.
-alarm[0] = 1;
+// --- 4. FUNCTION DEFINITIONS (Moved here to prevent Duplicate Error) ---
 
-// --- 5. FUNCTION: CREATE BUTTONS (Fixed Coordinates) ---
+// Function to Create Buttons (With Orbit Logic)
 function create_buttons(_chars_array) {
-   // Get the Camera Size (Since we forced it in Room Start)
-    var _cam_x = camera_get_view_x(view_camera[0]);
-    var _cam_y = camera_get_view_y(view_camera[0]);
-    var _cam_w = camera_get_view_width(view_camera[0]);
-    var _cam_h = camera_get_view_height(view_camera[0]);
-    
-    var _spacing = 80; 
-    var _total_width = array_length(_chars_array) * _spacing;
-    
-    // Center Buttons in the Camera View
-    var _start_x = _cam_x + (_cam_w / 2) - (_total_width / 2);
-    var _y_pos = _cam_y + _cam_h - 100; // 100 pixels from bottom
+    var _count = array_length(_chars_array);
+    var _angle_step = 360 / _count; 
 
-    for(var i=0; i<array_length(_chars_array); i++) {
-        // Create at depth -15000 so they are ON TOP of the black UI box
-        var _inst = instance_create_depth(_start_x + (i*_spacing), _y_pos, -15000, obj_battle_button);
+    for(var i=0; i<_count; i++) {
+        var _inst = instance_create_depth(0, 0, -15000, obj_battle_button);
         _inst.my_char = _chars_array[i];
         
-        // Ensure they have a size
+        // Custom variables for orbit
+        _inst.orbit_angle_offset = i * _angle_step; 
         _inst.image_xscale = 1; 
         _inst.image_yscale = 1;
     }
 }
 
-// --- 6. FUNCTION: LOAD NEXT ---
+// Function to Load Next Puzzle
 function load_next_puzzle() {
     randomize();
     var _pick = questions[irandom(array_length(questions)-1)];
@@ -93,4 +81,15 @@ function load_next_puzzle() {
     battle_state = "player_input";
 }
 
-load_next_puzzle();
+// --- 5. START DELAY ---
+// Trigger the start in 1 frame
+alarm[0] = 1;
+
+// --- POSITION SETTINGS ---
+// 0.65 = 65% down the screen (The Ground Level)
+base_y_level = 360 * 0.65; 
+
+// MANUAL NUDGE: Change this to move the Orbit Circle UP or DOWN
+// Positive = Move Circle Down
+// Negative = Move Circle Up
+orbit_y_nudge = -45;

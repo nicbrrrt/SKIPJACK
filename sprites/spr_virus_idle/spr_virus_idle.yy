@@ -26,7 +26,7 @@
   ],
   "name":"spr_virus_idle",
   "nineSlice":null,
-  "origin":7,
+  "origin":9,
   "parent":{
     "name":"Enemy Sprite",
     "path":"folders/Sprites/Enemy Sprite.yy",
@@ -88,7 +88,7 @@
     "visibleRange":null,
     "volume":1.0,
     "xorigin":32,
-    "yorigin":64,
+    "yorigin":50,
   },
   "swatchColours":null,
   "swfPrecision":0.5,

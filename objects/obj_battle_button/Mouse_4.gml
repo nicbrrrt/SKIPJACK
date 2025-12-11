@@ -1,29 +1,16 @@
-audio_play_sound(snd_button_click, 10, false);
+// --- LEFT PRESSED EVENT ---
 
-if (instance_exists(obj_battle_scramble)) 
+// Only click if we are visible and the game is ready for input
+if (visible && instance_exists(obj_battle_scramble) && obj_battle_scramble.battle_state == "player_input") 
 {
-    // Send letter to manager
+    audio_play_sound(snd_button_click, 10, false);
+
+    // 1. Tell the manager we selected this letter
     obj_battle_scramble.player_guess += my_char;
     
-    // Check Answer Logic
-    with (obj_battle_scramble) 
-    {
-        if (string_length(player_guess) >= string_length(target_word)) 
-        {
-            if (player_guess == target_word) {
-                // WIN ROUND
-                audio_play_sound(snd_correct_ping, 10, false);
-                battle_state = "player_attack"; 
-                timer = 0; 
-                with(obj_battle_button) instance_destroy();
-            } else {
-                // WRONG ANSWER
-                audio_play_sound(snd_error, 10, false);
-                battle_state = "enemy_turn"; 
-                timer = 0;
-                with(obj_battle_button) instance_destroy();
-            }
-        }
-    }
+    // 2. Hide this button (Don't destroy it!)
+    visible = false;
+    
+    // 3. Trigger the Check (We do this in the controller now)
+    with (obj_battle_scramble) event_user(0); 
 }
-instance_destroy(); // Destroy this button
