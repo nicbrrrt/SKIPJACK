@@ -1,16 +1,14 @@
 // --- Room Start Event for obj_jack ---
 
-// Check if we are entering Level 1
+// 1. RE-SCAN FOR COLLISION LAYER
+// In every room, make sure your wall tile layer is named "Collision"
+my_tilemap = layer_tilemap_get_id("Collision");
+
+// 2. GREG TELEPORT LOGIC
 if (room == rm_level_1) {
-    // Check if the target variables have been set to a valid position
     if (variable_global_exists("target_x") && global.target_x != -1) {
-        
         x = global.target_x;
         y = global.target_y;
-        
-        // Reset the variable so you don't teleport every time you enter the room
         global.target_x = -1; 
-        
-        show_debug_message("JACK: Teleport successful to " + string(x) + "," + string(y));
     }
 }
