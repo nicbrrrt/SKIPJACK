@@ -1,4 +1,4 @@
-// In o_transition's CREATE Event
+// CREATE
 
 fade_mode = "fading_in";
 fade_speed = 0.01; // Slower!

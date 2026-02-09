@@ -2,6 +2,12 @@
 randomize();
 global.game_volume = 1;
 global.is_paused = false;
+global.level1_intro_done = false;
+
+global.greg_target_x = -1;
+global.greg_target_y = -1;
+
+global.greg_boss_talked = false;
 
 // --- Room & Story Progress ---
 global.tutorial_complete = false; // Starts as false every new game

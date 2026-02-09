@@ -1,3 +1,4 @@
+//STEP
 // --- 1. Check if mouse is over the button ---
 var _mouse_x = mouse_x;
 var _mouse_y = mouse_y;

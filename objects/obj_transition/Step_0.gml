@@ -1,4 +1,4 @@
-// In o_transition's STEP Event
+//STEP
 
 if (mouse_check_button_pressed(mb_left)) {
     show_debug_message("Clicked! Overlapping Transition? " + string(instance_exists(obj_transition)));

@@ -1,3 +1,16 @@
+// CREATE
+
+display_text = ""; // Prevents "Variable not set" error
+
+// --- TOP OF CREATE EVENT ---
+display_text = ""; // <--- THE FIX: Initialize this so the game doesn't crash
+// ---------------------------
+
+// Rest of your visuals...
+box_width = 50;
+box_height = 50;
+
+// ... (Rest of your hold-delay code) ...
 
 // Visuals
 box_width = 50;

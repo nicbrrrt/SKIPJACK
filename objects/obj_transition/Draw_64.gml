@@ -1,4 +1,4 @@
-// In o_transition's DRAW GUI Event
+// DRAW GUI
 
 // Only draw the overlay if it's not fully invisible
 if (fade_alpha > 0)
