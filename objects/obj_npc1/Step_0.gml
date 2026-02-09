@@ -119,8 +119,11 @@ if (room == rm_level_1) {
         }
     }
 
-    // ACTUALLY START COMBAT
-    if (global.last_battle_id == "greg_boss" && !instance_exists(obj_textevent)) {
-        room_goto(rm_combat);
-    }
+    // --- ACTUALLY START JRPG COMBAT ---
+    // --- Bottom of obj_npc1 Step Event ---
+	if (global.last_battle_id == "greg_boss" && !instance_exists(obj_textevent)) {
+	    global.battle_active = true; 
+	    global.is_jrpg = true; // <--- THE KEY: Tell the controller this is JRPG
+	    room_goto(rm_combat);
+	}
 }

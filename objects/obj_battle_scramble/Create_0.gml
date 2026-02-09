@@ -4,21 +4,32 @@ if (!instance_exists(obj_game_controller)) {
     gpu_set_texfilter(false); 
 }
 
-// Hide Jack
+// Hide Jack while in the JRPG screen
 if (instance_exists(obj_jack)) instance_deactivate_object(obj_jack);
 
-// Audio
+// Audio Setup
 audio_stop_all();
 audio_play_sound(snd_battle_music, 10, true);
 
-// --- 2. BATTLE VARIABLES ---
+// --- 2. BATTLE VARIABLES (DYNAMIC SETUP) ---
 player_sprite = spr_jack_battle;
-enemy_sprite  = spr_virus_idle;
 image_speed   = 0.15;
 
-max_hp_player = 100; current_hp_player = 100;
-max_hp_enemy = 100;  current_hp_enemy = 100;
+max_hp_player = 100; 
+current_hp_player = 100;
 
+// Check if this is a Boss Fight or a Regular Virus
+if (global.last_battle_id == "greg_boss") {
+    enemy_sprite = spr_npc1_idle; // Use Greg's sprite
+    max_hp_enemy = 200;           // Boss Health
+    current_hp_enemy = 200;
+} else {
+    enemy_sprite = spr_virus_idle; // Normal Virus
+    max_hp_enemy = 100;            // Normal Health
+    current_hp_enemy = 100;
+}
+
+// Animation & Feedback variables
 shake_magnitude = 0;
 enemy_flash_timer = 0;
 player_flash_timer = 0;
@@ -32,6 +43,7 @@ target_word = "";
 current_hint = "";
 player_guess = "";
 
+// The Questions Database
 questions = [
     { word: "TROJAN",   hint: "Malware disguised as real software." },
     { word: "PHISHING", hint: "Fraudulent emails stealing data." },
@@ -40,9 +52,9 @@ questions = [
     { word: "SPYWARE",  hint: "Software that gathers info without consent." }
 ];
 
-// --- 4. FUNCTION DEFINITIONS (Moved here to prevent Duplicate Error) ---
+// --- 4. FUNCTION DEFINITIONS ---
 
-// Function to Create Buttons (With Orbit Logic)
+// Creates the orbiting letter buttons
 function create_buttons(_chars_array) {
     var _count = array_length(_chars_array);
     var _angle_step = 360 / _count; 
@@ -51,14 +63,14 @@ function create_buttons(_chars_array) {
         var _inst = instance_create_depth(0, 0, -15000, obj_battle_button);
         _inst.my_char = _chars_array[i];
         
-        // Custom variables for orbit
+        // Custom variables for the orbit math in the Step Event
         _inst.orbit_angle_offset = i * _angle_step; 
         _inst.image_xscale = 1; 
         _inst.image_yscale = 1;
     }
 }
 
-// Function to Load Next Puzzle
+// Picks a new word and starts the round
 function load_next_puzzle() {
     randomize();
     var _pick = questions[irandom(array_length(questions)-1)];
@@ -67,9 +79,11 @@ function load_next_puzzle() {
     player_guess = "";
     
     var _chars = [];
-    for(var i=1; i<=string_length(target_word); i++) array_push(_chars, string_char_at(target_word, i));
+    for(var i=1; i<=string_length(target_word); i++) {
+        array_push(_chars, string_char_at(target_word, i));
+    }
     
-    // Shuffle
+    // Shuffle the letters so it's a scramble
     for (var i = array_length(_chars) - 1; i > 0; i--) {
         var j = irandom(i);
         var temp = _chars[i];
@@ -81,15 +95,11 @@ function load_next_puzzle() {
     battle_state = "player_input";
 }
 
-// --- 5. START DELAY ---
-// Trigger the start in 1 frame
-alarm[0] = 1;
+// --- 5. START DELAY & POSITIONING ---
+alarm[0] = 1; // Wait 1 frame before loading the first puzzle
 
-// --- POSITION SETTINGS ---
-// 0.65 = 65% down the screen (The Ground Level)
+// Ground level for characters
 base_y_level = 360 * 0.65; 
 
-// MANUAL NUDGE: Change this to move the Orbit Circle UP or DOWN
-// Positive = Move Circle Down
-// Negative = Move Circle Up
+// Manual Nudge for the button orbit (Negative = Up)
 orbit_y_nudge = -45;

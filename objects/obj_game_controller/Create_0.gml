@@ -9,6 +9,8 @@ global.greg_target_y = -1;
 
 global.greg_boss_talked = false;
 
+global.is_jrpg = false;
+
 // --- Room & Story Progress ---
 global.tutorial_complete = false; // Starts as false every new game
 global.return_room = rm_menu;

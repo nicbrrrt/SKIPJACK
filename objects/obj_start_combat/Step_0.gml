@@ -75,10 +75,14 @@ if (instance_exists(obj_jack)) {
     }
 }
 
-// 3. TRANSITION TO BATTLE
+// 3. TRANSITION TO BATTLE (UPDATED FOR JRPG COMPATIBILITY)
 if (active_dialogue == true && !instance_exists(obj_textevent) && global.last_battle_id == "none") {
     active_dialogue = false;
     global.last_battle_id = battle_id; 
     global.return_room = room;
+    
+    // --- THE FIX: Explicitly tell the game this IS NOT a JRPG fight ---
+    global.is_jrpg = false; 
+    
     room_goto(rm_combat);
 }

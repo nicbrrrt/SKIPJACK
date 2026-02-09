@@ -211,22 +211,19 @@ else if (battle_state == "lose") {
 else if (battle_state == "win") {
     timer++;
     if (timer == 1) { 
-        audio_stop_sound(snd_battle_music); // <--- STOP THE LOOP
+        audio_stop_sound(snd_battle_music);
         audio_play_sound(snd_die_monster, 10, false); 
-        if (sprite_exists(spr_enemy_death)) enemy_sprite = spr_enemy_death; 
-        image_index = 0; 
+        // ... death sprite logic ...
     }
+    
     if (timer > 120) { 
         instance_activate_object(obj_jack); 
+        
+        // --- NEW: Reset Greg's battle ID so he doesn't loop ---
+        global.last_battle_id = "none";
+        global.battle_result = "win";
+        
         instance_destroy(); 
         room_goto(rm_level_1); 
     }
-}
-else if (battle_state == "lose") {
-    timer++;
-    if (timer == 1) {
-        audio_stop_sound(snd_battle_music); // <--- STOP THE LOOP
-        audio_play_sound(snd_die, 10, false);
-    }
-    if (timer > 120) game_restart();
 }
