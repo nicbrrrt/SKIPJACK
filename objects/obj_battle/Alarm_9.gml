@@ -1,3 +1,6 @@
-// Return to main room after battle conclusion
-show_debug_message("Returning to main room...");
-room_goto(rm_main); // Change this to your main room name
+/// Alarm 9 - Battle Conclusion
+if (room_exists(global.return_room)) {
+    room_goto(global.return_room);
+} else {
+    room_goto(rm_hallway); 
+}

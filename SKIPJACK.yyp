@@ -54,7 +54,7 @@
   "isEcma":false,
   "LibraryEmitters":[],
   "MetaData":{
-    "IDEVersion":"2024.14.1.210",
+    "IDEVersion":"2024.14.3.217",
   },
   "name":"SKIPJACK",
   "resources":[
@@ -87,6 +87,7 @@
     {"id":{"name":"obj_checkbox_fullscreen","path":"objects/obj_checkbox_fullscreen/obj_checkbox_fullscreen.yy",},},
     {"id":{"name":"obj_cipher","path":"objects/obj_cipher/obj_cipher.yy",},},
     {"id":{"name":"obj_clipper","path":"objects/obj_clipper/obj_clipper.yy",},},
+    {"id":{"name":"obj_codex_manager","path":"objects/obj_codex_manager/obj_codex_manager.yy",},},
     {"id":{"name":"obj_computer","path":"objects/obj_computer/obj_computer.yy",},},
     {"id":{"name":"obj_cutscene_intro","path":"objects/obj_cutscene_intro/obj_cutscene_intro.yy",},},
     {"id":{"name":"obj_damage_text","path":"objects/obj_damage_text/obj_damage_text.yy",},},
@@ -141,6 +142,7 @@
     {"id":{"name":"reset_dialogue_defaults","path":"scripts/reset_dialogue_defaults/reset_dialogue_defaults.yy",},},
     {"id":{"name":"scr_caesar_decode","path":"scripts/scr_caesar_decode/scr_caesar_decode.yy",},},
     {"id":{"name":"scr_caesar_encode","path":"scripts/scr_caesar_encode/scr_caesar_encode.yy",},},
+    {"id":{"name":"scr_init_npc_vars","path":"scripts/scr_init_npc_vars/scr_init_npc_vars.yy",},},
     {"id":{"name":"scr_path_maps","path":"scripts/scr_path_maps/scr_path_maps.yy",},},
     {"id":{"name":"scr_random_letters","path":"scripts/scr_random_letters/scr_random_letters.yy",},},
     {"id":{"name":"script_execute_alt","path":"scripts/script_execute_alt/script_execute_alt.yy",},},

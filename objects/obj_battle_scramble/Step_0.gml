@@ -206,3 +206,27 @@ else if (battle_state == "lose") {
     if (timer == 1) audio_play_sound(snd_die, 10, false);
     if (timer > 120) game_restart();
 }
+// ... existing state logic ...
+
+else if (battle_state == "win") {
+    timer++;
+    if (timer == 1) { 
+        audio_stop_sound(snd_battle_music); // <--- STOP THE LOOP
+        audio_play_sound(snd_die_monster, 10, false); 
+        if (sprite_exists(spr_enemy_death)) enemy_sprite = spr_enemy_death; 
+        image_index = 0; 
+    }
+    if (timer > 120) { 
+        instance_activate_object(obj_jack); 
+        instance_destroy(); 
+        room_goto(rm_level_1); 
+    }
+}
+else if (battle_state == "lose") {
+    timer++;
+    if (timer == 1) {
+        audio_stop_sound(snd_battle_music); // <--- STOP THE LOOP
+        audio_play_sound(snd_die, 10, false);
+    }
+    if (timer > 120) game_restart();
+}

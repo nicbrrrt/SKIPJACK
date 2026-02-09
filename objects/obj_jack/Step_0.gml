@@ -1,6 +1,18 @@
+// --- Top of Step Event for obj_jack ---
 depth = -y;
 
+// THE GHOST FIX: Hide Jack when in the combat room
+if (room == rm_combat) {
+    visible = false;
+    exit; // Stop all logic while in battle
+} else {
+    visible = true;
+}
+// --------------------------------------
+
 var can_move = true;
+
+// ... (Rest of your existing code: isInCutscene check, keyboard input, etc.) ...
 
 // Only run movement, collision, animation, and interaction code if NOT in a cutscene
 // Freeze if in cutscene OR if a transition exists OR if battle is active
