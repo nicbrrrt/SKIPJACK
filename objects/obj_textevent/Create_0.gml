@@ -15,3 +15,5 @@ myName			= "Jack";
 //-----------Setup (LEAVE THIS STUFF)
 myTextbox   = noone;
 reset_dialogue_defaults();
+
+destroy_action = -1; // -1 means "Do nothing when destroyed"

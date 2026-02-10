@@ -16,12 +16,37 @@ var _h = 360;
 
 // --- 1. ENEMY (Left) ---
 var _enemy_x = (_w * 0.25) + enemy_x_offset; 
-// Use the variable we made in Create Event
 var _enemy_y = base_y_level; 
 
-if (enemy_flash_timer > 0) { enemy_flash_timer--; gpu_set_fog(true, c_red, 0, 0); }
-draw_sprite_ext(enemy_sprite, -1, _enemy_x, _enemy_y, 3.5, 3.5, 0, c_white, 1);
+// Visual Logic for the Death Sequence
+var _alpha = 1;
+var _color = c_white;
+
+if (battle_state == "win") {
+    // Red tint and rapid flickering
+    _color = c_red;
+    _alpha = (timer % 2 == 0) ? 0.8 : 0.2; 
+    
+    // Add a final "White Flash" at the very end
+    if (timer > 130) {
+        gpu_set_fog(true, c_white, 0, 0);
+        _alpha = 1;
+    }
+}
+
+// Flash when hit (your existing logic)
+if (enemy_flash_timer > 0) { 
+    enemy_flash_timer--; 
+    gpu_set_fog(true, c_red, 0, 0); 
+}
+
+draw_sprite_ext(enemy_sprite, -1, _enemy_x, _enemy_y, 3.5, 3.5, 0, _color, _alpha);
 gpu_set_fog(false, c_white, 0, 0);
+
+// Only draw healthbar if he's still alive
+if (battle_state != "win") {
+    draw_healthbar(_enemy_x - 40, _enemy_y - 90, _enemy_x + 40, _enemy_y - 80, (current_hp_enemy/max_hp_enemy)*100, c_black, c_red, c_green, 0, true, true);
+}
 
 // Healthbar
 draw_healthbar(_enemy_x - 40, _enemy_y - 90, _enemy_x + 40, _enemy_y - 80, (current_hp_enemy/max_hp_enemy)*100, c_black, c_red, c_green, 0, true, true);

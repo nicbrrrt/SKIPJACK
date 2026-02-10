@@ -1,5 +1,16 @@
 /// Step Event - obj_game_controller
 
+// --- JRPG ROOM TRANSITION HANDLER ---
+if (room == rm_level_1 && global.last_battle_id == "greg_boss") {
+    if (!instance_exists(obj_textevent)) {
+        // Reset the ID so it doesn't loop, then TELEPORT
+        global.last_battle_id = "none"; 
+        global.is_jrpg = true;
+        room_goto(rm_battle_scramble);
+        show_debug_message("CONTROLLER: Teleporting to JRPG Battle.");
+    }
+}
+
 // 1. MOUSE LOCK LOGIC
 if (mouse_locked_until_release)
 {

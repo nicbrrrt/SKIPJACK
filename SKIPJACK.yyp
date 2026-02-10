@@ -72,6 +72,7 @@
     {"id":{"name":"obj_barrier","path":"objects/obj_barrier/obj_barrier.yy",},},
     {"id":{"name":"obj_battle_button","path":"objects/obj_battle_button/obj_battle_button.yy",},},
     {"id":{"name":"obj_battle_scramble","path":"objects/obj_battle_scramble/obj_battle_scramble.yy",},},
+    {"id":{"name":"obj_battle_trigger","path":"objects/obj_battle_trigger/obj_battle_trigger.yy",},},
     {"id":{"name":"obj_battle","path":"objects/obj_battle/obj_battle.yy",},},
     {"id":{"name":"obj_board","path":"objects/obj_board/obj_board.yy",},},
     {"id":{"name":"obj_building_1","path":"objects/obj_building_1/obj_building_1.yy",},},
@@ -265,9 +266,9 @@
   "resourceVersion":"2.0",
   "RoomOrderNodes":[
     {"roomId":{"name":"rm_menu","path":"rooms/rm_menu/rm_menu.yy",},},
-    {"roomId":{"name":"rm_battle_scramble","path":"rooms/rm_battle_scramble/rm_battle_scramble.yy",},},
     {"roomId":{"name":"rm_settings","path":"rooms/rm_settings/rm_settings.yy",},},
     {"roomId":{"name":"rm_level_1","path":"rooms/rm_level_1/rm_level_1.yy",},},
+    {"roomId":{"name":"rm_battle_scramble","path":"rooms/rm_battle_scramble/rm_battle_scramble.yy",},},
     {"roomId":{"name":"rm_cutscene_lab","path":"rooms/rm_cutscene_lab/rm_cutscene_lab.yy",},},
     {"roomId":{"name":"rm_hallway","path":"rooms/rm_hallway/rm_hallway.yy",},},
     {"roomId":{"name":"rm_combat","path":"rooms/rm_combat/rm_combat.yy",},},

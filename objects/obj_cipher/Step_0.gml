@@ -74,3 +74,11 @@ if (success_timer > 0) {
 
 // Reduce shake over time
 if (shake_timer > 0) shake_timer--;
+
+// DEBUG: Press 'P' to auto-solve (Only for testing!)
+if (keyboard_check_pressed(ord("P"))) {
+    for (var i = 0; i < letters_len; i++) {
+        player_input[i] = string_char_at(plaintext, i + 1);
+    }
+    show_debug_message("DEBUG: Cipher auto-filled.");
+}
