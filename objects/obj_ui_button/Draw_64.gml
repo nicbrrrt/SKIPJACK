@@ -3,6 +3,8 @@
 // 1. Only show if Breado has given the Codex
 if (!global.tutorial_complete) exit;
 
+if (room == rm_combat || room == rm_battle_scramble) exit;
+
 draw_set_alpha(1);
 
 // 2. POSITION & SETTINGS

@@ -3,7 +3,10 @@ if (instance_exists(obj_textevent)) exit;
 // NEW: Post-Battle Dialogue
 if (global.last_battle_id == "clipper_review_defeated") {
     create_textevent(["You got lucky, kid. Your encryption logic was... adequate.", "The sector's stabilizing. Good work."], [id, id]);
-    exit;
+    
+	global.last_battle_id = "none";
+	
+	exit;
 }
 
 if (!global.cryptography_learned) {
