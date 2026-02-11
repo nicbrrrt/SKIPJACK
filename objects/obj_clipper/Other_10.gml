@@ -11,7 +11,7 @@ if (global.last_battle_id == "clipper_review_defeated") {
 
 if (!global.cryptography_learned) {
     // Phase 1: Lesson
-    create_textevent(["I've updated your tablet.", "Go fuck off and study (Press C)."], [id, id]);
+    create_textevent(["I've updated your tablet.", "Go get lost and study (Press C)."], [id, id]);
     
     // This now works because the manager is persistent!
     if (instance_exists(obj_codex_manager)) {
