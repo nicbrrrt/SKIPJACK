@@ -114,6 +114,7 @@
     {"id":{"name":"obj_player1","path":"objects/obj_player1/obj_player1.yy",},},
     {"id":{"name":"obj_player2","path":"objects/obj_player2/obj_player2.yy",},},
     {"id":{"name":"obj_qte","path":"objects/obj_qte/obj_qte.yy",},},
+    {"id":{"name":"obj_save_manager","path":"objects/obj_save_manager/obj_save_manager.yy",},},
     {"id":{"name":"obj_settings_parent","path":"objects/obj_settings_parent/obj_settings_parent.yy",},},
     {"id":{"name":"obj_start_combat","path":"objects/obj_start_combat/obj_start_combat.yy",},},
     {"id":{"name":"obj_stoplight_left","path":"objects/obj_stoplight_left/obj_stoplight_left.yy",},},
