@@ -28,27 +28,29 @@ if (instance_exists(obj_jack)) {
     obj_jack.visible = true;
 }
 
-if (room == rm_level_1) {
-    // 1. CODEX UPDATE: Only do this once
-    if (!global.level1_intro_done) {
-        // Add new definitions to your codex system here
-        // Example: ds_list_add(global.codex_list, "Phishing", "Spyware", "Botnets");
-        
-        // 2. TRIGGER THE INTRO DIALOGUE
-        // We use a slight delay or find Greg to speak
-        var _greg = instance_find(obj_npc1, 0);
-        if (_greg != noone) {
-            with (_greg) {
-                create_textevent([
-                    "Welcome to the streets, Jack.",
-                    "The system out here is crawling with malware. It's dangerous.",
-                    "I've updated your Codex with definitions for Phishing, Spyware, and Botnets.",
-                    "Come find me when you're ready to clear the sector."
-                ], [id, id, id, id]);
-            }
+if (room == rm_level_1 && !global.level1_intro_done) {
+    // 1. Find the Manager and UNLOCK it
+    if (instance_exists(obj_codex_manager)) {
+        with(obj_codex_manager) {
+            unlocked = true; 
+            // Breado's Data:
+            add_module("MALWARE 101", "PHISHING: Fake emails used to steal data.\nBOTNET: A network of hijacked computers.\nSPYWARE: Software that tracks you in secret.");
         }
-        global.level1_intro_done = true; // Lock this so it doesn't repeat
     }
+    
+    // 2. Trigger the Intro Dialogue
+    var _npc = instance_find(obj_npc1, 0); // Greg/Breado
+    if (_npc != noone) {
+        with (_npc) {
+            create_textevent([
+                "Welcome to the streets, Jack.",
+                "I've uploaded the malware basics to your tablet. Check it with 'C'.",
+                "Find Clipper and Lea to continue your training."
+            ], [id, id, id]);
+        }
+    }
+    global.level1_intro_done = true;
+    global.tutorial_complete = true; // VERY IMPORTANT: Jack checks this for the 'C' key!
 }
 
 // Keep your existing rm_battle_scramble logic below this...
@@ -71,4 +73,14 @@ if (variable_global_exists("is_loading_from_save") && global.is_loading_from_sav
         obj_jack.isInCutscene = false; // Ensure he isn't frozen
     }
     global.is_loading_from_save = false; // Reset the flag
+}
+
+// --- DYNAMIC NPC SPAWN ---
+if (room == rm_level_1 && global.level1_intro_done) {
+    if (!instance_exists(obj_lea)) {
+        instance_create_depth(236, 28, -100, obj_lea);
+    }
+    if (!instance_exists(obj_clipper)) {
+        instance_create_depth(728, 376, -100, obj_clipper);
+    }
 }

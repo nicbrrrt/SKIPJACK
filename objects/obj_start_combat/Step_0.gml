@@ -9,14 +9,23 @@ if (global.last_battle_id == battle_id && battle_id != "none") {
             active_dialogue = true;
             global.tutorial_complete = true; 
 
+            // --- THE CODEX INJECTION ---
+            // We do this immediately so the data is ready when the player finishes reading
+            if (instance_exists(obj_codex_manager)) {
+                with(obj_codex_manager) {
+                    unlocked = true; 
+                    add_module("MALWARE 101", "PHISHING: Fake emails used to steal data.\nBOTNET: A network of hijacked computers.\nSPYWARE: Software that tracks you in secret.");
+                }
+            }
+
             // --- RESTORED ORIGINAL DIALOGUE ---
             var _text = [
                 "Well that was easy",
                 "You're pretty good at decrypting ciphers for someone who's academically challenged",
-                "Well, everyone has their specialti- Wait... WHAT DO YOU MEAN ACADEMICALLY CHALLENGED",
+                "Wait... WHAT DO YOU MEAN ACADEMICALLY CHALLENGED",
                 "Anyway, I just got this for you.",
-                "It's a Codex. I've uploaded Module 1 into it. It contains everything we just went over.",
-                "Go review it. When you're ready, find Greg at the end of the hall.",
+                "It's a Codex. I've uploaded Module 1 into it.",
+                "Go review it (Press C). When you're ready, find Greg.",
                 "If you can beat him, he'll show you the way out. Good luck!"
             ];
             create_textevent(_text, [obj_jack, id, obj_jack, id, id, id, id]);
@@ -27,7 +36,6 @@ if (global.last_battle_id == battle_id && battle_id != "none") {
                 y = 976;
                 isChallenger = true; 
                 battle_id = "greg_fight";
-                show_debug_message("SYSTEM: Greg moved to Hallway position.");
             }
         }
     }

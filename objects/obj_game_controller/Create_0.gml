@@ -1,4 +1,7 @@
 // --- Basic Game Settings ---
+
+display_set_gui_size(640, 360);
+
 randomize();
 global.game_volume = 1;
 global.is_paused = false;

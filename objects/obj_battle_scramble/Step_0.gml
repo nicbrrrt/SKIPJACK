@@ -155,15 +155,18 @@ else if (battle_state == "win") {
 
     // 3. THE TRANSITION
     // After 2.5 seconds (150 frames) of exploding, finally leave
-    if (timer > 150) {
-        // RESET GREG'S FLAGS
-        global.last_battle_id = "none";
-        global.battle_result = "win";
-        global.is_jrpg = false;
-        global.greg_defeated = true; // Mark him as dead in the world!
+	if (timer > 150) {
+    // 1. Tell the NPCs they lost
+    if (global.last_battle_id == "clipper_review") global.clipper_defeated = true;
+    if (global.last_battle_id == "lea_review")     global.lea_defeated = true;
+    
+    // 2. Standard handshake
+    global.last_battle_id = global.last_battle_id + "_defeated"; 
+    global.battle_result = "win";
+    global.is_jrpg = false;
 
-        instance_activate_object(obj_jack);
-        instance_destroy();
-        room_goto(rm_level_1);
-    }
+    instance_activate_all(); 
+    room_goto(rm_level_1);
+    instance_destroy(); 
+	}
 }

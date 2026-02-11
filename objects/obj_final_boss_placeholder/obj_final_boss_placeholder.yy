@@ -1,16 +1,13 @@
 {
   "$GMObject":"",
-  "%Name":"obj_codex_menu",
-  "eventList":[
-    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":3,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
-    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":64,"eventType":8,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
-  ],
+  "%Name":"obj_final_boss_placeholder",
+  "eventList":[],
   "managed":true,
-  "name":"obj_codex_menu",
+  "name":"obj_final_boss_placeholder",
   "overriddenProperties":[],
   "parent":{
-    "name":"Objects",
-    "path":"folders/Objects.yy",
+    "name":"Character Object",
+    "path":"folders/Objects/Character Object.yy",
   },
   "parentObjectId":null,
   "persistent":false,
@@ -30,7 +27,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"Sprite87",
+    "path":"sprites/Sprite87/Sprite87.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

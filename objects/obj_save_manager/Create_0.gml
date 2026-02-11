@@ -22,6 +22,13 @@ function save_game() {
     var _file = file_text_open_write(global.save_path);
     file_text_write_string(_file, _json);
     file_text_close(_file);
+	
+	var _save_data = {
+    // ... previous data ...
+    clipper_done: global.quest_clipper_done,
+    lea_done: global.quest_lea_done,
+    boss_spawned: global.boss_spawned
+	};
     
     show_debug_message("SYSTEM: Save successful!");
 }
@@ -40,6 +47,11 @@ function load_game() {
     global.target_x = _data.player_x;
     global.target_y = _data.player_y;
     global.is_loading_from_save = true;
+	
+	// ... previous data ...
+	global.quest_clipper_done = _data.clipper_done;
+	global.quest_lea_done = _data.lea_done;
+	global.boss_spawned = _data.boss_spawned;
     
     // FORCE ACTIVATE everything before moving rooms
     instance_activate_all(); 

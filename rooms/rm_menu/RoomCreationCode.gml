@@ -3,6 +3,14 @@
 global.greg_defeated = false;
 global.tutorial_complete = false;
 global.level1_intro_done = false;
+global.quest_clipper_done = false;
+global.quest_lea_done = false;
+global.cryptography_learned = false;
+global.caesar_learned = false;
+global.boss_spawned = false;
+global.greg_quest_started = false;
+global.clipper_defeated = false;
+global.lea_defeated = false;
 
 global.save_filename = "save_v1.json";
 global.save_path = working_directory + global.save_filename;

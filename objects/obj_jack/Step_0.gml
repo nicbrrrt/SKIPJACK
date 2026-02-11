@@ -9,16 +9,6 @@ if (room == rm_combat) {
     visible = true;
 }
 
-// --- CODEX ACCESS ---
-var _key_codex = keyboard_check_pressed(ord("C"));
-
-if (_key_codex && global.tutorial_complete) {
-    if (!instance_exists(obj_codex_menu) && !instance_exists(obj_textevent)) {
-        instance_create_depth(x, y, -10001, obj_codex_menu);
-        isInCutscene = true;
-    } 
-}
-
 // --- CUTSCENE / TRANSITION FREEZE ---
 if (isInCutscene || instance_exists(obj_transition) || (instance_exists(obj_path) || instance_exists(obj_cipher) || instance_exists(obj_qte))) 
 {
@@ -127,4 +117,16 @@ if (isInCutscene || instance_exists(obj_transition) || (instance_exists(obj_path
 
     current_anim_start = _target_anim_start;
     current_anim_frames = _target_anim_frames;
+}
+
+// Simple Interaction Check (assuming E key)
+if (keyboard_check_pressed(ord("E"))) {
+    var _npc = instance_nearest(x, y, obj_npc1); // Find closest NPC (you can add clipper/lea to a parent_npc object)
+    
+    // Or specifically for these two:
+    var _clipper = instance_place(x, y, obj_clipper);
+    var _lea = instance_place(x, y, obj_lea);
+
+    if (_clipper != noone) with(_clipper) event_user(0);
+    if (_lea != noone) with(_lea) event_user(0);
 }

@@ -73,24 +73,32 @@ function create_buttons(_chars_array) {
 // Picks a new word and starts the round
 function load_next_puzzle() {
     randomize();
-    var _pick = questions[irandom(array_length(questions)-1)];
-    target_word = _pick.word;
-    current_hint = _pick.hint;
+    
+    // 1. Check for Quest-Specific Words (Clipper/Lea)
+    if (variable_global_exists("puzzle_word_list") && is_array(global.puzzle_word_list) && array_length(global.puzzle_word_list) > 0) {
+        target_word = global.puzzle_word_list[irandom(array_length(global.puzzle_word_list)-1)];
+        current_hint = "QUEST TOPIC: Decode the keyword!";
+    } 
+    // 2. Fallback to default questions
+    else {
+        var _pick = questions[irandom(array_length(questions)-1)];
+        target_word = _pick.word;
+        current_hint = _pick.hint;
+    }
+    
     player_guess = "";
     
+    // ... (rest of your button creation code remains the same) ...
     var _chars = [];
     for(var i=1; i<=string_length(target_word); i++) {
         array_push(_chars, string_char_at(target_word, i));
     }
-    
-    // Shuffle the letters so it's a scramble
     for (var i = array_length(_chars) - 1; i > 0; i--) {
         var j = irandom(i);
         var temp = _chars[i];
         _chars[i] = _chars[j];
         _chars[j] = temp;
     }
-    
     create_buttons(_chars);
     battle_state = "player_input";
 }
@@ -103,3 +111,23 @@ base_y_level = 360 * 0.65;
 
 // Manual Nudge for the button orbit (Negative = Up)
 orbit_y_nudge = -45;
+
+// If we have a custom list from an NPC, use it!
+if (variable_global_exists("puzzle_word_list") && is_array(global.puzzle_word_list)) {
+    // Replace your standard word array with the quest-specific one
+    my_words = global.puzzle_word_list; 
+} else {
+    // Fallback default list
+    my_words = ["VIRUS", "DATA", "HACK", "ERROR"];
+}
+
+// Check if an NPC gave us a specific list
+if (variable_global_exists("puzzle_word_list") && is_array(global.puzzle_word_list)) {
+    word_array = global.puzzle_word_list;
+} else {
+    // Fallback if something goes wrong
+    word_array = ["VIRUS", "DATA", "HACK", "ERROR"];
+}
+
+// Make sure you call your "load next puzzle" function here
+load_next_puzzle();

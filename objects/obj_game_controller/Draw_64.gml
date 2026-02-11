@@ -1,5 +1,35 @@
 /// Draw GUI Event - obj_game_controller
 
+// --- QUEST TRACKER GUI ---
+if (room == rm_level_1 && variable_global_exists("greg_quest_started") && global.greg_quest_started) {
+    
+    draw_set_font(-1); 
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+    
+    var _qx = 15;
+    var _qy = 15; 
+    var _spacing = 18; 
+
+    // 1. Background Box
+    draw_set_color(c_black);
+    draw_set_alpha(0.6);
+    draw_rectangle(_qx - 5, _qy - 5, _qx + 160, _qy + 60, false); 
+    draw_set_alpha(1.0);
+
+    // 2. Title
+    draw_set_color(c_yellow);
+    draw_text(_qx, _qy, "OBJECTIVES:");
+
+    // 3. Clipper Line (Corrected Variable Names)
+    var _c_color = global.quest_clipper_done ? c_green : c_white;
+    draw_text_color(_qx + 5, _qy + _spacing, "> Find Clipper", _c_color, _c_color, _c_color, _c_color, 1);
+
+    // 4. Lea Line (FIXED: Changed _l_col to _l_color)
+    var _l_color = global.quest_lea_done ? c_green : c_white;
+    draw_text_color(_qx + 5, _qy + (_spacing * 2), "> Find Lea", _l_color, _l_color, _l_color, _l_color, 1);
+}
+
 // Only draw while paused
 if (!global.is_paused) exit;
 

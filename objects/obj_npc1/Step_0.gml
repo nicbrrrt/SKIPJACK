@@ -14,36 +14,25 @@ if (sprite_index != spr_npc1_idle) { sprite_index = spr_npc1_idle; }
 image_speed = 0.2;
 
 
-// --- 2. ROOM-SPECIFIC INTERACTION ---
+// --- 2. INTERACTION LOGIC (Consolidated) ---
 if (instance_exists(obj_jack)) {
     var _player = instance_nearest(x, y, obj_jack);
     
-    // Check for "E" interaction
-    if (point_distance(x, y, _player.x, _player.y) < 32 && keyboard_check_pressed(ord("E")) && !instance_exists(obj_textevent)) {
+    // Check for "E" interaction distance (Set to 48 for easier interaction)
+    if (point_distance(x, y, _player.x, _player.y) < 48 && keyboard_check_pressed(ord("E")) && !instance_exists(obj_textevent)) {
         
-        // --- LOGIC FOR LEVEL 1 (BOSS MODE) ---
+        // --- LEVEL 1 BEHAVIOR ---
         if (room == rm_level_1) {
-            // Force reset battle status for the JRPG
-            global.last_battle_id = "greg_boss";
-            global.battle_result = "none";
-            global.is_jrpg = true;
-
-            if (!global.greg_boss_talked) {
-                global.greg_boss_talked = true;
-                create_textevent(["Ready to review?", "This isn't a tutorial anymore.", "INITIATING COMBAT..."], [id, id, id]);
-            } else {
-                create_textevent(["Ready for a rematch?", "RE-INITIATING COMBAT..."], [id, id]);
-            }
+            // This calls User Event 0 which handles "Talk first, then Fight"
+            event_user(0); 
         }
         
-        // --- LOGIC FOR HALLWAY (TUTORIAL MODE) ---
-        // We only allow this if NOT in Level 1
+        // --- HALLWAY BEHAVIOR (Tutorial Mode) ---
         else if (room == rm_hallway && isChallenger) {
             global.last_battle_id = "greg_fight";
             global.battle_result = "none";
             global.is_jrpg = false;
             
-            // This is the dialogue you were hearing by mistake
             create_textevent(["Breado told me you were academically challenged...", "Let's see if he was right!"], [id, id]);
         }
     }
@@ -52,30 +41,9 @@ if (instance_exists(obj_jack)) {
 
 // --- 3. ROOM-SPECIFIC TRANSITIONS ---
 
-// --- A. LEVEL 1 LOGIC ---
-// --- 3. LEVEL 1 LOGIC ---
-if (room == rm_level_1) {
-    var _player = instance_nearest(x, y, obj_jack);
-    if (_player != noone && point_distance(x, y, _player.x, _player.y) < 32) {
-        if (keyboard_check_pressed(ord("E")) && !instance_exists(obj_textevent)) {
-            
-            // Just set these two and let the Controller do the rest
-            global.last_battle_id = "greg_boss";
-            global.is_jrpg = true;
-
-            if (!global.greg_boss_talked) {
-                global.greg_boss_talked = true;
-                create_textevent(["Ready to review?", "INITIATING COMBAT..."], [id, id]);
-            } else {
-                create_textevent(["Back for more?", "RE-INITIATING COMBAT..."], [id, id]);
-            }
-        }
-    }
-    exit; 
-}
-// --- B. HALLWAY LOGIC ---
-else if (room == rm_hallway) {
-    // Normal Combat Transition
+// --- A. HALLWAY TRANSITION LOGIC ---
+if (room == rm_hallway) {
+    // Normal Combat Transition to rm_combat
     if (global.last_battle_id == "greg_fight" && global.battle_result == "none" && !instance_exists(obj_textevent)) {
         global.return_room = room;
         global.return_x = obj_jack.x;
@@ -83,15 +51,14 @@ else if (room == rm_hallway) {
         room_goto(rm_combat); 
     }
     
-    // Post-Fight Win Logic
-// --- Post-Fight Win Logic ---
+    // Post-Fight Win Logic (Triggers "Follow me!")
     if (global.battle_result == "win" && global.last_battle_id == "greg_fight" && !challenge_won) {
         if (!instance_exists(obj_textevent)) {
-            event_user(0); // This plays the "Follow me!" dialogue
+            event_user(0); 
         }
     }
     
-    // Teleport to Level 1
+    // Teleport to Level 1 after the win dialogue
     if (challenge_won && !instance_exists(obj_textevent)) {
         global.last_battle_id = "none";
         global.battle_result = "none";

@@ -1,4 +1,7 @@
 // --- Create Event of obj_codex_manager ---
+
+persistent = true; // CRUCIAL: This keeps your lessons saved!
+
 is_open = false;
 current_page = 0;
 
@@ -15,6 +18,16 @@ function add_module(_title, _content) {
         title: _title,
         content: _content
     };
-    array_push(modules, _new_mod);
-    unlocked = true; // Automatically allow opening once they get one
+    
+    // Only add it if it's not already there (prevents duplicates)
+    var _exists = false;
+    for (var i = 0; i < array_length(modules); i++) {
+        if (modules[i].title == _title) _exists = true;
+    }
+    
+    if (!_exists) {
+        array_push(modules, _new_mod);
+        show_debug_message("CODEX: Added " + _title);
+    }
+    unlocked = true;
 }

@@ -11,6 +11,24 @@ if (room == rm_level_1 && global.last_battle_id == "greg_boss") {
     }
 }
 
+// --- GREG POST-BATTLE TRIGGER ---
+if (room == rm_level_1 && global.last_battle_id == "greg_boss_defeated") {
+    global.greg_quest_started = true;
+    
+    var _greg = instance_find(obj_npc1, 0);
+    if (_greg != noone) {
+        with (_greg) {
+            // We force this dialogue to appear immediately
+            create_textevent([
+                "Impressive work, Jack.",
+                "Go find Clipper and Lea. I've updated your HUD."
+            ], [id, id]);
+        }
+    }
+    
+    global.last_battle_id = "none";
+    if (instance_exists(obj_save_manager)) obj_save_manager.save_game();
+}
 // 1. MOUSE LOCK LOGIC
 if (mouse_locked_until_release)
 {
@@ -57,3 +75,10 @@ if (keyboard_check_pressed(vk_escape))
 
 // --- THAT'S IT! NO BUTTON LOGIC HERE ---
 // The button clicks are now handled entirely inside the Draw GUI event.
+
+// --- EMERGENCY PRESENTATION OVERRIDE ---
+if (keyboard_check_pressed(vk_f1)) {
+    global.greg_quest_started = true;
+    if (instance_exists(obj_save_manager)) obj_save_manager.save_game();
+    show_debug_message("!!! QUESTS MANUALLY STARTED & SAVED !!!");
+}
