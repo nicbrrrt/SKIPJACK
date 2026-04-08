@@ -46,6 +46,9 @@ if (!variable_global_exists("target_y"))       global.target_y       = -1;
 // --- LOAD/SPAWN FLAGS ---
 if (!variable_global_exists("is_loading_from_save"))  global.is_loading_from_save  = false;
 
+// --- DEBUG ---
+if (!variable_global_exists("DEBUG_MODE"))  global.DEBUG_MODE = false;
+
 // --- CAMERA ---
 if (!variable_global_exists("cam_width"))   global.cam_width  = 640;
 if (!variable_global_exists("cam_height"))  global.cam_height = 360;

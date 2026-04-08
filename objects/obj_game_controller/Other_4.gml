@@ -66,15 +66,6 @@ if (room == rm_level_1) {
     }
 }
 
-if (variable_global_exists("is_loading_from_save") && global.is_loading_from_save) {
-    if (instance_exists(obj_jack)) {
-        obj_jack.x = global.target_x;
-        obj_jack.y = global.target_y;
-        obj_jack.isInCutscene = false; // Ensure he isn't frozen
-    }
-    global.is_loading_from_save = false; // Reset the flag
-}
-
 // --- DYNAMIC NPC SPAWN ---
 if (room == rm_level_1 && global.level1_intro_done) {
     if (!instance_exists(obj_lea)) {

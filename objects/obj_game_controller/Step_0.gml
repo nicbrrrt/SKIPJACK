@@ -76,8 +76,8 @@ if (keyboard_check_pressed(vk_escape))
 // --- THAT'S IT! NO BUTTON LOGIC HERE ---
 // The button clicks are now handled entirely inside the Draw GUI event.
 
-// --- EMERGENCY PRESENTATION OVERRIDE ---
-if (keyboard_check_pressed(vk_f1)) {
+// --- EMERGENCY PRESENTATION OVERRIDE (debug only) ---
+if (global.DEBUG_MODE && keyboard_check_pressed(vk_f1)) {
     global.greg_quest_started = true;
     if (instance_exists(obj_save_manager)) obj_save_manager.save_game();
     show_debug_message("!!! QUESTS MANUALLY STARTED & SAVED !!!");
