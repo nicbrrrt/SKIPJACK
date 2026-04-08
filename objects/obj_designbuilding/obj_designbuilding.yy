@@ -3,7 +3,6 @@
   "%Name":"obj_designbuilding",
   "eventList":[
     {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":0,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
-    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":3,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
   ],
   "managed":true,
   "name":"obj_designbuilding",
@@ -12,7 +11,10 @@
     "name":"Game Object Controls",
     "path":"folders/Objects/Game Object Controls.yy",
   },
-  "parentObjectId":null,
+  "parentObjectId":{
+    "name":"par_rooftop_prop",
+    "path":"objects/par_rooftop_prop/par_rooftop_prop.yy",
+  },
   "persistent":false,
   "physicsAngularDamping":0.1,
   "physicsDensity":0.5,

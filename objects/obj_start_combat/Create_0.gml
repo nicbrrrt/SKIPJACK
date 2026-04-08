@@ -1,35 +1,24 @@
-// --- Create Event of obj_start_combat ---
+// obj_start_combat — Create Event
+// Global safety init REMOVED (handled by obj_game_init).
 
-// 1. SAFETY GLOBAL INITIALIZATION
-if (!variable_global_exists("last_battle_id")) {
-    global.last_battle_id = "none";
-    global.battle_result = "none";
-}
-
-// 2. SAFE ASSET RETRIEVAL (Prevents "Variable Not Set" Crashes)
 var _portrait = asset_get_index("spr_npc2_portrait");
-if (_portrait == -1) _portrait = spr_npc2_portrait; // Fallback face
+if (_portrait == -1) _portrait = spr_npc2_portrait;
 
 var _voice = asset_get_index("snd_voice_npc2");
-if (_voice == -1) _voice = -1; // Fallback: No sound
+if (_voice == -1) _voice = -1;
 
 var _font = asset_get_index("fnt_dialogue");
-if (_font == -1) _font = -1; // Fallback: Default font
+if (_font == -1) _font = -1;
 
-// 3. INITIALIZE NPC VARIABLES (Using your new script)
-// Format: scr_init_npc_vars("Name", PortraitSprite, VoiceSound, FontAsset)
 scr_init_npc_vars("Breado", _portrait, _voice, _font);
 
-// 4. COMBAT & INTERACTION SETUP
 interaction_range = 48;
-active_dialogue = false; 
+active_dialogue   = false;
 
-// 5. BATTLE ID LOGIC
-// If we just came from a battle, keep the ID; otherwise, default to "none"
-if (global.last_battle_id != "none") {
-    battle_id = global.last_battle_id;
-} else {
-    battle_id = "none"; // Set this to "tutorial" in the Room Editor for the specific NPC
+// battle_id is set in the Room Editor per-instance.
+// If it wasn't set, give it a safe default.
+if (!variable_instance_exists(id, "battle_id")) {
+    battle_id = "none";
 }
 
-show_debug_message("BATTLE SETUP: Object initialized with ID: " + string(battle_id));
+show_debug_message("BATTLE SETUP: Initialized with ID: " + string(battle_id));

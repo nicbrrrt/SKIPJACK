@@ -14,7 +14,10 @@
     "name":"Character Object",
     "path":"folders/Objects/Character Object.yy",
   },
-  "parentObjectId":null,
+  "parentObjectId":{
+    "name":"par_npc",
+    "path":"objects/par_npc/par_npc.yy",
+  },
   "persistent":false,
   "physicsAngularDamping":0.1,
   "physicsDensity":0.5,
