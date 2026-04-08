@@ -8,8 +8,11 @@ if (cipher_mode == "packet") {
         global.battle_result = "win"; 
         global.battle_active = false;
         
-        // Return to the hallway for the final cutscene
-        if (room_exists(rm_hallway)) {
+        // Final boss phase 1 returns to level 1 for JRPG transition
+        if (battle_id == "final_boss_phase1") {
+            global.last_battle_id = "final_boss_phase1_defeated";
+            room_goto(rm_level_1);
+        } else if (room_exists(rm_hallway)) {
             room_goto(rm_hallway);
         } else {
             room_goto(global.return_room);

@@ -8,6 +8,7 @@ randomize();
 pause_menu_state          = "main";
 hovered_button            = noone;
 mouse_locked_until_release = false;
+boss_pending_jrpg         = false;
 
 // Spawn the persistent UI button if it doesn't exist
 if (!instance_exists(obj_ui_button)) {
