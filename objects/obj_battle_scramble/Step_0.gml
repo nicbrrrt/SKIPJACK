@@ -1,3 +1,12 @@
+// DEBUG: F3 skips JRPG combat
+if (variable_global_exists("DEBUG_MODE") && global.DEBUG_MODE && keyboard_check_pressed(vk_f3)) {
+    show_debug_message("[DEBUG] F3 pressed — skipping JRPG combat (battle_id: " + string(global.last_battle_id) + ")");
+    current_hp_enemy = 0;
+    battle_state     = "win";
+    timer            = 0;
+    exit;
+}
+
 // ====================================================
 // ORBIT LOGIC
 // ====================================================

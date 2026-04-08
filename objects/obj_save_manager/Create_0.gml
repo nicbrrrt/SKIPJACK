@@ -15,7 +15,8 @@ function save_game() {
         greg_started:  global.greg_quest_started,
         clipper_done:  global.quest_clipper_done,
         lea_done:      global.quest_lea_done,
-        boss_spawned:  global.boss_spawned
+        boss_spawned:       global.boss_spawned,
+        final_boss_defeated: global.final_boss_defeated
     };
 
     var _json = json_stringify(_save_data);
@@ -44,7 +45,8 @@ function load_game() {
     global.greg_quest_started = variable_struct_exists(_data, "greg_started")  ? _data.greg_started  : false;
     global.quest_clipper_done = variable_struct_exists(_data, "clipper_done")  ? _data.clipper_done  : false;
     global.quest_lea_done     = variable_struct_exists(_data, "lea_done")      ? _data.lea_done      : false;
-    global.boss_spawned       = variable_struct_exists(_data, "boss_spawned")  ? _data.boss_spawned  : false;
+    global.boss_spawned        = variable_struct_exists(_data, "boss_spawned")        ? _data.boss_spawned        : false;
+    global.final_boss_defeated = variable_struct_exists(_data, "final_boss_defeated") ? _data.final_boss_defeated : false;
 
     instance_activate_all();
     room_goto(_data.current_room);

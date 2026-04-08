@@ -31,6 +31,7 @@ if (!variable_global_exists("caesar_learned"))        global.caesar_learned     
 if (!variable_global_exists("clipper_defeated"))      global.clipper_defeated      = false;
 if (!variable_global_exists("lea_defeated"))          global.lea_defeated          = false;
 if (!variable_global_exists("boss_spawned"))          global.boss_spawned          = false;
+if (!variable_global_exists("final_boss_defeated"))   global.final_boss_defeated   = false;
 
 // --- TUTORIAL FLAGS ---
 if (!variable_global_exists("seen_path_tutorial"))    global.seen_path_tutorial    = false;

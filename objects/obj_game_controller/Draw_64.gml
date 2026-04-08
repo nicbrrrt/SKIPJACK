@@ -1,6 +1,22 @@
 // obj_game_controller — Draw GUI Event
 // FIXED: Settings state no longer references undefined hover_exit/_y3 variables.
 
+// --- DEBUG OVERLAY ---
+if (global.DEBUG_MODE) {
+    draw_set_font(-1);
+    draw_set_halign(fa_right);
+    draw_set_valign(fa_top);
+    draw_set_color(c_black);
+    draw_set_alpha(0.55);
+    draw_rectangle(640 - 175, 0, 640, 50, false);
+    draw_set_alpha(1.0);
+    draw_set_color(c_lime);
+    draw_text(640 - 6, 5,  "[ DEBUG MODE ON ]");
+    draw_set_color(c_yellow);
+    draw_text(640 - 6, 20, "F2: toggle debug  F3: skip combat");
+    draw_set_halign(fa_left);
+}
+
 // --- QUEST TRACKER ---
 if (room == rm_level_1 && global.greg_quest_started) {
     draw_set_font(-1);
