@@ -23,11 +23,35 @@ if (isInCutscene || instance_exists(obj_transition) || (instance_exists(obj_path
 
     if (_interact_key)
     {
-        var _npc = instance_nearest(x, y, par_npc);
-        if (_npc != noone && point_distance(x, y, _npc.x, _npc.y) < 24)
-        {
-            with (_npc) { event_user(0); }
+        // Find the nearest interactable NPC.
+        // We check par_npc children first, but also explicitly check
+        // obj_clipper and obj_lea in case their parent isn't registered
+        // (GameMaker sometimes caches old .yy parent relationships).
+        var _best = noone;
+        var _best_dist = 24; // interaction radius in pixels
+
+        var _p = instance_nearest(x, y, par_npc);
+        if (_p != noone) {
+            var _d = point_distance(x, y, _p.x, _p.y);
+            if (_d < _best_dist) { _best = _p; _best_dist = _d; }
         }
+
+        var _c = instance_nearest(x, y, obj_clipper);
+        if (_c != noone) {
+            var _d = point_distance(x, y, _c.x, _c.y);
+            if (_d < _best_dist) { _best = _c; _best_dist = _d; }
+        }
+
+        var _l = instance_nearest(x, y, obj_lea);
+        if (_l != noone) {
+            var _d = point_distance(x, y, _l.x, _l.y);
+            if (_d < _best_dist) { _best = _l; _best_dist = _d; }
+        }
+
+        // DEBUG: remove once interaction is confirmed working
+        show_debug_message("INTERACT: par_npc=" + string(_p) + " clipper=" + string(_c) + " lea=" + string(_l) + " chosen=" + string(_best));
+
+        if (_best != noone) { with (_best) { event_user(0); } }
     }
 	
     // 1. Get keyboard input
@@ -117,16 +141,4 @@ if (isInCutscene || instance_exists(obj_transition) || (instance_exists(obj_path
 
     current_anim_start = _target_anim_start;
     current_anim_frames = _target_anim_frames;
-}
-
-// Simple Interaction Check (assuming E key)
-if (keyboard_check_pressed(ord("E"))) {
-    var _npc = instance_nearest(x, y, obj_npc1); // Find closest NPC (you can add clipper/lea to a parent_npc object)
-    
-    // Or specifically for these two:
-    var _clipper = instance_place(x, y, obj_clipper);
-    var _lea = instance_place(x, y, obj_lea);
-
-    if (_clipper != noone) with(_clipper) event_user(0);
-    if (_lea != noone) with(_lea) event_user(0);
 }

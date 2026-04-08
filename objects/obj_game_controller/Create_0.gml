@@ -34,6 +34,7 @@ global.lea_defeated = false;
 // --- Battle System Flags ---
 global.last_battle_id = "none";
 global.battle_result = "none";
+global.puzzle_word_list = []; // populated by NPCs (Clipper/Lea) before a scramble battle
 
 // --- Menu State ---
 pause_menu_state = "main";

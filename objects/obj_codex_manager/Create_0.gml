@@ -10,7 +10,13 @@ unlocked = false;
 
 // The actual content
 // We use an array of structs to make it easy to expand later
-modules = [];
+// If a save was loaded before we existed, pick up the snapshot it stashed.
+if (variable_global_exists("saved_codex_modules")) {
+    modules  = global.saved_codex_modules;
+    unlocked = (array_length(modules) > 0);
+} else {
+    modules = [];
+}
 
 // Helper function to add content (so you can call this from any NPC)
 function add_module(_title, _content) {

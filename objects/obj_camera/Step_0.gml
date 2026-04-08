@@ -9,7 +9,7 @@ camera_set_view_size(view_camera[0], global.cam_width, global.cam_height);
 if (instance_exists(obj_jack))
 {
     // Get the top-left corner for the camera
-    // This centers the player (obj_player.x) in the middle of the camera's width
+    // This centers obj_jack in the middle of the camera's width
     var _cam_x = obj_jack.x - (global.cam_width / 2);
     var _cam_y = obj_jack.y - (global.cam_height / 2);
 
