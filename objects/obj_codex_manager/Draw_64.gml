@@ -41,5 +41,6 @@ if (is_open) {
     
     // 6. Navigation
     draw_set_halign(fa_center);
-    draw_text(_w/2, _h - 90, "Page " + string(current_page + 1) + " of " + string(_len) + " | Arrows to Flip");
+    draw_text(_w/2, _h - 105, "Page " + string(current_page + 1) + " of " + string(_len) + " | Arrow Keys to Flip");
+    draw_text(_w/2, _h - 80, "C or ESC to Close");
 }

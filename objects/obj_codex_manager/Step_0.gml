@@ -5,13 +5,19 @@
 var _is_combat_room = (room == rm_combat || room == rm_battle_scramble);
 
 // 2. Handle Opening/Closing
-// We add "!_is_combat_room" so the 'C' key only opens the UI when NOT in battle.
-if (global.tutorial_complete && !_is_combat_room && keyboard_check_pressed(ord("C"))) {
-    is_open = !is_open;
-    
+// Close: C or ESC when already open (works regardless of tutorial state, e.g. from menu Review button)
+if (is_open && (keyboard_check_pressed(vk_escape) || keyboard_check_pressed(ord("C")))) {
+    is_open = false;
     if (instance_exists(obj_jack)) {
-        obj_jack.isInCutscene = is_open; 
-        obj_jack.image_speed = 0; // Freeze animation
+        obj_jack.isInCutscene = false;
+        obj_jack.image_speed = 1;
+    }
+// Open: C key when closed, tutorial complete, not in combat
+} else if (!is_open && global.tutorial_complete && !_is_combat_room && keyboard_check_pressed(ord("C"))) {
+    is_open = true;
+    if (instance_exists(obj_jack)) {
+        obj_jack.isInCutscene = true;
+        obj_jack.image_speed = 0;
     }
 }
 
