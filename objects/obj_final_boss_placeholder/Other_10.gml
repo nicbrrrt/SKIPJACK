@@ -16,8 +16,9 @@ if (!preparing_to_fight) {
     ], [id, id, id]);
     preparing_to_fight = true;
 } else {
-    global.last_battle_id = "final_boss_phase1";
-    global.is_jrpg        = false;
-    global.return_room    = rm_level_1;
+    global.last_battle_id      = "final_boss_phase1";
+    global.is_jrpg             = false;
+    global.return_room         = rm_level_1;
+    global.battle_enemy_sprite = spr_boss_idle; // The Anomaly (final boss)
     room_goto(rm_combat);
 }

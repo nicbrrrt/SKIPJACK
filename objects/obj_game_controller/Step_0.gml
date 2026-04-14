@@ -4,8 +4,10 @@
 if (room == rm_level_1 && global.last_battle_id == "greg_boss") {
     if (!instance_exists(obj_textevent)) {
         // Reset the ID so it doesn't loop, then TELEPORT
-        global.last_battle_id = "none"; 
-        global.is_jrpg = true;
+        global.last_battle_id             = "none";
+        global.is_jrpg                    = true;
+        global.battle_enemy_sprite        = spr_npc1_idle; // Greg
+        global.battle_enemy_attack_sprite = spr_npc1_idle; // No dedicated attack sprite
         room_goto(rm_battle_scramble);
         show_debug_message("CONTROLLER: Teleporting to JRPG Battle.");
     }
@@ -58,9 +60,11 @@ if (room == rm_level_1 && global.last_battle_id == "final_boss_phase1_defeated")
 // Auto-fire JRPG once the taunt dialogue closes
 if (room == rm_level_1 && boss_pending_jrpg && !instance_exists(obj_textevent)) {
     boss_pending_jrpg = false;
-    global.puzzle_word_list = ["ANOMALY", "PROTOCOL", "ENCRYPT", "EXPLOIT", "PAYLOAD", "CIPHER"];
-    global.last_battle_id   = "final_boss_jrpg";
-    global.is_jrpg          = true;
+    global.puzzle_word_list           = ["ANOMALY", "PROTOCOL", "ENCRYPT", "EXPLOIT", "PAYLOAD", "CIPHER"];
+    global.last_battle_id             = "final_boss_jrpg";
+    global.is_jrpg                    = true;
+    global.battle_enemy_sprite        = spr_boss_idle;   // The Anomaly
+    global.battle_enemy_attack_sprite = spr_boss_attack; // Boss attack animation
     room_goto(rm_battle_scramble);
     show_debug_message("CONTROLLER: Transitioning to final boss JRPG phase.");
 }

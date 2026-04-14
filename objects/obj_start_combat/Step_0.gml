@@ -90,7 +90,8 @@ if (active_dialogue == true && !instance_exists(obj_textevent) && global.last_ba
     global.return_room = room;
     
     // --- THE FIX: Explicitly tell the game this IS NOT a JRPG fight ---
-    global.is_jrpg = false; 
-    
+    global.is_jrpg = false;
+    global.battle_enemy_sprite = spr_npc2_idle; // Breado
+
     room_goto(rm_combat);
 }

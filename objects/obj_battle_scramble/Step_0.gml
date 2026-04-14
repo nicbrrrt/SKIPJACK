@@ -112,7 +112,7 @@ else if (battle_state == "enemy_turn")
     timer++;
     if (timer < 30) enemy_x_offset = lerp(enemy_x_offset, 200, 0.1);
     if (timer == 30) {
-        enemy_sprite = spr_virus_attack; 
+        enemy_sprite = enemy_attack_sprite;
         image_index = 0;
         audio_play_sound(snd_hurt, 10, false);
         player_sprite = spr_jack_hurt;
@@ -124,7 +124,7 @@ else if (battle_state == "enemy_turn")
         _txt.color = c_red;
     }
     if (timer > 60) {
-        enemy_sprite = spr_virus_idle;
+        enemy_sprite = global.battle_enemy_sprite;
         player_sprite = spr_jack_battle;
         enemy_x_offset = lerp(enemy_x_offset, 0, 0.1);
     }

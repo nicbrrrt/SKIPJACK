@@ -6,6 +6,9 @@ if (variable_global_exists("last_battle_id") && global.last_battle_id != "none")
     battle_id = "tutorial";
 }
 
+// ENEMY SPRITE — set by the triggering NPC/object before entering this room
+enemy_sprite = global.battle_enemy_sprite;
+
 // 2. SAFETY INITIALIZATION
 if (!variable_global_exists("seen_path_tutorial")) {
     global.seen_path_tutorial = false;

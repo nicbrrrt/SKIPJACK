@@ -48,7 +48,8 @@ if (room == rm_hallway) {
         global.return_room = room;
         global.return_x = obj_jack.x;
         global.return_y = obj_jack.y;
-        room_goto(rm_combat); 
+        global.battle_enemy_sprite = spr_npc1_idle; // Greg
+        room_goto(rm_combat);
     }
     
     // Post-Fight Win Logic (Triggers "Follow me!")

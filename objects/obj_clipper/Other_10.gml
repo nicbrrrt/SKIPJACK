@@ -21,8 +21,10 @@ if (!global.cryptography_learned) {
     global.quest_clipper_done = true;
 } else {
     // Phase 2: Battle
-    global.puzzle_word_list = ["SYMMETRIC", "ENCRYPT", "DECRYPT", "PRIVATE"];
-    global.last_battle_id = "clipper_review";
-    global.is_jrpg = true;
+    global.puzzle_word_list           = ["SYMMETRIC", "ENCRYPT", "DECRYPT", "PRIVATE"];
+    global.last_battle_id             = "clipper_review";
+    global.is_jrpg                    = true;
+    global.battle_enemy_sprite        = spr_clipper_idle; // Clipper
+    global.battle_enemy_attack_sprite = spr_clipper_idle; // No dedicated attack sprite
     room_goto(rm_battle_scramble);
 }

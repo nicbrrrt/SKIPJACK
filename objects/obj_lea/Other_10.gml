@@ -21,8 +21,10 @@ else if (!global.caesar_learned) {
 // STATE 2: THE CHALLENGE
 else {
     create_textevent(["Let's see if you can solve a shift under pressure!"], [id]);
-    global.puzzle_word_list = ["CAESAR", "SHIFT", "ROTATE", "ALPHABET"];
-    global.last_battle_id = "lea_review";
-    global.is_jrpg = true;
+    global.puzzle_word_list           = ["CAESAR", "SHIFT", "ROTATE", "ALPHABET"];
+    global.last_battle_id             = "lea_review";
+    global.is_jrpg                    = true;
+    global.battle_enemy_sprite        = spr_lea_idle; // Lea
+    global.battle_enemy_attack_sprite = spr_lea_idle; // No dedicated attack sprite
     room_goto(rm_battle_scramble);
 }

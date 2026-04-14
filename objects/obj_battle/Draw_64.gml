@@ -19,8 +19,8 @@ if (!instance_exists(obj_tutorial)) {
     }
 
     // 3. DRAW ENEMY
-    if (variable_instance_exists(id, "spr_npc2_idle") || sprite_exists(spr_npc2_idle)) {
-        draw_sprite_ext(spr_npc2_idle, 0, enemy_x, sprite_y, 3, 3, 0, c_white, 1);
+    if (sprite_exists(enemy_sprite)) {
+        draw_sprite_ext(enemy_sprite, 0, enemy_x, sprite_y, 3, 3, 0, c_white, 1);
     } else {
         // Fallback
         draw_sprite_ext(spr_computer, 0, enemy_x, sprite_y, 3, 3, 0, c_white, 1);

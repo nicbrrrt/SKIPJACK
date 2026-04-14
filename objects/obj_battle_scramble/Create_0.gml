@@ -20,16 +20,17 @@ image_speed   = 0.15;
 max_hp_player     = 100;
 current_hp_player = 100;
 
+// ENEMY SPRITES — set by the triggering NPC/object before entering this room
+enemy_sprite        = global.battle_enemy_sprite;
+enemy_attack_sprite = global.battle_enemy_attack_sprite;
+
 if (global.last_battle_id == "greg_boss") {
-    enemy_sprite     = spr_npc1_idle;
     max_hp_enemy     = 200;
     current_hp_enemy = 200;
 } else if (global.last_battle_id == "final_boss_jrpg") {
-    enemy_sprite     = spr_virus_idle;
     max_hp_enemy     = 140;
     current_hp_enemy = 140;
 } else {
-    enemy_sprite     = spr_virus_idle;
     max_hp_enemy     = 100;
     current_hp_enemy = 100;
 }

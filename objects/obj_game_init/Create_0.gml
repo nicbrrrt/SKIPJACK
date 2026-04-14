@@ -17,7 +17,9 @@ if (!variable_global_exists("is_jrpg"))          global.is_jrpg          = false
 if (!variable_global_exists("return_room"))      global.return_room      = rm_menu;
 if (!variable_global_exists("return_x"))         global.return_x         = 0;
 if (!variable_global_exists("return_y"))         global.return_y         = 0;
-if (!variable_global_exists("puzzle_word_list")) global.puzzle_word_list = []; // populated by NPCs (Clipper/Lea) before a scramble battle
+if (!variable_global_exists("puzzle_word_list"))    global.puzzle_word_list    = []; // populated by NPCs (Clipper/Lea) before a scramble battle
+if (!variable_global_exists("battle_enemy_sprite"))        global.battle_enemy_sprite        = spr_npc2_idle;    // set by the triggering NPC before room_goto(rm_combat)
+if (!variable_global_exists("battle_enemy_attack_sprite")) global.battle_enemy_attack_sprite = spr_virus_attack; // set by the triggering NPC before room_goto(rm_battle_scramble)
 
 // --- STORY FLAGS ---
 if (!variable_global_exists("tutorial_complete"))     global.tutorial_complete     = false;

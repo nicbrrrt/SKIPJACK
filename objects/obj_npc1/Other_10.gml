@@ -31,8 +31,10 @@ if (room == rm_level_1) {
             preparing_to_fight = true; 
         } else {
             // Second interaction: FIGHT
-            global.last_battle_id = "greg_boss";
-            global.is_jrpg = true;
+            global.last_battle_id             = "greg_boss";
+            global.is_jrpg                    = true;
+            global.battle_enemy_sprite        = spr_npc1_idle; // Greg
+            global.battle_enemy_attack_sprite = spr_npc1_idle; // No dedicated attack sprite
             room_goto(rm_battle_scramble);
             preparing_to_fight = false; // Reset for later
         }
