@@ -3,7 +3,8 @@
 audio_stop_sound(snd_button_hover);
 audio_play_sound(snd_button_click, 10, false);
 
-if (instance_exists(obj_codex_manager)) {
-    obj_codex_manager.current_page = 0;
-    obj_codex_manager.is_open = true;
-}
+// Destroy any stale instance before opening a fresh one
+if (instance_exists(obj_review_screen))
+    instance_destroy(obj_review_screen);
+
+instance_create_layer(0, 0, "Instances", obj_review_screen);

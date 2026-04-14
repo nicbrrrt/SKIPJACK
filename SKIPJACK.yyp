@@ -107,6 +107,7 @@
     {"id":{"name":"obj_npc2","path":"objects/obj_npc2/obj_npc2.yy",},},
     {"id":{"name":"obj_path","path":"objects/obj_path/obj_path.yy",},},
     {"id":{"name":"obj_qte","path":"objects/obj_qte/obj_qte.yy",},},
+    {"id":{"name":"obj_review_screen","path":"objects/obj_review_screen/obj_review_screen.yy",},},
     {"id":{"name":"obj_save_manager","path":"objects/obj_save_manager/obj_save_manager.yy",},},
     {"id":{"name":"obj_settings_parent","path":"objects/obj_settings_parent/obj_settings_parent.yy",},},
     {"id":{"name":"obj_start_combat","path":"objects/obj_start_combat/obj_start_combat.yy",},},
