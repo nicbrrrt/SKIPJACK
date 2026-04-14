@@ -76,6 +76,12 @@ if (keyboard_check_pressed(vk_escape))
 // --- THAT'S IT! NO BUTTON LOGIC HERE ---
 // The button clicks are now handled entirely inside the Draw GUI event.
 
+// --- DEBUG MODE TOGGLE ---
+if (keyboard_check_pressed(vk_f2)) {
+    global.DEBUG_MODE = !global.DEBUG_MODE;
+    show_debug_message("DEBUG_MODE: " + string(global.DEBUG_MODE));
+}
+
 // --- EMERGENCY PRESENTATION OVERRIDE (debug only) ---
 if (global.DEBUG_MODE && keyboard_check_pressed(vk_f1)) {
     global.greg_quest_started = true;
