@@ -1,6 +1,6 @@
-// --- obj_save_manager Create Event ---
-global.save_filename = "save_v1.json";
-global.save_path = working_directory + global.save_filename;
+// obj_save_manager — Create Event
+// Note: global.save_filename and global.save_path are set by obj_game_init.
+// Do NOT re-declare them here — it would overwrite them on room reload.
 
 // Helper: read a global with a default if it doesn't exist yet
 function _global_or(_name, _default) {
@@ -24,7 +24,6 @@ function save_game() {
         _codex_snapshot = obj_codex_manager.modules;
     }
 
-    // 1. Gather all data into ONE single struct
     var _save_data = {
         version: 1,
         current_room: room,
@@ -47,6 +46,7 @@ function save_game() {
         clipper_done:         _global_or("quest_clipper_done", false),
         lea_done:             _global_or("quest_lea_done",     false),
         boss_spawned:         _global_or("boss_spawned",       false),
+        final_boss_defeated:  _global_or("final_boss_defeated", false),
 
         // Battle handoff state (so saving mid-battle-setup is safe)
         last_battle_id:       _global_or("last_battle_id",    "none"),
@@ -57,12 +57,10 @@ function save_game() {
         codex_modules:        _codex_snapshot
     };
 
-    // 2. Write to file
     var _json = json_stringify(_save_data);
     var _file = file_text_open_write(global.save_path);
     file_text_write_string(_file, _json);
     file_text_close(_file);
-
     show_debug_message("SYSTEM: Save successful! " + _json);
 }
 
@@ -71,17 +69,17 @@ function load_game() {
     if (!file_exists(global.save_path)) return;
 
     var _file = file_text_open_read(global.save_path);
-    var _json = file_text_read_string(_file);
+    var _json  = file_text_read_string(_file);
     file_text_close(_file);
 
     var _data = json_parse(_json);
 
-    // 1. Set the spawn coordinates for obj_game_controller to use
+    // Set the spawn coordinates for obj_game_controller to use
     global.target_x = _field_or(_data, "player_x", 0);
     global.target_y = _field_or(_data, "player_y", 0);
     global.is_loading_from_save = true;
 
-    // 2. Restore all global flags with safety defaults
+    // Restore all global flags with safety defaults
     global.tutorial_complete   = _field_or(_data, "tutorial_done",        false);
     global.level1_intro_done   = _field_or(_data, "intro_done",           false);
     global.greg_defeated       = _field_or(_data, "greg_dead",            false);
@@ -92,15 +90,16 @@ function load_game() {
     global.clipper_defeated     = _field_or(_data, "clipper_defeated",     false);
     global.lea_defeated         = _field_or(_data, "lea_defeated",         false);
 
-    global.quest_clipper_done  = _field_or(_data, "clipper_done",  false);
-    global.quest_lea_done      = _field_or(_data, "lea_done",      false);
-    global.boss_spawned        = _field_or(_data, "boss_spawned",  false);
+    global.quest_clipper_done   = _field_or(_data, "clipper_done",         false);
+    global.quest_lea_done       = _field_or(_data, "lea_done",             false);
+    global.boss_spawned         = _field_or(_data, "boss_spawned",         false);
+    global.final_boss_defeated  = _field_or(_data, "final_boss_defeated",  false);
 
-    global.last_battle_id      = _field_or(_data, "last_battle_id", "none");
-    global.is_jrpg             = _field_or(_data, "is_jrpg",        false);
-    global.puzzle_word_list    = _field_or(_data, "puzzle_word_list", []);
+    global.last_battle_id       = _field_or(_data, "last_battle_id", "none");
+    global.is_jrpg              = _field_or(_data, "is_jrpg",        false);
+    global.puzzle_word_list     = _field_or(_data, "puzzle_word_list", []);
 
-    // 3. Restore codex content. Stash globally so the codex manager can
+    // Restore codex content. Stash globally so the codex manager can
     // sync from it whenever it (re)spawns; also push directly into the
     // live instance if one already exists.
     global.saved_codex_modules = _field_or(_data, "codex_modules", []);
@@ -109,9 +108,7 @@ function load_game() {
         obj_codex_manager.unlocked = (array_length(global.saved_codex_modules) > 0);
     }
 
-    // 4. Move to the room
     instance_activate_all();
     room_goto(_field_or(_data, "current_room", room));
-
     show_debug_message("SYSTEM: Load successful!");
 }

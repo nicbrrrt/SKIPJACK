@@ -1,4 +1,4 @@
-﻿{
+{
   "$GMProject":"v1",
   "%Name":"SKIPJACK",
   "AudioGroups":[
@@ -54,7 +54,7 @@
   "isEcma":false,
   "LibraryEmitters":[],
   "MetaData":{
-    "IDEVersion":"2024.14.3.217",
+    "IDEVersion":"2024.14.4.222",
   },
   "name":"SKIPJACK",
   "resources":[
@@ -81,6 +81,7 @@
     {"id":{"name":"obj_button_master","path":"objects/obj_button_master/obj_button_master.yy",},},
     {"id":{"name":"obj_button_play","path":"objects/obj_button_play/obj_button_play.yy",},},
     {"id":{"name":"obj_button_quit","path":"objects/obj_button_quit/obj_button_quit.yy",},},
+    {"id":{"name":"obj_button_review","path":"objects/obj_button_review/obj_button_review.yy",},},
     {"id":{"name":"obj_button_settings","path":"objects/obj_button_settings/obj_button_settings.yy",},},
     {"id":{"name":"obj_camera","path":"objects/obj_camera/obj_camera.yy",},},
     {"id":{"name":"obj_chair","path":"objects/obj_chair/obj_chair.yy",},},
@@ -123,6 +124,7 @@
     {"id":{"name":"obj_wall","path":"objects/obj_wall/obj_wall.yy",},},
     {"id":{"name":"obj_warp","path":"objects/obj_warp/obj_warp.yy",},},
     {"id":{"name":"par_npc","path":"objects/par_npc/par_npc.yy",},},
+    {"id":{"name":"par_rooftop_prop","path":"objects/par_rooftop_prop/par_rooftop_prop.yy",},},
     {"id":{"name":"rm_battle_scramble","path":"rooms/rm_battle_scramble/rm_battle_scramble.yy",},},
     {"id":{"name":"rm_combat","path":"rooms/rm_combat/rm_combat.yy",},},
     {"id":{"name":"rm_cutscene_lab","path":"rooms/rm_cutscene_lab/rm_cutscene_lab.yy",},},
@@ -130,9 +132,7 @@
     {"id":{"name":"rm_level_1","path":"rooms/rm_level_1/rm_level_1.yy",},},
     {"id":{"name":"rm_menu","path":"rooms/rm_menu/rm_menu.yy",},},
     {"id":{"name":"rm_settings","path":"rooms/rm_settings/rm_settings.yy",},},
-    {"id":{"name":"change_variable","path":"scripts/change_variable/change_variable.yy",},},
     {"id":{"name":"create_dialogue","path":"scripts/create_dialogue/create_dialogue.yy",},},
-    {"id":{"name":"create_instance_layer","path":"scripts/create_instance_layer/create_instance_layer.yy",},},
     {"id":{"name":"create_textevent","path":"scripts/create_textevent/create_textevent.yy",},},
     {"id":{"name":"reset_dialogue_defaults","path":"scripts/reset_dialogue_defaults/reset_dialogue_defaults.yy",},},
     {"id":{"name":"scr_caesar_decode","path":"scripts/scr_caesar_decode/scr_caesar_decode.yy",},},

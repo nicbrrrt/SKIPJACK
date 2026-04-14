@@ -1,49 +1,52 @@
+// obj_battle_scramble — Create Event
+// FIXED: Removed double load_next_puzzle() call.
+// FIXED: Removed redundant my_words / word_array duplicates (use word_array only).
+
 // --- 1. SAFETY & SETUP ---
 if (!instance_exists(obj_game_controller)) {
     instance_create_depth(0, 0, 0, obj_game_controller);
-    gpu_set_texfilter(false); 
+    gpu_set_texfilter(false);
 }
 
-// Hide Jack while in the JRPG screen
 if (instance_exists(obj_jack)) instance_deactivate_object(obj_jack);
 
-// Audio Setup
 audio_stop_all();
 audio_play_sound(snd_battle_music, 10, true);
 
-// --- 2. BATTLE VARIABLES (DYNAMIC SETUP) ---
+// --- 2. BATTLE VARIABLES ---
 player_sprite = spr_jack_battle;
 image_speed   = 0.15;
 
-max_hp_player = 100; 
+max_hp_player     = 100;
 current_hp_player = 100;
 
-// Check if this is a Boss Fight or a Regular Virus
 if (global.last_battle_id == "greg_boss") {
-    enemy_sprite = spr_npc1_idle; // Use Greg's sprite
-    max_hp_enemy = 200;           // Boss Health
+    enemy_sprite     = spr_npc1_idle;
+    max_hp_enemy     = 200;
     current_hp_enemy = 200;
+} else if (global.last_battle_id == "final_boss_jrpg") {
+    enemy_sprite     = spr_virus_idle;
+    max_hp_enemy     = 140;
+    current_hp_enemy = 140;
 } else {
-    enemy_sprite = spr_virus_idle; // Normal Virus
-    max_hp_enemy = 100;            // Normal Health
+    enemy_sprite     = spr_virus_idle;
+    max_hp_enemy     = 100;
     current_hp_enemy = 100;
 }
 
-// Animation & Feedback variables
-shake_magnitude = 0;
+shake_magnitude   = 0;
 enemy_flash_timer = 0;
 player_flash_timer = 0;
-player_x_offset = 0;
-enemy_x_offset = 0;
+player_x_offset   = 0;
+enemy_x_offset    = 0;
 
 // --- 3. PUZZLE DATA ---
-battle_state = "setup";
-timer = 0;
-target_word = "";
-current_hint = "";
-player_guess = "";
+battle_state  = "setup";
+timer         = 0;
+target_word   = "";
+current_hint  = "";
+player_guess  = "";
 
-// The Questions Database
 questions = [
     { word: "TROJAN",   hint: "Malware disguised as real software." },
     { word: "PHISHING", hint: "Fraudulent emails stealing data." },
@@ -52,49 +55,47 @@ questions = [
     { word: "SPYWARE",  hint: "Software that gathers info without consent." }
 ];
 
+// SINGLE word_array — removed duplicate my_words variable
+if (variable_global_exists("puzzle_word_list") && is_array(global.puzzle_word_list) && array_length(global.puzzle_word_list) > 0) {
+    word_array = global.puzzle_word_list;
+} else {
+    word_array = ["VIRUS", "DATA", "HACK", "ERROR"];
+}
+
 // --- 4. FUNCTION DEFINITIONS ---
-
-// Creates the orbiting letter buttons
 function create_buttons(_chars_array) {
-    var _count = array_length(_chars_array);
-    var _angle_step = 360 / _count; 
-
-    for(var i=0; i<_count; i++) {
+    var _count      = array_length(_chars_array);
+    var _angle_step = 360 / _count;
+    for (var i = 0; i < _count; i++) {
         var _inst = instance_create_depth(0, 0, -15000, obj_battle_button);
-        _inst.my_char = _chars_array[i];
-        
-        // Custom variables for the orbit math in the Step Event
-        _inst.orbit_angle_offset = i * _angle_step; 
-        _inst.image_xscale = 1; 
-        _inst.image_yscale = 1;
+        _inst.my_char             = _chars_array[i];
+        _inst.orbit_angle_offset  = i * _angle_step;
+        _inst.image_xscale        = 1;
+        _inst.image_yscale        = 1;
     }
 }
 
-// Picks a new word and starts the round
 function load_next_puzzle() {
     randomize();
-    
-    // 1. Check for Quest-Specific Words (Clipper/Lea)
     if (variable_global_exists("puzzle_word_list") && is_array(global.puzzle_word_list) && array_length(global.puzzle_word_list) > 0) {
-        target_word = global.puzzle_word_list[irandom(array_length(global.puzzle_word_list)-1)];
+        target_word  = global.puzzle_word_list[irandom(array_length(global.puzzle_word_list) - 1)];
         current_hint = "QUEST TOPIC: Decode the keyword!";
-    } 
-    // 2. Fallback to default questions
-    else {
-        var _pick = questions[irandom(array_length(questions)-1)];
-        target_word = _pick.word;
+    } else {
+        var _pick    = questions[irandom(array_length(questions) - 1)];
+        target_word  = _pick.word;
         current_hint = _pick.hint;
     }
-    
+
     player_guess = "";
-    
-    // ... (rest of your button creation code remains the same) ...
+    with (obj_battle_button) instance_destroy(); // Clear old buttons
+
     var _chars = [];
-    for(var i=1; i<=string_length(target_word); i++) {
+    for (var i = 1; i <= string_length(target_word); i++) {
         array_push(_chars, string_char_at(target_word, i));
     }
+    // Fisher-Yates shuffle
     for (var i = array_length(_chars) - 1; i > 0; i--) {
-        var j = irandom(i);
+        var j    = irandom(i);
         var temp = _chars[i];
         _chars[i] = _chars[j];
         _chars[j] = temp;
@@ -103,31 +104,9 @@ function load_next_puzzle() {
     battle_state = "player_input";
 }
 
-// --- 5. START DELAY & POSITIONING ---
-alarm[0] = 1; // Wait 1 frame before loading the first puzzle
-
-// Ground level for characters
-base_y_level = 360 * 0.65; 
-
-// Manual Nudge for the button orbit (Negative = Up)
+// --- 5. POSITIONING ---
+base_y_level  = 360 * 0.65;
 orbit_y_nudge = -45;
 
-// If we have a custom list from an NPC, use it!
-if (variable_global_exists("puzzle_word_list") && is_array(global.puzzle_word_list)) {
-    // Replace your standard word array with the quest-specific one
-    my_words = global.puzzle_word_list; 
-} else {
-    // Fallback default list
-    my_words = ["VIRUS", "DATA", "HACK", "ERROR"];
-}
-
-// Check if an NPC gave us a specific list
-if (variable_global_exists("puzzle_word_list") && is_array(global.puzzle_word_list)) {
-    word_array = global.puzzle_word_list;
-} else {
-    // Fallback if something goes wrong
-    word_array = ["VIRUS", "DATA", "HACK", "ERROR"];
-}
-
-// Make sure you call your "load next puzzle" function here
-load_next_puzzle();
+// --- 6. START: single alarm call — load_next_puzzle() runs ONCE via Alarm 0 ---
+alarm[0] = 1;

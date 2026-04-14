@@ -1,7 +1,6 @@
-// Run par_npc Step (sets depth = -y for Y-sorting)
-event_inherited();
+// obj_clipper — Step Event
+event_inherited(); // Runs par_npc's depth = -y
 
-// They only show up if the quest flag is true
 if (variable_global_exists("greg_quest_started") && global.greg_quest_started == true) {
     visible = true;
 } else {

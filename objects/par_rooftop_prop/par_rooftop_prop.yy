@@ -1,18 +1,18 @@
 {
   "$GMObject":"",
-  "%Name":"obj_neonlight_noodles",
-  "eventList":[],
+  "%Name":"par_rooftop_prop",
+  "eventList":[
+    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":3,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
+    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":0,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
+  ],
   "managed":true,
-  "name":"obj_neonlight_noodles",
+  "name":"par_rooftop_prop",
   "overriddenProperties":[],
   "parent":{
     "name":"Design",
     "path":"folders/Objects/Design.yy",
   },
-  "parentObjectId":{
-    "name":"par_rooftop_prop",
-    "path":"objects/par_rooftop_prop/par_rooftop_prop.yy",
-  },
+  "parentObjectId":null,
   "persistent":false,
   "physicsAngularDamping":0.1,
   "physicsDensity":0.5,
@@ -30,10 +30,7 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":{
-    "name":"spr_neonlight_noodles",
-    "path":"sprites/spr_neonlight_noodles/spr_neonlight_noodles.yy",
-  },
+  "spriteId":null,
   "spriteMaskId":null,
   "visible":true,
 }

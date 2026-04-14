@@ -54,6 +54,9 @@ Network Trash Folder
 Temporary Items
 .apdisk
  
+# Claude Code
+.claude/
+
 # GameMaker temporary files
 *.resource_order
 *.old

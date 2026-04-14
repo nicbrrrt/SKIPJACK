@@ -1,9 +1,7 @@
 {
   "$GMObject":"",
   "%Name":"obj_airunit",
-  "eventList":[
-    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":3,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
-  ],
+  "eventList":[],
   "managed":true,
   "name":"obj_airunit",
   "overriddenProperties":[],
@@ -12,8 +10,8 @@
     "path":"folders/Objects/Design.yy",
   },
   "parentObjectId":{
-    "name":"obj_designbuilding",
-    "path":"objects/obj_designbuilding/obj_designbuilding.yy",
+    "name":"par_rooftop_prop",
+    "path":"objects/par_rooftop_prop/par_rooftop_prop.yy",
   },
   "persistent":false,
   "physicsAngularDamping":0.1,
