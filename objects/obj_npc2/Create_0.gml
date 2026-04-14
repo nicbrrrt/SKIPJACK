@@ -12,7 +12,7 @@ anim_num_frames = 6;
 // This makes the NPC sort correctly with the player
 depth = -y;
 
-myPortrait = spr_npc2_portrait;
+myPortrait = spr_breado_portrait;
 myVoice = snd_voice2; // Or whatever your sound is named
 myFont = fnt_dialogue; // Or whatever your font is named
 myName = "Breado"; // Put their actual name here
