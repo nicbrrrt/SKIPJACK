@@ -18,6 +18,7 @@ if (!variable_global_exists("return_room"))      global.return_room      = rm_me
 if (!variable_global_exists("return_x"))         global.return_x         = 0;
 if (!variable_global_exists("return_y"))         global.return_y         = 0;
 if (!variable_global_exists("puzzle_word_list"))    global.puzzle_word_list    = []; // populated by NPCs (Clipper/Lea) before a scramble battle
+if (!variable_global_exists("puzzle_hint_list"))    global.puzzle_hint_list    = [];
 if (!variable_global_exists("battle_enemy_sprite"))        global.battle_enemy_sprite        = spr_npc2_idle;    // set by the triggering NPC before room_goto(rm_combat)
 if (!variable_global_exists("battle_enemy_attack_sprite")) global.battle_enemy_attack_sprite = spr_virus_attack; // set by the triggering NPC before room_goto(rm_battle_scramble)
 
@@ -53,8 +54,16 @@ if (!variable_global_exists("is_loading_from_save"))  global.is_loading_from_sav
 if (!variable_global_exists("DEBUG_MODE"))  global.DEBUG_MODE = false;
 
 // --- CAMERA ---
-if (!variable_global_exists("cam_width"))   global.cam_width  = 640;
-if (!variable_global_exists("cam_height"))  global.cam_height = 360;
+if (!variable_global_exists("cam_width"))       global.cam_width       = 640;
+if (!variable_global_exists("cam_height"))      global.cam_height      = 360;
+
+// --- CAMERA PAN ---
+if (!variable_global_exists("cam_pan_phase"))   global.cam_pan_phase   = "off";
+if (!variable_global_exists("cam_pan_timer"))   global.cam_pan_timer   = 0;
+if (!variable_global_exists("cam_pan_from_x"))  global.cam_pan_from_x  = 0;
+if (!variable_global_exists("cam_pan_from_y"))  global.cam_pan_from_y  = 0;
+if (!variable_global_exists("cam_pan_to_x"))    global.cam_pan_to_x    = 0;
+if (!variable_global_exists("cam_pan_to_y"))    global.cam_pan_to_y    = 0;
 
 // --- UI/AUDIO ---
 if (!variable_global_exists("game_volume"))  global.game_volume = 1;

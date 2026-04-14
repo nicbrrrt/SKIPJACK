@@ -22,6 +22,12 @@ if (!global.cryptography_learned) {
 } else {
     // Phase 2: Battle
     global.puzzle_word_list           = ["SYMMETRIC", "ENCRYPT", "DECRYPT", "PRIVATE"];
+    global.puzzle_hint_list = [
+        "Both parties use the same key.",
+        "Convert plaintext to ciphertext.",
+        "Convert ciphertext to plaintext.",
+        "Your own secret key in asymmetric."
+    ];
     global.last_battle_id             = "clipper_review";
     global.is_jrpg                    = true;
     global.battle_enemy_sprite        = spr_clipper_idle; // Clipper

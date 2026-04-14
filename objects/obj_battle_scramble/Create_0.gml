@@ -79,8 +79,13 @@ function create_buttons(_chars_array) {
 function load_next_puzzle() {
     randomize();
     if (variable_global_exists("puzzle_word_list") && is_array(global.puzzle_word_list) && array_length(global.puzzle_word_list) > 0) {
-        target_word  = global.puzzle_word_list[irandom(array_length(global.puzzle_word_list) - 1)];
-        current_hint = "QUEST TOPIC: Decode the keyword!";
+        var _idx     = irandom(array_length(global.puzzle_word_list) - 1);
+        target_word  = global.puzzle_word_list[_idx];
+        current_hint = (variable_global_exists("puzzle_hint_list")
+                        && is_array(global.puzzle_hint_list)
+                        && array_length(global.puzzle_hint_list) > _idx)
+                       ? global.puzzle_hint_list[_idx]
+                       : "QUEST TOPIC: Decode the keyword!";
     } else {
         var _pick    = questions[irandom(array_length(questions) - 1)];
         target_word  = _pick.word;

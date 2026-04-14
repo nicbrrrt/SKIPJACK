@@ -15,3 +15,4 @@ global.cam_height = 270;
 
 // This makes sure our GUI (like text) is drawn at the right "zoomed" scale
 display_set_gui_size(global.cam_width, global.cam_height);
+

@@ -21,9 +21,16 @@ if (room == rm_level_1
     && !instance_exists(obj_final_boss_placeholder)) {
     global.boss_spawned = true;
     var _boss = instance_create_layer(640, 380, "Instances", obj_final_boss_placeholder);
-    _boss.visible = true;
+    _boss.visible = false;
     if (instance_exists(obj_save_manager)) obj_save_manager.save_game();
     show_debug_message("CONTROLLER: Final boss spawned.");
+    // Trigger camera pan to boss
+    global.cam_pan_phase  = "pan_out";
+    global.cam_pan_timer  = 0;
+    global.cam_pan_from_x = instance_exists(obj_jack) ? clamp(obj_jack.x, global.cam_width/2, room_width - global.cam_width/2) : _boss.x;
+    global.cam_pan_from_y = instance_exists(obj_jack) ? clamp(obj_jack.y, global.cam_height/2, room_height - global.cam_height/2) : _boss.y;
+    global.cam_pan_to_x   = _boss.x;
+    global.cam_pan_to_y   = _boss.y;
     if (!instance_exists(obj_textevent)) {
         create_textevent(["WARNING: Anomaly signal detected. Threat level: CRITICAL."], [_boss]);
     }
@@ -35,7 +42,7 @@ if (room == rm_level_1
     && !global.final_boss_defeated
     && !instance_exists(obj_final_boss_placeholder)) {
     var _boss = instance_create_layer(640, 380, "Instances", obj_final_boss_placeholder);
-    _boss.visible = true;
+    _boss.visible = false;
     show_debug_message("CONTROLLER: Final boss restored from save.");
 }
 
@@ -61,6 +68,14 @@ if (room == rm_level_1 && global.last_battle_id == "final_boss_phase1_defeated")
 if (room == rm_level_1 && boss_pending_jrpg && !instance_exists(obj_textevent)) {
     boss_pending_jrpg = false;
     global.puzzle_word_list           = ["ANOMALY", "PROTOCOL", "ENCRYPT", "EXPLOIT", "PAYLOAD", "CIPHER"];
+    global.puzzle_hint_list = [
+        "System anomaly detected.",
+        "Standard operating procedures.",
+        "Scramble data for security.",
+        "Take advantage of a weakness.",
+        "Data delivered to a target.",
+        "System for encoding messages."
+    ];
     global.last_battle_id             = "final_boss_jrpg";
     global.is_jrpg                    = true;
     global.battle_enemy_sprite        = spr_boss_idle;   // The Anomaly

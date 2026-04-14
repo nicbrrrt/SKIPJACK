@@ -1,3 +1,9 @@
+// Scroll support
+if (mouse_wheel_down()) scroll_y += stringHeight;
+if (mouse_wheel_up())   scroll_y  = max(scroll_y - stringHeight, 0);
+var _max_scroll = max(0, (cy_max * stringHeight) - (boxHeight - y_buffer * 2));
+scroll_y = min(scroll_y, _max_scroll);
+
 //We check the type of dialogue to see if it is 1) "normal" or 2) a player choice dialogue.
 
 #region TYPE 0: NORMAL
@@ -14,8 +20,8 @@ if(type[page] == 0){
 			event_perform(ev_other, ev_user0);
 			switch(nextline[page]){
 				case -1: instance_destroy();	exit;
-				case  0: page += 1;				break;
-				default: page = nextline[page];
+				case  0: page += 1; scroll_y = 0; break;
+				default: page = nextline[page]; scroll_y = 0;
 			}
 			event_perform(ev_alarm, 0);
 			

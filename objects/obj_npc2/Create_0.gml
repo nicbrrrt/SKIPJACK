@@ -1,6 +1,8 @@
 // --- Interaction Dialogue ---
 // Initialize the flag to control movement/actions during cutscenes
 isInCutscene = false;
+image_speed  = 0;
+image_index  = 0;
 
 myInteractionDialogue = ["Use WASD to move and E for interact"];
 myInteractionSpeaker = [self]; // 'self' means this NPC (obj_npc2)

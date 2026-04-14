@@ -8,4 +8,6 @@ myTextCol  = c_red;
 isInCutscene       = false;
 preparing_to_fight = false;
 
-visible = false; // shown by obj_game_controller when spawn conditions met
+visible = false; // shown by spawn animation state machine
+spawn_timer = 0;
+spawn_phase = "waiting"; // "waiting" | "spawn_anim" | "done"

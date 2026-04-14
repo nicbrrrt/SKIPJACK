@@ -17,12 +17,10 @@ if (battle_state == "player_input" && instance_exists(obj_battle_button)) {
     var _speed = current_time * 0.05; 
     
     with (obj_battle_button) {
-        if (visible) {
-            if (!variable_instance_exists(id, "orbit_angle_offset")) orbit_angle_offset = 0;
-            var _my_angle = _speed + orbit_angle_offset;
-            x = _center_x + lengthdir_x(_radius, _my_angle);
-            y = _center_y + lengthdir_y(_radius, _my_angle);
-        }
+        if (!variable_instance_exists(id, "orbit_angle_offset")) orbit_angle_offset = 0;
+        var _my_angle = _speed + orbit_angle_offset;
+        x = _center_x + lengthdir_x(_radius, _my_angle);
+        y = _center_y + lengthdir_y(_radius, _my_angle);
     }
 }
 
@@ -39,9 +37,9 @@ if (battle_state == "player_input")
             player_guess = string_delete(player_guess, _len, 1);
             audio_play_sound(snd_button_click, 10, false);
             with (obj_battle_button) {
-                if (my_char == _last_char && visible == false) {
-                    visible = true; 
-                    break; 
+                if (my_char == _last_char && revealed) {
+                    revealed = false;
+                    break;
                 }
             }
         }
@@ -53,9 +51,9 @@ if (battle_state == "player_input")
             var _typed_char = chr(k); 
             var _found_btn = noone;
             with (obj_battle_button) {
-                if (visible == true && my_char == _typed_char) {
+                if (!revealed && my_char == _typed_char) {
                     _found_btn = id;
-                    break; 
+                    break;
                 }
             }
             if (_found_btn != noone) {

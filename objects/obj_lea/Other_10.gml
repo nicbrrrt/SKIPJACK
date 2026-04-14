@@ -22,6 +22,12 @@ else if (!global.caesar_learned) {
 else {
     create_textevent(["Let's see if you can solve a shift under pressure!"], [id]);
     global.puzzle_word_list           = ["CAESAR", "SHIFT", "ROTATE", "ALPHABET"];
+    global.puzzle_hint_list = [
+        "Roman-era encryption method.",
+        "Moving letters by a fixed number.",
+        "Letters wrap around the alphabet.",
+        "26 characters, A through Z."
+    ];
     global.last_battle_id             = "lea_review";
     global.is_jrpg                    = true;
     global.battle_enemy_sprite        = spr_lea_idle; // Lea

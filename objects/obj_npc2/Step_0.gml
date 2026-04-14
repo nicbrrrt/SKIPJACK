@@ -16,7 +16,8 @@ if (!isInCutscene)
     // Set your default animation for when the NPC is just standing around
     anim_start_frame = 0; // Default "look right"
     anim_num_frames = 6;
-    image_speed = 0.2; // Or your anim_speed
+    image_speed = 0;
+    image_index = anim_start_frame;
 }
 
 

@@ -13,11 +13,12 @@ if (room == rm_combat) {
 }
 
 // Freeze during cutscenes, transitions, or active minigames
-if (isInCutscene 
-    || instance_exists(obj_transition) 
-    || instance_exists(obj_path) 
-    || instance_exists(obj_cipher) 
-    || instance_exists(obj_qte)) 
+if (isInCutscene
+    || instance_exists(obj_transition)
+    || instance_exists(obj_path)
+    || instance_exists(obj_cipher)
+    || instance_exists(obj_qte)
+    || instance_exists(obj_textevent))
 {
     image_speed = 0;
     image_index = 0;

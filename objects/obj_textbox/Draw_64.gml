@@ -140,7 +140,7 @@ else {
 
 	//---------------------------------Setup for Effects----------------------------//
 	#region Setup Effects
-	var col = default_col, cc = 1, yy = pos_y+y_buffer, xx = pos_x+x_buffer, cx = 0, cy = 0;
+	var col = default_col, cc = 1, yy = pos_y+y_buffer - scroll_y, xx = pos_x+x_buffer, cx = 0, cy = 0;
 	var by = 0, bp_len = -1, effect = 0, next_space, effects_c = 0, text_col_c = 0;
 	var bp_array = breakpoints, txtwidth = boxWidth-(2*x_buffer); 
 	
@@ -151,29 +151,35 @@ else {
 	
 	//---------------------------------Draw the Letters-----------------------------//
 	#region Draw Letters
+	cy_max = 0;
 	repeat(charCount){
 		letter = string_char_at(text_NE, cc);
-	
+
 		var ec2 = effects_c*2;
-		if(effects_c < effects_al and effects_p[ec2] == cc){ 
-			effects_c++; 
+		if(effects_c < effects_al and effects_p[ec2] == cc){
+			effects_c++;
 			effect = effects_p[ec2+1];
 		}
-		
+
 		var tc2 = text_col_c*2;
-		if(text_col_c < text_col_al and text_col_p[tc2] == cc){ 
+		if(text_col_c < text_col_al and text_col_p[tc2] == cc){
 			text_col_c++;
 			col = text_col_p[tc2+1];
 		}
-		
+
 		if(bp_len != -1 and cc == next_space){
 			cy += 1; cx = 0;
+			if (cy > cy_max) cy_max = cy;
 			if(by < bp_len){
 				next_space = breakpoints[by];
 				by++;
 			}
 		}
-		
+
+		// Clip: hide characters outside the textbox bounds
+		var _draw_y = yy + (cy * stringHeight);
+		draw_set_alpha((_draw_y >= pos_y + y_buffer && _draw_y < pos_y + boxHeight - y_buffer) ? 1 : 0);
+
 		switch(effect){
 			case 0:	draw_text_color(xx + (cx*charSize), yy+(cy*stringHeight), letter, col, col, col, col, 1); break;
 			case 1:	draw_text_color(xx + (cx*charSize)+random_range(-1,1), yy+(cy*stringHeight)+random_range(-1,1), letter, col, col, col, col, 1); break;
@@ -215,11 +221,12 @@ else {
 				draw_text_color(xx + (cx*charSize), yy+(cy*stringHeight), letter, col, col, col, col, shift+random_range(-1,1));
 				break; 
 		}
+		draw_set_alpha(1);
 		cc += 1;
 		cx += 1;
 	}
 	#endregion
-	
+
 	#region Draw "Finished" effect
 	if(charCount >= str_len){
 		var shift = sin((t+cc)*pi*freq/room_speed)*amplitude;

@@ -93,6 +93,8 @@ font			= 1;
 
 charSize		= 1;
 stringHeight	= 1;
+scroll_y = 0;
+cy_max   = 0;
 
 //---------------------Effect variables
 

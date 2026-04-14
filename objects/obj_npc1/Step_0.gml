@@ -11,7 +11,8 @@ if (room == rm_combat || room == rm_battle_scramble) {
 
 // Simple idle animation
 if (sprite_index != spr_npc1_idle) { sprite_index = spr_npc1_idle; }
-image_speed = 0.2;
+image_speed = 0;
+image_index = 0;
 
 
 // --- 2. INTERACTION LOGIC (Consolidated) ---
