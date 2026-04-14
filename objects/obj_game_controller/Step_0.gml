@@ -82,6 +82,31 @@ if (keyboard_check_pressed(vk_f2)) {
     show_debug_message("DEBUG_MODE: " + string(global.DEBUG_MODE));
 }
 
+// --- DEBUG: F3 — SKIP ACTIVE BATTLE ---
+if (global.DEBUG_MODE && keyboard_check_pressed(vk_f3)) {
+    if (instance_exists(obj_battle_scramble)) {
+        with (obj_battle_scramble) {
+            if (global.last_battle_id == "clipper_review") global.clipper_defeated = true;
+            if (global.last_battle_id == "lea_review")     global.lea_defeated    = true;
+            global.last_battle_id = global.last_battle_id + "_defeated";
+            global.battle_result  = "win";
+            global.is_jrpg        = false;
+            instance_activate_all();
+            room_goto(rm_level_1);
+            instance_destroy();
+        }
+        show_debug_message("DEBUG: Battle scramble skipped (win).");
+    } else if (instance_exists(obj_battle)) {
+        with (obj_battle) {
+            battle_state = "win";
+            timer        = 0;
+        }
+        show_debug_message("DEBUG: Battle set to win state.");
+    } else {
+        show_debug_message("DEBUG: No active battle to skip.");
+    }
+}
+
 // --- EMERGENCY PRESENTATION OVERRIDE (debug only) ---
 if (global.DEBUG_MODE && keyboard_check_pressed(vk_f1)) {
     global.greg_quest_started = true;
