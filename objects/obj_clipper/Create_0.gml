@@ -1,6 +1,6 @@
 // obj_clipper — Create Event
 myName     = "Clipper";
-myPortrait = spr_npc1_portrait;
+myPortrait = spr_clipper_portrait;
 myVoice    = snd_voice2;
 myFont     = fnt_dialogue;
 myTextCol  = c_white;

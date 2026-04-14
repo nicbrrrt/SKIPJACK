@@ -4,7 +4,7 @@ isChallenger = false;
 challenge_won = false; 
 isInCutscene = false;
 
-myPortrait = spr_npc1_portrait;
+myPortrait = spr_greg_portrait;
 myVoice = snd_voice2; 
 myFont = fnt_dialogue;
 

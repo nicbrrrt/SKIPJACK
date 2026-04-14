@@ -1,6 +1,6 @@
 // obj_lea — Create Event
 myName     = "Lea";
-myPortrait = spr_npc2_portrait;
+myPortrait = spr_lea_portrait;
 myVoice    = snd_voice2;
 myFont     = fnt_dialogue;
 myTextCol  = c_white;
