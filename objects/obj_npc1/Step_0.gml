@@ -65,7 +65,8 @@ if (room == rm_hallway) {
         global.last_battle_id = "none";
         global.battle_result = "none";
         challenge_won = false;
-        
+        global.quest_find_greg_done = true;
+
         if (!instance_exists(obj_transition)) {
             var _inst = instance_create_depth(0, 0, -16000, obj_transition);
             _inst.target_room = rm_level_1;

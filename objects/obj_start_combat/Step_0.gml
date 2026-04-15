@@ -70,6 +70,8 @@ if (instance_exists(obj_jack)) {
             }
 
             active_dialogue = true;
+            global.quest_room101_done = true; // Player found Breado — quest complete
+
             // --- RESTORED ORIGINAL START DIALOGUE ---
             var _text = [
                 "I heard you needed help with something?",

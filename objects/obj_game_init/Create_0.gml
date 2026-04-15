@@ -27,6 +27,10 @@ if (!variable_global_exists("tutorial_complete"))     global.tutorial_complete  
 if (!variable_global_exists("level1_intro_done"))     global.level1_intro_done     = false;
 if (!variable_global_exists("greg_defeated"))         global.greg_defeated         = false;
 if (!variable_global_exists("greg_quest_started"))    global.greg_quest_started    = false;
+if (!variable_global_exists("quest_room101_active"))    global.quest_room101_active    = false;
+if (!variable_global_exists("quest_room101_done"))      global.quest_room101_done      = false;
+if (!variable_global_exists("quest_find_greg_done"))    global.quest_find_greg_done    = false;
+if (!variable_global_exists("quest_greg_level1_done"))  global.quest_greg_level1_done  = false;
 if (!variable_global_exists("quest_clipper_done"))    global.quest_clipper_done    = false;
 if (!variable_global_exists("quest_lea_done"))        global.quest_lea_done        = false;
 if (!variable_global_exists("cryptography_learned"))  global.cryptography_learned  = false;

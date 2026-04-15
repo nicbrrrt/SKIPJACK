@@ -28,7 +28,8 @@ if (room == rm_level_1) {
         if (!preparing_to_fight) {
             // First interaction: Just talk
             create_textevent(["Ready to test your skills, Jack? Let's see what you've got."], [id]);
-            preparing_to_fight = true; 
+            preparing_to_fight = true;
+            global.quest_greg_level1_done = true; // Player found Greg — quest complete
         } else {
             // Second interaction: FIGHT
             global.last_battle_id             = "greg_boss";

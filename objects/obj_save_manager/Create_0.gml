@@ -34,7 +34,11 @@ function save_game() {
         tutorial_done:        _global_or("tutorial_complete", false),
         intro_done:           _global_or("level1_intro_done", false),
         greg_dead:            _global_or("greg_defeated", false),
-        greg_started:         _global_or("greg_quest_started", false),
+        greg_started:         _global_or("greg_quest_started",  false),
+        room101_active:       _global_or("quest_room101_active",    false),
+        room101_done:         _global_or("quest_room101_done",      false),
+        find_greg_done:       _global_or("quest_find_greg_done",    false),
+        greg_level1_done:     _global_or("quest_greg_level1_done",  false),
 
         // NPC lesson / defeat flags
         cryptography_learned: _global_or("cryptography_learned", false),
@@ -83,7 +87,11 @@ function load_game() {
     global.tutorial_complete   = _field_or(_data, "tutorial_done",        false);
     global.level1_intro_done   = _field_or(_data, "intro_done",           false);
     global.greg_defeated       = _field_or(_data, "greg_dead",            false);
-    global.greg_quest_started  = _field_or(_data, "greg_started",         false);
+    global.greg_quest_started   = _field_or(_data, "greg_started",         false);
+    global.quest_room101_active   = _field_or(_data, "room101_active",    false);
+    global.quest_room101_done     = _field_or(_data, "room101_done",      false);
+    global.quest_find_greg_done   = _field_or(_data, "find_greg_done",    false);
+    global.quest_greg_level1_done = _field_or(_data, "greg_level1_done",  false);
 
     global.cryptography_learned = _field_or(_data, "cryptography_learned", false);
     global.caesar_learned       = _field_or(_data, "caesar_learned",       false);

@@ -17,7 +17,61 @@ if (global.DEBUG_MODE) {
     draw_set_halign(fa_left);
 }
 
-// --- QUEST TRACKER ---
+// --- QUEST TRACKER: HALLWAY STAGE ---
+var _q1_active = global.quest_room101_active && !global.quest_room101_done;
+var _q2_active = global.tutorial_complete && !global.quest_find_greg_done;
+
+if (room != rm_combat && room != rm_battle_scramble && room != rm_menu && room != rm_level_1
+    && (_q1_active || _q2_active)) {
+
+    draw_set_font(-1);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+
+    var _qx      = 15;
+    var _qy      = 15;
+    var _spacing = 18;
+    var _rows    = (_q1_active ? 1 : 0) + (_q2_active ? 1 : 0);
+
+    draw_set_color(c_black);
+    draw_set_alpha(0.6);
+    draw_rectangle(_qx - 5, _qy - 5, _qx + 185, _qy + 10 + (_spacing * (_rows + 1)), false);
+    draw_set_alpha(1.0);
+
+    draw_set_color(c_yellow);
+    draw_text(_qx, _qy, "OBJECTIVES:");
+
+    var _row = 1;
+    if (_q1_active) {
+        draw_text_color(_qx + 5, _qy + (_spacing * _row), "> Find Breado in Room 101", c_white, c_white, c_white, c_white, 1);
+        _row++;
+    }
+    if (_q2_active) {
+        draw_text_color(_qx + 5, _qy + (_spacing * _row), "> Find Greg at end of hall", c_white, c_white, c_white, c_white, 1);
+    }
+}
+
+// --- QUEST TRACKER: LEVEL 1 (Find Greg) ---
+if (room == rm_level_1 && global.quest_find_greg_done && !global.quest_greg_level1_done) {
+    draw_set_font(-1);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+
+    var _qx      = 15;
+    var _qy      = 15;
+    var _spacing = 18;
+
+    draw_set_color(c_black);
+    draw_set_alpha(0.6);
+    draw_rectangle(_qx - 5, _qy - 5, _qx + 185, _qy + 10 + (_spacing * 2), false);
+    draw_set_alpha(1.0);
+
+    draw_set_color(c_yellow);
+    draw_text(_qx, _qy, "OBJECTIVES:");
+    draw_text_color(_qx + 5, _qy + _spacing, "> Find Greg", c_white, c_white, c_white, c_white, 1);
+}
+
+// --- QUEST TRACKER: LEVEL 1 (Clipper + Lea) ---
 if (room == rm_level_1 && global.greg_quest_started) {
     draw_set_font(-1);
     draw_set_halign(fa_left);

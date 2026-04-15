@@ -105,6 +105,9 @@ switch(sequence_step) {
 
 // -------------------- STEP 9: UNLOCK PLAYER --------------------
 	case 9:
+		// 0. Activate the "Go to Room 101" quest
+		global.quest_room101_active = true;
+
 		// 1. Unlock the player
 		obj_jack.isInCutscene = false;
 		
