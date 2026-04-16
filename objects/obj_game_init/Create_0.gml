@@ -11,6 +11,7 @@ if (!variable_global_exists("save_filename")) {
 
 // --- BATTLE STATE ---
 if (!variable_global_exists("last_battle_id"))   global.last_battle_id   = "none";
+if (!variable_global_exists("jrpg_opponent"))    global.jrpg_opponent    = "none";
 if (!variable_global_exists("battle_result"))    global.battle_result    = "none";
 if (!variable_global_exists("battle_active"))    global.battle_active    = false;
 if (!variable_global_exists("is_jrpg"))          global.is_jrpg          = false;
@@ -72,3 +73,6 @@ if (!variable_global_exists("cam_pan_to_y"))    global.cam_pan_to_y    = 0;
 // --- UI/AUDIO ---
 if (!variable_global_exists("game_volume"))  global.game_volume = 1;
 if (!variable_global_exists("is_paused"))    global.is_paused   = false;
+
+// Lock GUI to 640x360 (2x visual scale, matching the main menu) from the first room onward
+display_set_gui_size(640, 360);

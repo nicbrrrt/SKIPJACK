@@ -29,6 +29,7 @@ if (!global.cryptography_learned) {
         "Your own secret key in asymmetric."
     ];
     global.last_battle_id             = "clipper_review";
+    global.jrpg_opponent              = "clipper_review";
     global.is_jrpg                    = true;
     global.battle_enemy_sprite        = spr_clipper_idle; // Clipper
     global.battle_enemy_attack_sprite = spr_clipper_idle; // No dedicated attack sprite

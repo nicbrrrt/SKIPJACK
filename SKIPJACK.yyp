@@ -86,6 +86,7 @@
     {"id":{"name":"obj_camera","path":"objects/obj_camera/obj_camera.yy",},},
     {"id":{"name":"obj_chair","path":"objects/obj_chair/obj_chair.yy",},},
     {"id":{"name":"obj_checkbox_fullscreen","path":"objects/obj_checkbox_fullscreen/obj_checkbox_fullscreen.yy",},},
+    {"id":{"name":"obj_cipher_select","path":"objects/obj_cipher_select/obj_cipher_select.yy",},},
     {"id":{"name":"obj_cipher","path":"objects/obj_cipher/obj_cipher.yy",},},
     {"id":{"name":"obj_clipper","path":"objects/obj_clipper/obj_clipper.yy",},},
     {"id":{"name":"obj_codex_manager","path":"objects/obj_codex_manager/obj_codex_manager.yy",},},
@@ -127,6 +128,7 @@
     {"id":{"name":"par_npc","path":"objects/par_npc/par_npc.yy",},},
     {"id":{"name":"par_rooftop_prop","path":"objects/par_rooftop_prop/par_rooftop_prop.yy",},},
     {"id":{"name":"rm_battle_scramble","path":"rooms/rm_battle_scramble/rm_battle_scramble.yy",},},
+    {"id":{"name":"rm_cipher_select","path":"rooms/rm_cipher_select/rm_cipher_select.yy",},},
     {"id":{"name":"rm_combat","path":"rooms/rm_combat/rm_combat.yy",},},
     {"id":{"name":"rm_cutscene_lab","path":"rooms/rm_cutscene_lab/rm_cutscene_lab.yy",},},
     {"id":{"name":"rm_hallway","path":"rooms/rm_hallway/rm_hallway.yy",},},
@@ -271,6 +273,7 @@
   "resourceVersion":"2.0",
   "RoomOrderNodes":[
     {"roomId":{"name":"rm_menu","path":"rooms/rm_menu/rm_menu.yy",},},
+    {"roomId":{"name":"rm_cipher_select","path":"rooms/rm_cipher_select/rm_cipher_select.yy",},},
     {"roomId":{"name":"rm_settings","path":"rooms/rm_settings/rm_settings.yy",},},
     {"roomId":{"name":"rm_level_1","path":"rooms/rm_level_1/rm_level_1.yy",},},
     {"roomId":{"name":"rm_battle_scramble","path":"rooms/rm_battle_scramble/rm_battle_scramble.yy",},},

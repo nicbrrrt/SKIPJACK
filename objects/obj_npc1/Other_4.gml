@@ -14,6 +14,14 @@ if (room == rm_level_1) {
     }
 }
 
+// If the player just lost to Greg, auto-show the retry taunt
+if (room == rm_level_1 && global.battle_result == "lose" && global.jrpg_opponent == "greg_boss") {
+    global.battle_result = "none";
+    global.jrpg_opponent = "none";
+    preparing_to_fight = true;
+    create_textevent(["Ha! Not bad for a first attempt. Come on, let's go again."], [id]);
+}
+
 // If we just got back from defeating him, force the dialogue
 if (room == rm_level_1 && global.last_battle_id == "greg_boss_defeated") {
     global.greg_quest_started = true;

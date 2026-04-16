@@ -10,9 +10,8 @@ window_set_size(1280, 720);
 window_center();
 
 // This is our "zoom" level. We want to *see* a 640x360 area.
-global.cam_width = 480;
-global.cam_height = 270;
+global.cam_width = 640;
+global.cam_height = 360;
 
-// This makes sure our GUI (like text) is drawn at the right "zoomed" scale
-display_set_gui_size(global.cam_width, global.cam_height);
+// GUI size is managed globally by obj_game_controller's Room Start event
 

@@ -25,7 +25,13 @@ if (room == rm_level_1) {
     if (!global.greg_defeated) {
         if (!variable_instance_exists(id, "preparing_to_fight")) preparing_to_fight = false;
 
-        if (!preparing_to_fight) {
+        if (global.battle_result == "lose" && global.jrpg_opponent == "greg_boss") {
+            // Player just lost — taunt and prime for immediate retry
+            global.battle_result = "none";
+            global.jrpg_opponent = "none";
+            preparing_to_fight = true;
+            create_textevent(["Ha! Not bad for a first attempt. Come on, let's go again."], [id]);
+        } else if (!preparing_to_fight) {
             // First interaction: Just talk
             create_textevent(["Ready to test your skills, Jack? Let's see what you've got."], [id]);
             preparing_to_fight = true;
@@ -33,6 +39,7 @@ if (room == rm_level_1) {
         } else {
             // Second interaction: FIGHT
             global.last_battle_id             = "greg_boss";
+            global.jrpg_opponent              = "greg_boss";
             global.is_jrpg                    = true;
             global.battle_enemy_sprite        = spr_npc1_idle; // Greg
             global.battle_enemy_attack_sprite = spr_npc1_idle; // No dedicated attack sprite

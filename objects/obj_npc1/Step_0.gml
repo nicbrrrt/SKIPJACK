@@ -53,6 +53,22 @@ if (room == rm_hallway) {
         room_goto(rm_combat);
     }
     
+    // Post-Fight Loss Logic (Allow retry)
+    if (global.battle_result == "lose" && global.last_battle_id == "greg_fight" && !instance_exists(obj_textevent)) {
+        // Snap Greg back to his challenge position so the player can find him
+        x = 416;
+        y = 976;
+        // Snap Jack back to where he was before the fight
+        if (instance_exists(obj_jack) && global.return_x != 0) {
+            obj_jack.x = global.return_x;
+            obj_jack.y = global.return_y;
+        }
+        global.battle_result = "none";
+        global.last_battle_id = "none";
+        isChallenger = true;
+        create_textevent(["Ha! You'll have to do better than that. Come on, try again!"], [id]);
+    }
+
     // Post-Fight Win Logic (Triggers "Follow me!")
     if (global.battle_result == "win" && global.last_battle_id == "greg_fight" && !challenge_won) {
         if (!instance_exists(obj_textevent)) {

@@ -1,5 +1,8 @@
 // --- Room Start Event for obj_game_controller ---
 
+// Lock GUI to 640x360 in every room — matches the 2x visual scale of the main menu
+display_set_gui_size(640, 360);
+
 // --- FORCE SPAWN JACK ON LOAD ---
 if (variable_global_exists("is_loading_from_save") && global.is_loading_from_save) {
     

@@ -1,9 +1,18 @@
-// DEBUG: F3 skips JRPG combat
+// DEBUG: F3 skips JRPG combat (win)
 if (variable_global_exists("DEBUG_MODE") && global.DEBUG_MODE && keyboard_check_pressed(vk_f3)) {
-    show_debug_message("[DEBUG] F3 pressed — skipping JRPG combat (battle_id: " + string(global.last_battle_id) + ")");
+    show_debug_message("[DEBUG] F3 pressed — skipping JRPG combat as WIN (battle_id: " + string(global.last_battle_id) + ")");
     current_hp_enemy = 0;
     battle_state     = "win";
     timer            = 0;
+    exit;
+}
+
+// DEBUG: F4 forces JRPG combat loss
+if (variable_global_exists("DEBUG_MODE") && global.DEBUG_MODE && keyboard_check_pressed(vk_f4)) {
+    show_debug_message("[DEBUG] F4 pressed — forcing JRPG combat LOSS (battle_id: " + string(global.last_battle_id) + ")");
+    current_hp_player = 0;
+    battle_state      = "lose";
+    timer             = 0;
     exit;
 }
 
@@ -172,8 +181,38 @@ else if (battle_state == "win") {
     global.battle_result = "win";
     global.is_jrpg = false;
 
-    instance_activate_all(); 
+    instance_activate_all();
     room_goto(rm_level_1);
-    instance_destroy(); 
+    instance_destroy();
 	}
+}
+
+// ====================================================
+// 6. PLAYER DEFEAT STATE
+// ====================================================
+else if (battle_state == "lose") {
+    timer++;
+
+    if (timer == 1) {
+        audio_stop_sound(snd_battle_music);
+        player_sprite = spr_jack_hurt;
+    }
+
+    // Red glitch text over the player position
+    if (timer % 12 == 0 && timer < 100) {
+        var _glitch = instance_create_depth(display_get_gui_width() * 0.75 + irandom_range(-20, 20), base_y_level + irandom_range(-40, 40), -16000, obj_damage_text);
+        _glitch.damage_amount = choose("KO", "ERR", "DEAD", "0HP");
+        _glitch.color = c_red;
+    }
+
+    // After ~2 seconds, return to level with lose result
+    if (timer > 120) {
+        global.battle_result = "lose";
+        global.last_battle_id = "none"; // Clear so game_controller doesn't auto-re-trigger
+        global.is_jrpg = false;
+
+        instance_activate_all();
+        room_goto(rm_level_1);
+        instance_destroy();
+    }
 }
