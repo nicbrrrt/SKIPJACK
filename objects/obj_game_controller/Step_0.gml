@@ -6,8 +6,9 @@ if (room == rm_level_1 && global.last_battle_id == "greg_boss") {
         // Reset the ID so it doesn't loop, then TELEPORT
         global.last_battle_id             = "none";
         global.is_jrpg                    = true;
-        global.battle_enemy_sprite        = spr_npc1_idle; // Greg
-        global.battle_enemy_attack_sprite = spr_npc1_idle; // No dedicated attack sprite
+        global.battle_enemy_sprite        = spr_npc1_idle;
+        global.battle_enemy_attack_sprite = spr_npc1_idle;
+        global.return_room                = rm_level_1;
         room_goto(rm_battle_scramble);
         show_debug_message("CONTROLLER: Teleporting to JRPG Battle.");
     }
@@ -78,8 +79,9 @@ if (room == rm_level_1 && boss_pending_jrpg && !instance_exists(obj_textevent)) 
     ];
     global.last_battle_id             = "final_boss_jrpg";
     global.is_jrpg                    = true;
-    global.battle_enemy_sprite        = spr_boss_idle;   // The Anomaly
-    global.battle_enemy_attack_sprite = spr_boss_attack; // Boss attack animation
+    global.battle_enemy_sprite        = spr_boss_idle;
+    global.battle_enemy_attack_sprite = spr_boss_attack;
+    global.return_room                = rm_level_1;
     room_goto(rm_battle_scramble);
     show_debug_message("CONTROLLER: Transitioning to final boss JRPG phase.");
 }
@@ -148,8 +150,9 @@ if (keyboard_check_pressed(vk_escape))
     else
     {
         // --- PAUSE CONDITION FIX ---
-        // Allow pause if Jack exists OR if we are in a battle (even if Jack is hidden)
-        if (instance_exists(obj_jack) || instance_exists(obj_battle_scramble))
+        // Allow pause if Jack exists OR if we are in a battle (even if Jack is hidden).
+        // Do NOT pause while the Caesar cipher info panel is open.
+        if (!(instance_exists(obj_kyle) && obj_kyle.gui_open) && (instance_exists(obj_jack) || instance_exists(obj_battle_scramble)))
         {
             global.is_paused = true;
             

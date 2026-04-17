@@ -174,15 +174,16 @@ else if (battle_state == "win") {
 	if (timer > 150) {
     // 1. Tell the NPCs they lost
     if (global.last_battle_id == "clipper_review") global.clipper_defeated = true;
-    if (global.last_battle_id == "lea_review")     global.lea_defeated = true;
-    
+    if (global.last_battle_id == "lea_review")     global.lea_defeated     = true;
+    if (global.last_battle_id == "david_quiz")     global.david_defeated   = true;
+
     // 2. Standard handshake
-    global.last_battle_id = global.last_battle_id + "_defeated"; 
+    global.last_battle_id = global.last_battle_id + "_defeated";
     global.battle_result = "win";
     global.is_jrpg = false;
 
     instance_activate_all();
-    room_goto(rm_level_1);
+    room_goto(global.return_room);
     instance_destroy();
 	}
 }
@@ -207,12 +208,15 @@ else if (battle_state == "lose") {
 
     // After ~2 seconds, return to level with lose result
     if (timer > 120) {
+        // Mark attempted flag before clearing ID (lose clears ID to "none")
+        if (global.last_battle_id == "david_quiz") global.david_quiz_attempted = true;
+
         global.battle_result = "lose";
         global.last_battle_id = "none"; // Clear so game_controller doesn't auto-re-trigger
         global.is_jrpg = false;
 
         instance_activate_all();
-        room_goto(rm_level_1);
+        room_goto(global.return_room);
         instance_destroy();
     }
 }

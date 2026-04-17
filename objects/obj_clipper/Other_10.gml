@@ -31,7 +31,8 @@ if (!global.cryptography_learned) {
     global.last_battle_id             = "clipper_review";
     global.jrpg_opponent              = "clipper_review";
     global.is_jrpg                    = true;
-    global.battle_enemy_sprite        = spr_clipper_idle; // Clipper
-    global.battle_enemy_attack_sprite = spr_clipper_idle; // No dedicated attack sprite
+    global.battle_enemy_sprite        = spr_clipper_idle;
+    global.battle_enemy_attack_sprite = spr_clipper_idle;
+    global.return_room                = rm_level_1;
     room_goto(rm_battle_scramble);
 }

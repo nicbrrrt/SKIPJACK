@@ -71,8 +71,8 @@ switch(sequence_step) {
 		if (!instance_exists(obj_textevent)) {
 			var _text = [
 				"Use WASD keys to move around and for selection.",
-				"Press E for interaction with stuff",
-				"Oh almost forgot, someone was asking for help in the other lab room"
+				"Press E to interact with things.",
+				"There's someone out in the hall who needs to talk to you."
 			];
 			create_textevent(_text, [obj_npc2, obj_npc2, obj_npc2]);
 		}
@@ -88,8 +88,8 @@ switch(sequence_step) {
 	case 7:
 		if (!instance_exists(obj_textevent)) {
 			var _text = [
-				"So go ahead and check it out.",
-				"Head out the door and go down the hall."
+				"Head out the door and look for Kyle.",
+				"He's just down the hall — you can't miss him."
 			];
 			create_textevent(_text, [obj_npc1, obj_npc1]);
 		}
@@ -105,8 +105,8 @@ switch(sequence_step) {
 
 // -------------------- STEP 9: UNLOCK PLAYER --------------------
 	case 9:
-		// 0. Activate the "Go to Room 101" quest
-		global.quest_room101_active = true;
+		// 0. Activate the "Find Kyle" quest
+		global.quest_talk_to_kyle = true;
 
 		// 1. Unlock the player
 		obj_jack.isInCutscene = false;

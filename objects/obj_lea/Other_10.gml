@@ -31,7 +31,8 @@ else {
     global.last_battle_id             = "lea_review";
     global.jrpg_opponent              = "lea_review";
     global.is_jrpg                    = true;
-    global.battle_enemy_sprite        = spr_lea_idle; // Lea
-    global.battle_enemy_attack_sprite = spr_lea_idle; // No dedicated attack sprite
+    global.battle_enemy_sprite        = spr_lea_idle;
+    global.battle_enemy_attack_sprite = spr_lea_idle;
+    global.return_room                = rm_level_1;
     room_goto(rm_battle_scramble);
 }

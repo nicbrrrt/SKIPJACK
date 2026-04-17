@@ -69,6 +69,15 @@ if (instance_exists(obj_jack)) {
                 exit;
             }
 
+            // Gate: player must beat David's quiz before the combat tutorial unlocks
+            if (!global.david_defeated) {
+                create_textevent([
+                    "Yo, you should probably go talk to David first.",
+                    "He's back down the hall."
+                ], [id, id]);
+                exit;
+            }
+
             active_dialogue = true;
             global.quest_room101_done = true; // Player found Breado — quest complete
 

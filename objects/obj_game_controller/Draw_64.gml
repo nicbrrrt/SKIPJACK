@@ -18,11 +18,13 @@ if (global.DEBUG_MODE) {
 }
 
 // --- QUEST TRACKER: HALLWAY STAGE ---
-var _q1_active = global.quest_room101_active && !global.quest_room101_done;
-var _q2_active = global.tutorial_complete && !global.quest_find_greg_done;
+var _qk_active = global.quest_talk_to_kyle   && !global.kyle_lesson_done;
+var _qd_active = global.quest_talk_to_david  && !global.david_defeated;
+var _qb_active = global.quest_talk_to_breado && !global.tutorial_complete;
+var _qg_active = global.tutorial_complete    && !global.quest_find_greg_done;
 
 if (room != rm_combat && room != rm_battle_scramble && room != rm_menu && room != rm_level_1
-    && (_q1_active || _q2_active)) {
+    && (_qk_active || _qd_active || _qb_active || _qg_active)) {
 
     draw_set_font(-1);
     draw_set_halign(fa_left);
@@ -31,22 +33,30 @@ if (room != rm_combat && room != rm_battle_scramble && room != rm_menu && room !
     var _qx      = 15;
     var _qy      = 15;
     var _spacing = 18;
-    var _rows    = (_q1_active ? 1 : 0) + (_q2_active ? 1 : 0);
+    var _rows    = (_qk_active ? 1 : 0) + (_qd_active ? 1 : 0) + (_qb_active ? 1 : 0) + (_qg_active ? 1 : 0);
 
     draw_set_color(c_black);
     draw_set_alpha(0.6);
-    draw_rectangle(_qx - 5, _qy - 5, _qx + 185, _qy + 10 + (_spacing * (_rows + 1)), false);
+    draw_rectangle(_qx - 5, _qy - 5, _qx + 200, _qy + 10 + (_spacing * (_rows + 1)), false);
     draw_set_alpha(1.0);
 
     draw_set_color(c_yellow);
     draw_text(_qx, _qy, "OBJECTIVES:");
 
     var _row = 1;
-    if (_q1_active) {
-        draw_text_color(_qx + 5, _qy + (_spacing * _row), "> Find Breado in Room 101", c_white, c_white, c_white, c_white, 1);
+    if (_qk_active) {
+        draw_text_color(_qx + 5, _qy + (_spacing * _row), "> Talk to Kyle", c_white, c_white, c_white, c_white, 1);
         _row++;
     }
-    if (_q2_active) {
+    if (_qd_active) {
+        draw_text_color(_qx + 5, _qy + (_spacing * _row), "> Find David and take his quiz", c_white, c_white, c_white, c_white, 1);
+        _row++;
+    }
+    if (_qb_active) {
+        draw_text_color(_qx + 5, _qy + (_spacing * _row), "> Find Breado for combat training", c_white, c_white, c_white, c_white, 1);
+        _row++;
+    }
+    if (_qg_active) {
         draw_text_color(_qx + 5, _qy + (_spacing * _row), "> Find Greg at end of hall", c_white, c_white, c_white, c_white, 1);
     }
 }

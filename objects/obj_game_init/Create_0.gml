@@ -41,6 +41,14 @@ if (!variable_global_exists("lea_defeated"))          global.lea_defeated       
 if (!variable_global_exists("boss_spawned"))          global.boss_spawned          = false;
 if (!variable_global_exists("final_boss_defeated"))   global.final_boss_defeated   = false;
 
+// --- HALLWAY NPC FLAGS (Kyle / David) ---
+if (!variable_global_exists("quest_talk_to_kyle"))    global.quest_talk_to_kyle    = false;
+if (!variable_global_exists("kyle_lesson_done"))      global.kyle_lesson_done      = false;
+if (!variable_global_exists("quest_talk_to_david"))   global.quest_talk_to_david   = false;
+if (!variable_global_exists("david_defeated"))        global.david_defeated        = false;
+if (!variable_global_exists("david_quiz_attempted"))  global.david_quiz_attempted  = false;
+if (!variable_global_exists("quest_talk_to_breado"))  global.quest_talk_to_breado  = false;
+
 // --- TUTORIAL FLAGS ---
 if (!variable_global_exists("seen_path_tutorial"))    global.seen_path_tutorial    = false;
 if (!variable_global_exists("seen_cipher_tutorial"))  global.seen_cipher_tutorial  = false;

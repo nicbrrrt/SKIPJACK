@@ -52,6 +52,14 @@ function save_game() {
         boss_spawned:         _global_or("boss_spawned",       false),
         final_boss_defeated:  _global_or("final_boss_defeated", false),
 
+        // Hallway NPC flags (Kyle / David)
+        quest_talk_to_kyle:   _global_or("quest_talk_to_kyle",   false),
+        kyle_lesson_done:     _global_or("kyle_lesson_done",     false),
+        quest_talk_to_david:  _global_or("quest_talk_to_david",  false),
+        david_defeated:        _global_or("david_defeated",        false),
+        david_quiz_attempted:  _global_or("david_quiz_attempted",  false),
+        quest_talk_to_breado:  _global_or("quest_talk_to_breado",  false),
+
         // Battle handoff state (so saving mid-battle-setup is safe)
         last_battle_id:       _global_or("last_battle_id",    "none"),
         is_jrpg:              _global_or("is_jrpg",           false),
@@ -97,6 +105,13 @@ function load_game() {
     global.caesar_learned       = _field_or(_data, "caesar_learned",       false);
     global.clipper_defeated     = _field_or(_data, "clipper_defeated",     false);
     global.lea_defeated         = _field_or(_data, "lea_defeated",         false);
+
+    global.quest_talk_to_kyle   = _field_or(_data, "quest_talk_to_kyle",   false);
+    global.kyle_lesson_done     = _field_or(_data, "kyle_lesson_done",     false);
+    global.quest_talk_to_david  = _field_or(_data, "quest_talk_to_david",  false);
+    global.david_defeated        = _field_or(_data, "david_defeated",        false);
+    global.david_quiz_attempted  = _field_or(_data, "david_quiz_attempted",  false);
+    global.quest_talk_to_breado  = _field_or(_data, "quest_talk_to_breado",  false);
 
     global.quest_clipper_done   = _field_or(_data, "clipper_done",         false);
     global.quest_lea_done       = _field_or(_data, "lea_done",             false);

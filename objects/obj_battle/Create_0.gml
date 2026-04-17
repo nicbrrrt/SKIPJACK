@@ -16,6 +16,14 @@ if (!variable_global_exists("seen_path_tutorial")) {
     global.seen_qte_tutorial = false;
 }
 
+// Tutorial overlays only play during Breado's lesson — skip them for every
+// fight after tutorial_complete is set (e.g. Greg's hallway test).
+if (variable_global_exists("tutorial_complete") && global.tutorial_complete) {
+    global.seen_path_tutorial   = true;
+    global.seen_cipher_tutorial = true;
+    global.seen_qte_tutorial    = true;
+}
+
 // 3. ROOM CHECK
 if (room != rm_combat) { 
     instance_destroy();
