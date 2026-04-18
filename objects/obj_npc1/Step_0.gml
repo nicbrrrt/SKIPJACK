@@ -28,12 +28,21 @@ if (instance_exists(obj_jack)) {
             event_user(0); 
         }
         
-        // --- HALLWAY BEHAVIOR (Tutorial Mode) ---
+        // --- HALLWAY TUTORIAL: find-Greg congratulations ─────────────────────
+        else if (room == rm_hallway && !global.hall_tutorial_done) {
+            create_textevent([
+                "You found me! Great work navigating over here.",
+                "That's the core of it: WASD to move, E to talk to people.",
+                "You're ready. Let's head out into the city!"
+            ], [id, id, id]);
+        }
+
+        // --- HALLWAY BEHAVIOR (Post-tutorial challenge) ──────────────────────
         else if (room == rm_hallway && isChallenger) {
             global.last_battle_id = "greg_fight";
             global.battle_result = "none";
             global.is_jrpg = false;
-            
+
             create_textevent(["Breado told me you were academically challenged...", "Let's see if he was right!"], [id, id]);
         }
     }

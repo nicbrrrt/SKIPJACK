@@ -53,6 +53,9 @@ if (!variable_global_exists("quest_talk_to_breado"))  global.quest_talk_to_bread
 if (!variable_global_exists("seen_path_tutorial"))    global.seen_path_tutorial    = false;
 if (!variable_global_exists("seen_cipher_tutorial"))  global.seen_cipher_tutorial  = false;
 if (!variable_global_exists("seen_qte_tutorial"))     global.seen_qte_tutorial     = false;
+if (!variable_global_exists("hall_tutorial_done"))         global.hall_tutorial_done         = false;
+if (!variable_global_exists("breado_intro_done"))          global.breado_intro_done          = false;
+if (!variable_global_exists("level1_tooltips_dismissed"))  global.level1_tooltips_dismissed  = false;
 
 // --- NPC TARGETS ---
 if (!variable_global_exists("greg_target_x"))  global.greg_target_x  = -1;

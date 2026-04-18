@@ -3,9 +3,28 @@
 // Lock GUI to 640x360 in every room — matches the 2x visual scale of the main menu
 display_set_gui_size(640, 360);
 
+// ── HALLWAY TUTORIAL BOOTSTRAP ──────────────────────────────────────────────
+// When entering rm_hallway for the first time (tutorial not yet done),
+// spawn Jack at a sensible starting position and launch the tutorial controller.
+if (room == rm_hallway && !global.hall_tutorial_done) {
+    if (!instance_exists(obj_jack)) {
+        instance_create_depth(416, 180, -1000, obj_jack);
+    }
+    if (!instance_exists(obj_hall_tutorial)) {
+        instance_create_depth(0, 0, -99999, obj_hall_tutorial);
+    }
+}
+
+// ── LEVEL 1 TOOLTIPS ────────────────────────────────────────────────────────
+if (room == rm_level_1 && !global.level1_tooltips_dismissed) {
+    if (!instance_exists(obj_level1_tooltips)) {
+        instance_create_depth(0, 0, -99999, obj_level1_tooltips);
+    }
+}
+
 // --- FORCE SPAWN JACK ON LOAD ---
 if (variable_global_exists("is_loading_from_save") && global.is_loading_from_save) {
-    
+
     // 1. Check if Jack is missing
     if (!instance_exists(obj_jack)) {
         // Create him at the saved coordinates
@@ -16,18 +35,18 @@ if (variable_global_exists("is_loading_from_save") && global.is_loading_from_sav
         obj_jack.x = global.target_x;
         obj_jack.y = global.target_y;
     }
-    
+
     // 2. Unpause the game state just in case
     global.is_paused = false;
-    instance_activate_all(); 
-    
+    instance_activate_all();
+
     // 3. Reset the flag so we don't spawn him twice
     global.is_loading_from_save = false;
 }
 
 // Ensure the game is NEVER in a "Cutscene" state when a room first loads
 if (instance_exists(obj_jack)) {
-    obj_jack.isInCutscene = false; 
+    obj_jack.isInCutscene = false;
     obj_jack.visible = true;
 }
 
@@ -35,12 +54,12 @@ if (room == rm_level_1 && !global.level1_intro_done) {
     // 1. Find the Manager and UNLOCK it
     if (instance_exists(obj_codex_manager)) {
         with(obj_codex_manager) {
-            unlocked = true; 
+            unlocked = true;
             // Breado's Data:
             add_module("MALWARE 101", "PHISHING: Fake emails used to steal data.\nBOTNET: A network of hijacked computers.\nSPYWARE: Software that tracks you in secret.");
         }
     }
-    
+
     // 2. Trigger the Intro Dialogue
     var _npc = instance_find(obj_npc1, 0); // Greg/Breado
     if (_npc != noone) {
