@@ -1,6 +1,7 @@
 // In the Mouse Left Pressed Event
 
-// Disabled while Review Mode overlay is on screen
+// Disabled while any review overlay is on screen
+if (instance_exists(obj_review_screen)) exit;
 if (instance_exists(obj_codex_manager) && obj_codex_manager.is_open) exit;
 
 audio_stop_sound(snd_button_hover);
