@@ -26,7 +26,7 @@ if (caesar_hover && mouse_check_button_pressed(mb_left))
     if (instance_exists(obj_game_controller)) instance_destroy(obj_game_controller);
 
     var _t        = instance_create_depth(0, 0, -9999, obj_transition);
-    _t.target_room = rm_cutscene_lab;
+    _t.target_room = rm_tutorial_void;
     _t.fade_mode   = "fading_out";
     _t.fade_alpha  = 0;
 

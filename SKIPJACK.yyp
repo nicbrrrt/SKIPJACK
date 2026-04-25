@@ -123,6 +123,7 @@
     {"id":{"name":"obj_textevent","path":"objects/obj_textevent/obj_textevent.yy",},},
     {"id":{"name":"obj_transition","path":"objects/obj_transition/obj_transition.yy",},},
     {"id":{"name":"obj_trashbin_left","path":"objects/obj_trashbin_left/obj_trashbin_left.yy",},},
+    {"id":{"name":"obj_tutorial_controller","path":"objects/obj_tutorial_controller/obj_tutorial_controller.yy",},},
     {"id":{"name":"obj_tutorial_hint","path":"objects/obj_tutorial_hint/obj_tutorial_hint.yy",},},
     {"id":{"name":"obj_tutorial","path":"objects/obj_tutorial/obj_tutorial.yy",},},
     {"id":{"name":"obj_ui_button","path":"objects/obj_ui_button/obj_ui_button.yy",},},
@@ -141,6 +142,7 @@
     {"id":{"name":"rm_level_2","path":"rooms/rm_level_2/rm_level_2.yy",},},
     {"id":{"name":"rm_menu","path":"rooms/rm_menu/rm_menu.yy",},},
     {"id":{"name":"rm_settings","path":"rooms/rm_settings/rm_settings.yy",},},
+    {"id":{"name":"rm_tutorial_void","path":"rooms/rm_tutorial_void/rm_tutorial_void.yy",},},
     {"id":{"name":"TESTING_MAP","path":"rooms/TESTING_MAP/TESTING_MAP.yy",},},
     {"id":{"name":"create_dialogue","path":"scripts/create_dialogue/create_dialogue.yy",},},
     {"id":{"name":"create_textevent","path":"scripts/create_textevent/create_textevent.yy",},},
@@ -279,6 +281,7 @@
   "RoomOrderNodes":[
     {"roomId":{"name":"rm_menu","path":"rooms/rm_menu/rm_menu.yy",},},
     {"roomId":{"name":"rm_cipher_select","path":"rooms/rm_cipher_select/rm_cipher_select.yy",},},
+    {"roomId":{"name":"rm_tutorial_void","path":"rooms/rm_tutorial_void/rm_tutorial_void.yy",},},
     {"roomId":{"name":"rm_settings","path":"rooms/rm_settings/rm_settings.yy",},},
     {"roomId":{"name":"rm_level_1","path":"rooms/rm_level_1/rm_level_1.yy",},},
     {"roomId":{"name":"rm_battle_scramble","path":"rooms/rm_battle_scramble/rm_battle_scramble.yy",},},

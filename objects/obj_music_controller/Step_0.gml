@@ -1,5 +1,5 @@
 // Check if we are in the menu OR the settings room
-if (room == rm_menu || room == rm_settings)
+if (room == rm_menu || room == rm_settings || room == rm_tutorial_void)
 {
 	// If we are, and the music *isn't* playing, start it.
 	if (!audio_is_playing(ms_start))
