@@ -43,18 +43,21 @@ if (keyboard_check_pressed(vk_up)) {
 if (cursor_moved && (cursor_x != prev_cursor_x || cursor_y != prev_cursor_y)) {
     var gx = cursor_x;
     var gy = cursor_y;
-    
+
     var is_start = (gx == start[0] && gy == start[1]);
-    
+
     if (!is_start) {
         array_push(path_nodes, [gx, gy]);
         show_debug_message("Auto-added node at: " + string(gx) + "," + string(gy));
     }
+
+    audio_play_sound(snd_moveselect, 10, false);
 }
 
 // Remove last node with BACKSPACE (undo) - STILL ALLOWED
 if (keyboard_check_pressed(vk_backspace)) {
     if (array_length(path_nodes) > 0) {
+        audio_play_sound(snd_button_click, 10, false);
         array_pop(path_nodes);
         show_debug_message("Removed last node");
         
@@ -73,6 +76,7 @@ if (keyboard_check_pressed(vk_backspace)) {
 
 // Clear entire path with DELETE key
 if (keyboard_check_pressed(vk_delete)) {
+    audio_play_sound(snd_error, 10, false);
     path_nodes = [];
     cursor_x = start[0];
     cursor_y = start[1];
@@ -104,6 +108,7 @@ if (keyboard_check_pressed(vk_enter)) {
     }
     
     if (valid) {
+        audio_play_sound(snd_correct_ping, 10, false);
         success = true;
         // Generate a key between -5 and 5, but skip 0 (because 0 is no shift)
 		var the_key = 0;
@@ -130,6 +135,7 @@ if (keyboard_check_pressed(vk_enter)) {
         show_debug_message("=== PATH: obj_path destroyed ===");
     } else {
         // Reset on failure
+        audio_play_sound(snd_error, 10, false);
         path_nodes = [];
         cursor_x = start[0];
         cursor_y = start[1];

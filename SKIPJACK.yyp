@@ -202,6 +202,7 @@
     {"id":{"name":"spr_dialoguefinished","path":"sprites/spr_dialoguefinished/spr_dialoguefinished.yy",},},
     {"id":{"name":"spr_emotes","path":"sprites/spr_emotes/spr_emotes.yy",},},
     {"id":{"name":"spr_emotes1","path":"sprites/spr_emotes1/spr_emotes1.yy",},},
+    {"id":{"name":"spr_encry_decry_battle_background","path":"sprites/spr_encry_decry_battle_background/spr_encry_decry_battle_background.yy",},},
     {"id":{"name":"spr_enemy_death","path":"sprites/spr_enemy_death/spr_enemy_death.yy",},},
     {"id":{"name":"spr_examplechar","path":"sprites/spr_examplechar/spr_examplechar.yy",},},
     {"id":{"name":"spr_examplechar1","path":"sprites/spr_examplechar1/spr_examplechar1.yy",},},
