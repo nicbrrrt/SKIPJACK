@@ -114,5 +114,9 @@ function load_next_puzzle() {
 base_y_level  = 360 * 0.65;
 orbit_y_nudge = -45;
 
+// --- 5b. DAVID FIGHT FLAGS ---
+is_david_fight = (variable_global_exists("last_battle_id") && global.last_battle_id == "david_quiz");
+tooltip_index  = 0;
+
 // --- 6. START: single alarm call — load_next_puzzle() runs ONCE via Alarm 0 ---
 alarm[0] = 1;

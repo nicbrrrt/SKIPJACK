@@ -10,25 +10,33 @@ var _x       = 16;
 var _y       = 16;
 var _spacing = 28;
 var _col_done = c_lime;
-var _col_todo = make_colour_rgb(100, 100, 100);
+var _col_todo = c_white;
 
 draw_set_font(fnt_dialogue);
 draw_set_halign(fa_left);
 draw_set_valign(fa_top);
 
+draw_set_color(c_black);
+draw_set_alpha(0.6);
+draw_rectangle(_x - 5, _y - 5, _x + 115, _y + 52, false);
+draw_set_alpha(1.0);
+
+draw_set_color(c_yellow);
+draw_text(_x, _y, "OBJECTIVES:");
+
 draw_set_color(c_white);
-draw_text(_x, _y, "Move using:");
+draw_text(_x + 5, _y + 18, "Move using:");
 
 draw_set_color(w_pressed ? _col_done : _col_todo);
-draw_text(_x,                _y + 18, "W");
+draw_text(_x + 5,                _y + 30, "W");
 
 draw_set_color(a_pressed ? _col_done : _col_todo);
-draw_text(_x + _spacing,     _y + 18, "A");
+draw_text(_x + 5 + _spacing,     _y + 30, "A");
 
 draw_set_color(s_pressed ? _col_done : _col_todo);
-draw_text(_x + _spacing * 2, _y + 18, "S");
+draw_text(_x + 5 + _spacing * 2, _y + 30, "S");
 
 draw_set_color(d_pressed ? _col_done : _col_todo);
-draw_text(_x + _spacing * 3, _y + 18, "D");
+draw_text(_x + 5 + _spacing * 3, _y + 30, "D");
 
 draw_set_color(c_white);

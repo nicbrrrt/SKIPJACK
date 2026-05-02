@@ -1,13 +1,12 @@
-if (mouse_check_button_pressed(mb_left)) 
+if (mouse_check_button_pressed(mb_left) && !instance_exists(obj_transition))
 {
     // Check if mouse is touching the button
-    if (position_meeting(mouse_x, mouse_y, id)) 
+    if (position_meeting(mouse_x, mouse_y, id))
     {
         show_debug_message("CLICK DETECTED! Forcing Game Start...");
 
         // 1. NUKE EVERYTHING (Don't check IF they exist, just try to destroy them)
         // This ensures the slate is clean for the new game.
-        if (instance_exists(obj_transition)) instance_destroy(obj_transition);
         if (instance_exists(obj_jack)) instance_destroy(obj_jack);
         if (instance_exists(obj_game_controller)) instance_destroy(obj_game_controller);
 

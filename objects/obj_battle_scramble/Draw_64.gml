@@ -14,6 +14,28 @@ var _player_height_mod = 0.65;
 var _w = 640;
 var _h = 360;
 
+// --- TOOLTIP (David's fight only) ---
+if (variable_instance_exists(id, "is_david_fight") && is_david_fight && battle_state == "player_input") {
+    var _tips = ["Tip: Press Backspace to erase a letter",
+                 "Tip: Only the letters of the answer can be typed in",
+                 "Tip: You should have reviewed the terms",
+                 "Tip: You deal no damage if your answer is wrong"];
+    if (variable_instance_exists(id, "fnt_dialogue")) draw_set_font(fnt_dialogue); else draw_set_font(-1);
+    draw_set_halign(fa_center);
+    draw_set_valign(fa_top);
+    var _tip_str = _tips[tooltip_index];
+    var _tw = string_width(_tip_str);
+    var _th = string_height(_tip_str);
+    draw_set_color(c_black);
+    draw_set_alpha(0.6);
+    draw_rectangle(_w / 2 - _tw / 2 - 8, 4, _w / 2 + _tw / 2 + 8, 4 + _th + 6, false);
+    draw_set_alpha(1.0);
+    draw_set_color(c_yellow);
+    draw_text(_w / 2, 8, _tip_str);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+}
+
 // --- 1. ENEMY (Left) ---
 var _enemy_x = (_w * 0.25) + enemy_x_offset; 
 var _enemy_y = base_y_level; 
@@ -35,9 +57,9 @@ if (battle_state == "win") {
 }
 
 // Flash when hit (your existing logic)
-if (enemy_flash_timer > 0) { 
-    enemy_flash_timer--; 
-    gpu_set_fog(true, c_red, 0, 0); 
+if (enemy_flash_timer > 0) {
+    enemy_flash_timer--;
+    gpu_set_fog(true, c_red, 0, 0);
 }
 
 draw_sprite_ext(enemy_sprite, -1, _enemy_x, _enemy_y, 3.5, 3.5, 0, _color, _alpha);

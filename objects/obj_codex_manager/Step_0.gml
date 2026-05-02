@@ -1,6 +1,6 @@
 // --- Step Event for obj_codex_manager ---
 
-var _is_combat_room = (room == rm_combat || room == rm_battle_scramble);
+var _is_combat_room = (room == rm_combat || room == rm_battle_scramble || room == rm_menu || room == rm_settings);
 
 // ── Open / Close ─────────────────────────────────────────────────────────
 if (is_open && (keyboard_check_pressed(vk_escape) || keyboard_check_pressed(ord("C")))) {

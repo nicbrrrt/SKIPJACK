@@ -35,3 +35,8 @@ myPortrait = spr_jack_portrait;
 myVoice = snd_voice1;
 myFont = fnt_dialogue;
 myName = "Jack";
+
+// If a persistent copy already exists from a previous room, destroy this duplicate.
+if (instance_number(obj_jack) > 1) {
+    instance_destroy();
+}

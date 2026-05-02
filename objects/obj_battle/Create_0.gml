@@ -25,9 +25,25 @@ if (variable_global_exists("tutorial_complete") && global.tutorial_complete) {
 }
 
 // 3. ROOM CHECK
-if (room != rm_combat) { 
+if (room != rm_combat) {
     instance_destroy();
-    exit; 
+    exit;
+}
+
+// Set background for Bread's fight — create a fresh layer (no black tint) in room space
+if (battle_id == "tutorial") {
+    var _layer = layer_create(1, "battle_bg");
+    var _spr_w = sprite_get_width(spr_com_lab_battle_background);
+    var _spr_h = sprite_get_height(spr_com_lab_battle_background);
+    layer_sprite_create(_layer, (room_width - _spr_w) / 2, (room_height - _spr_h) / 2, spr_com_lab_battle_background);
+}
+
+// Set background for Greg's hallway fight
+if (battle_id == "greg_fight") {
+    var _layer = layer_create(1, "battle_bg");
+    var _spr_w = sprite_get_width(spr_battle_hallway_background);
+    var _spr_h = sprite_get_height(spr_battle_hallway_background);
+    layer_sprite_create(_layer, (room_width - _spr_w) / 2, (room_height - _spr_h) / 2, spr_battle_hallway_background);
 }
 
 // 4. BATTLE STATS

@@ -15,13 +15,12 @@ btn3_y  = btn2_y + btn_h + btn_gap;
 caesar_hover = (mx >= btn_x1 && mx <= btn_x2
              && my >= btn1_y  && my <= btn1_y + btn_h);
 
-if (caesar_hover && mouse_check_button_pressed(mb_left))
+if (caesar_hover && mouse_check_button_pressed(mb_left) && !instance_exists(obj_transition))
 {
     audio_stop_sound(snd_button_hover);
     audio_play_sound(snd_button_click, 10, false);
 
     // Replicate original obj_button_play click logic exactly
-    if (instance_exists(obj_transition))      instance_destroy(obj_transition);
     if (instance_exists(obj_jack))            instance_destroy(obj_jack);
     if (instance_exists(obj_game_controller)) instance_destroy(obj_game_controller);
 

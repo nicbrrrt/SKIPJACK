@@ -76,7 +76,9 @@ if (battle_state == "player_input")
 // 2. SHAKE LOGIC
 // ====================================================
 if (shake_magnitude > 0) {
-    camera_set_view_pos(view_camera[0], irandom_range(-shake_magnitude, shake_magnitude), irandom_range(-shake_magnitude, shake_magnitude));
+    var _cx = (room_width - 640) / 2;
+    var _cy = (room_height - 360) / 2;
+    camera_set_view_pos(view_camera[0], _cx + irandom_range(-shake_magnitude, shake_magnitude), _cy + irandom_range(-shake_magnitude, shake_magnitude));
     shake_magnitude -= 1;
 } else {
     var _centered_x = (room_width - 640) / 2;
@@ -136,8 +138,11 @@ else if (battle_state == "enemy_turn")
         enemy_x_offset = lerp(enemy_x_offset, 0, 0.1);
     }
     if (timer > 100) {
-        if (current_hp_player <= 0) { battle_state = "lose"; timer = 0; } 
-        else { load_next_puzzle(); }
+        if (current_hp_player <= 0) { battle_state = "lose"; timer = 0; }
+        else {
+            if (is_david_fight) tooltip_index = (tooltip_index + 1) mod 4;
+            load_next_puzzle();
+        }
     }
 }
 

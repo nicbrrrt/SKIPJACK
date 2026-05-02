@@ -1,11 +1,8 @@
 // obj_start_combat — Create Event
 // Global safety init REMOVED (handled by obj_game_init).
 
-var _portrait = asset_get_index("spr_npc2_portrait");
-if (_portrait == -1) _portrait = spr_npc2_portrait;
-
-var _voice = asset_get_index("snd_voice_npc2");
-if (_voice == -1) _voice = -1;
+var _portrait = spr_breado_portrait;
+var _voice = snd_voice2;
 
 var _font = asset_get_index("fnt_dialogue");
 if (_font == -1) _font = -1;

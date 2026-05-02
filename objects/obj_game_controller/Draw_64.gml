@@ -106,6 +106,28 @@ if (room == rm_level_1 && global.greg_quest_started) {
     draw_text_color(_qx + 5, _qy + (_spacing * 2), "> Find Lea", _l_color, _l_color, _l_color, _l_color, 1);
 }
 
+// --- QUEST TRACKER: TUTORIAL VOID (Phase 2) ---
+if (room == rm_tutorial_void && instance_exists(obj_tutorial_controller)
+    && obj_tutorial_controller.tutorial_phase == 2) {
+
+    draw_set_font(fnt_dialogue);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+
+    var _qx      = 16;
+    var _qy      = 16;
+    var _spacing = 18;
+
+    draw_set_color(c_black);
+    draw_set_alpha(0.6);
+    draw_rectangle(_qx - 5, _qy - 5, _qx + 185, _qy + 40, false);
+    draw_set_alpha(1.0);
+
+    draw_set_color(c_yellow);
+    draw_text(_qx, _qy, "OBJECTIVES:");
+    draw_text_color(_qx + 5, _qy + _spacing, "> Walk to Greg and press E", c_white, c_white, c_white, c_white, 1);
+}
+
 // Only draw pause menu when paused
 if (!global.is_paused) exit;
 

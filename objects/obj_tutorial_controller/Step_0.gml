@@ -84,6 +84,8 @@ switch (tutorial_phase) {
         tutorial_done  = true;
         var _t         = instance_create_depth(0, 0, -9999, obj_transition);
         _t.target_room = rm_cutscene_lab;
+        _t.target_x    = 554;
+        _t.target_y    = 223;
         _t.fade_mode   = "fading_out";
         _t.fade_alpha  = 0;
         break;
