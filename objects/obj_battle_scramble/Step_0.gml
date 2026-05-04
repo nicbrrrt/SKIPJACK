@@ -140,7 +140,7 @@ else if (battle_state == "enemy_turn")
     if (timer > 100) {
         if (current_hp_player <= 0) { battle_state = "lose"; timer = 0; }
         else {
-            if (is_david_fight) tooltip_index = (tooltip_index + 1) mod 4;
+            if (show_tooltips) tooltip_index = (tooltip_index + 1) mod 4;
             load_next_puzzle();
         }
     }

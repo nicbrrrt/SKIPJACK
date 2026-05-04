@@ -14,8 +14,8 @@ var _player_height_mod = 0.65;
 var _w = 640;
 var _h = 360;
 
-// --- TOOLTIP (David's fight only) ---
-if (variable_instance_exists(id, "is_david_fight") && is_david_fight && battle_state == "player_input") {
+// --- TOOLTIP (all word-scramble fights) ---
+if (variable_instance_exists(id, "show_tooltips") && show_tooltips && battle_state == "player_input") {
     var _tips = ["Tip: Press Backspace to erase a letter",
                  "Tip: Only the letters of the answer can be typed in",
                  "Tip: You should have reviewed the terms",
