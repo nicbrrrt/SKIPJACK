@@ -1,9 +1,11 @@
 // Move between slots with LEFT/RIGHT arrows
 if (keyboard_check_pressed(vk_right)) {
     current_slot = min(current_slot + 1, letters_len - 1);
+    audio_play_sound(select1, 10, false);
 }
 if (keyboard_check_pressed(vk_left)) {
     current_slot = max(current_slot - 1, 0);
+    audio_play_sound(select1, 10, false);
 }
 
 // Change letters with UP/DOWN arrows
@@ -16,6 +18,7 @@ if (keyboard_check_pressed(vk_up)) {
         var new_index = (ord(current_char) - ord("A") + 1) mod 26;
         player_input[current_slot] = chr(ord("A") + new_index);
     }
+    audio_play_sound(choose(select1, select2, select3, select4, select5), 10, false);
     show_debug_message("CIPHER: Slot " + string(current_slot) + " changed to: " + player_input[current_slot]);
 }
 
@@ -27,6 +30,7 @@ if (keyboard_check_pressed(vk_down)) {
         var new_index = (ord(current_char) - ord("A") - 1 + 26) mod 26;
         player_input[current_slot] = chr(ord("A") + new_index);
     }
+    audio_play_sound(choose(select1, select2, select3, select4, select5), 10, false);
     show_debug_message("CIPHER: Slot " + string(current_slot) + " changed to: " + player_input[current_slot]);
 }
 
@@ -57,7 +61,7 @@ if (keyboard_check_pressed(vk_enter)) {
         shake_timer = 10; // Shake for 10 frames
         text_color = c_red;
         status_msg = "ERROR: INVALID KEY";
-        // audio_play_sound(snd_error, 1, false); // Optional sound
+        audio_play_sound(wrong1, 10, false);
     }
 }
 

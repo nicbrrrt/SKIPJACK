@@ -1,6 +1,6 @@
 {
   "$GMSound":"v2",
-  "%Name":"snd_generic_background_music",
+  "%Name":"arrow4",
   "audioGroupId":{
     "name":"audiogroup_default",
     "path":"audiogroups/audiogroup_default",
@@ -10,17 +10,17 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":44.651974,
+  "duration":0.09367347,
   "exportDir":"",
-  "name":"snd_generic_background_music",
+  "name":"arrow4",
   "parent":{
-    "name":"Music",
-    "path":"folders/Sounds/Music.yy",
+    "name":"Packet Mini Game",
+    "path":"folders/Sounds/Packet Mini Game.yy",
   },
   "preload":false,
   "resourceType":"GMSound",
   "resourceVersion":"2.0",
   "sampleRate":44100,
-  "soundFile":"snd_generic_background_music.mp3",
-  "volume":0.2,
+  "soundFile":"arrow4.wav",
+  "volume":1.0,
 }

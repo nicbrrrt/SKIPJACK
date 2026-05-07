@@ -32,3 +32,8 @@ var distance_to_travel = target_x - x;
 hspeed = distance_to_travel / timer; // GameMaker engine moves 'x' automatically
 
 show_debug_message("QTE: Projectile launched! Speed: " + string(hspeed));
+
+// --- PACKET MINI GAME: background sounds ---
+// packet1 and packet2 alternate passively while the QTE is active.
+packet_bg_flip = false;
+audio_play_sound(packet1, 5, false);

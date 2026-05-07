@@ -13,7 +13,7 @@ if (global.DEBUG_MODE) {
     draw_set_color(c_lime);
     draw_text(640 - 6, 5,  "[ DEBUG MODE ON ]");
     draw_set_color(c_yellow);
-    draw_text(640 - 6, 20, "F2: toggle debug  F3: skip combat");
+    draw_text(640 - 6, 20, "F2: toggle  F3/F4: combat  F5: instant win");
     draw_set_halign(fa_left);
 }
 
@@ -26,84 +26,96 @@ var _qg_active = global.tutorial_complete    && !global.quest_find_greg_done;
 if (room != rm_combat && room != rm_battle_scramble && room != rm_menu && room != rm_level_1
     && (_qk_active || _qd_active || _qb_active || _qg_active)) {
 
-    draw_set_font(-1);
+    draw_set_font(fnt_dialogue);
     draw_set_halign(fa_left);
     draw_set_valign(fa_top);
 
-    var _qx      = 15;
-    var _qy      = 15;
-    var _spacing = 18;
-    var _rows    = (_qk_active ? 1 : 0) + (_qd_active ? 1 : 0) + (_qb_active ? 1 : 0) + (_qg_active ? 1 : 0);
+    var _qx      = 16;
+    var _qy      = 16;
+    var _scale   = 1.2;
+    var _spacing = 22;
+
+    // Dynamic box width — measure every visible item at scale
+    var _max_w = string_width("OBJECTIVES:") * _scale;
+    if (_qk_active) _max_w = max(_max_w, (string_width("> Talk to Kyle") + 5) * _scale);
+    if (_qd_active) _max_w = max(_max_w, (string_width("> Find David and take his quiz") + 5) * _scale);
+    if (_qb_active) _max_w = max(_max_w, (string_width("> Find Breado for combat training") + 5) * _scale);
+    if (_qg_active) _max_w = max(_max_w, (string_width("> Find Greg at end of hall") + 5) * _scale);
+    var _rows   = (_qk_active ? 1 : 0) + (_qd_active ? 1 : 0) + (_qb_active ? 1 : 0) + (_qg_active ? 1 : 0);
+    var _box_w  = _max_w + 20;
+    var _box_h  = _spacing * (_rows + 1) + 8;
 
     draw_set_color(c_black);
     draw_set_alpha(0.6);
-    draw_rectangle(_qx - 5, _qy - 5, _qx + 200, _qy + 10 + (_spacing * (_rows + 1)), false);
+    draw_rectangle(_qx - 5, _qy - 5, _qx + _box_w, _qy + _box_h, false);
     draw_set_alpha(1.0);
 
     draw_set_color(c_yellow);
-    draw_text(_qx, _qy, "OBJECTIVES:");
+    draw_text_transformed(_qx, _qy, "OBJECTIVES:", _scale, _scale, 0);
 
     var _row = 1;
-    if (_qk_active) {
-        draw_text_color(_qx + 5, _qy + (_spacing * _row), "> Talk to Kyle", c_white, c_white, c_white, c_white, 1);
-        _row++;
-    }
-    if (_qd_active) {
-        draw_text_color(_qx + 5, _qy + (_spacing * _row), "> Find David and take his quiz", c_white, c_white, c_white, c_white, 1);
-        _row++;
-    }
-    if (_qb_active) {
-        draw_text_color(_qx + 5, _qy + (_spacing * _row), "> Find Breado for combat training", c_white, c_white, c_white, c_white, 1);
-        _row++;
-    }
-    if (_qg_active) {
-        draw_text_color(_qx + 5, _qy + (_spacing * _row), "> Find Greg at end of hall", c_white, c_white, c_white, c_white, 1);
-    }
+    draw_set_color(c_white);
+    if (_qk_active) { draw_text_transformed(_qx + 5, _qy + (_spacing * _row), "> Talk to Kyle", _scale, _scale, 0); _row++; }
+    if (_qd_active) { draw_text_transformed(_qx + 5, _qy + (_spacing * _row), "> Find David and take his quiz", _scale, _scale, 0); _row++; }
+    if (_qb_active) { draw_text_transformed(_qx + 5, _qy + (_spacing * _row), "> Find Breado for combat training", _scale, _scale, 0); _row++; }
+    if (_qg_active) { draw_text_transformed(_qx + 5, _qy + (_spacing * _row), "> Find Greg at end of hall", _scale, _scale, 0); }
 }
 
 // --- QUEST TRACKER: LEVEL 1 (Find Greg) ---
 if (room == rm_level_1 && global.quest_find_greg_done && !global.quest_greg_level1_done) {
-    draw_set_font(-1);
+    draw_set_font(fnt_dialogue);
     draw_set_halign(fa_left);
     draw_set_valign(fa_top);
 
-    var _qx      = 15;
-    var _qy      = 15;
-    var _spacing = 18;
+    var _qx      = 16;
+    var _qy      = 16;
+    var _scale   = 1.2;
+    var _spacing = 22;
+
+    var _item   = "> Find Greg";
+    var _box_w  = max(string_width("OBJECTIVES:"), string_width(_item) + 5) * _scale + 20;
+    var _box_h  = _spacing * 2 + 8;
 
     draw_set_color(c_black);
     draw_set_alpha(0.6);
-    draw_rectangle(_qx - 5, _qy - 5, _qx + 185, _qy + 10 + (_spacing * 2), false);
+    draw_rectangle(_qx - 5, _qy - 5, _qx + _box_w, _qy + _box_h, false);
     draw_set_alpha(1.0);
 
     draw_set_color(c_yellow);
-    draw_text(_qx, _qy, "OBJECTIVES:");
-    draw_text_color(_qx + 5, _qy + _spacing, "> Find Greg", c_white, c_white, c_white, c_white, 1);
+    draw_text_transformed(_qx, _qy, "OBJECTIVES:", _scale, _scale, 0);
+    draw_set_color(c_white);
+    draw_text_transformed(_qx + 5, _qy + _spacing, _item, _scale, _scale, 0);
 }
 
 // --- QUEST TRACKER: LEVEL 1 (Clipper + Lea) ---
 if (room == rm_level_1 && global.greg_quest_started) {
-    draw_set_font(-1);
+    draw_set_font(fnt_dialogue);
     draw_set_halign(fa_left);
     draw_set_valign(fa_top);
 
-    var _qx      = 15;
-    var _qy      = 15;
-    var _spacing = 18;
+    var _qx      = 16;
+    var _qy      = 16;
+    var _scale   = 1.2;
+    var _spacing = 22;
+
+    var _item1  = "> Find Clipper";
+    var _item2  = "> Find Lea";
+    var _box_w  = max(max(string_width("OBJECTIVES:"), string_width(_item1) + 5), string_width(_item2) + 5) * _scale + 20;
+    var _box_h  = _spacing * 3 + 8;
 
     draw_set_color(c_black);
     draw_set_alpha(0.6);
-    draw_rectangle(_qx - 5, _qy - 5, _qx + 160, _qy + 60, false);
+    draw_rectangle(_qx - 5, _qy - 5, _qx + _box_w, _qy + _box_h, false);
     draw_set_alpha(1.0);
 
     draw_set_color(c_yellow);
-    draw_text(_qx, _qy, "OBJECTIVES:");
+    draw_text_transformed(_qx, _qy, "OBJECTIVES:", _scale, _scale, 0);
 
-    var _c_color = global.quest_clipper_done ? c_green : c_white;
-    draw_text_color(_qx + 5, _qy + _spacing, "> Find Clipper", _c_color, _c_color, _c_color, _c_color, 1);
+    draw_set_color(global.quest_clipper_done ? c_green : c_white);
+    draw_text_transformed(_qx + 5, _qy + _spacing, _item1, _scale, _scale, 0);
 
-    var _l_color = global.quest_lea_done ? c_green : c_white;
-    draw_text_color(_qx + 5, _qy + (_spacing * 2), "> Find Lea", _l_color, _l_color, _l_color, _l_color, 1);
+    draw_set_color(global.quest_lea_done ? c_green : c_white);
+    draw_text_transformed(_qx + 5, _qy + (_spacing * 2), _item2, _scale, _scale, 0);
 }
 
 // --- QUEST TRACKER: TUTORIAL VOID (Phase 2) ---
@@ -116,16 +128,22 @@ if (room == rm_tutorial_void && instance_exists(obj_tutorial_controller)
 
     var _qx      = 16;
     var _qy      = 16;
-    var _spacing = 18;
+    var _scale   = 1.2;
+    var _spacing = 22;
+
+    var _item   = "> Walk to Greg and press E";
+    var _box_w  = max(string_width("OBJECTIVES:"), string_width(_item) + 5) * _scale + 20;
+    var _box_h  = _spacing * 2 + 8;
 
     draw_set_color(c_black);
     draw_set_alpha(0.6);
-    draw_rectangle(_qx - 5, _qy - 5, _qx + 185, _qy + 40, false);
+    draw_rectangle(_qx - 5, _qy - 5, _qx + _box_w, _qy + _box_h, false);
     draw_set_alpha(1.0);
 
     draw_set_color(c_yellow);
-    draw_text(_qx, _qy, "OBJECTIVES:");
-    draw_text_color(_qx + 5, _qy + _spacing, "> Walk to Greg and press E", c_white, c_white, c_white, c_white, 1);
+    draw_text_transformed(_qx, _qy, "OBJECTIVES:", _scale, _scale, 0);
+    draw_set_color(c_white);
+    draw_text_transformed(_qx + 5, _qy + _spacing, _item, _scale, _scale, 0);
 }
 
 // Only draw pause menu when paused

@@ -16,6 +16,15 @@ if (variable_global_exists("DEBUG_MODE") && global.DEBUG_MODE && keyboard_check_
     exit;
 }
 
+// DEBUG: F5 instant victory (JRPG word scramble — any NPC)
+if (variable_global_exists("DEBUG_MODE") && global.DEBUG_MODE && keyboard_check_pressed(vk_f5)) {
+    show_debug_message("[DEBUG] F5 pressed — instant JRPG win (battle_id: " + string(global.last_battle_id) + ")");
+    current_hp_enemy = 0;
+    battle_state     = "win";
+    timer            = 0;
+    exit;
+}
+
 // ====================================================
 // ORBIT LOGIC
 // ====================================================
@@ -181,6 +190,7 @@ else if (battle_state == "win") {
     if (global.last_battle_id == "clipper_review") global.clipper_defeated = true;
     if (global.last_battle_id == "lea_review")     global.lea_defeated     = true;
     if (global.last_battle_id == "david_quiz")     global.david_defeated   = true;
+    if (global.last_battle_id == "greg_boss")      global.greg_defeated    = true;
 
     // 2. Standard handshake
     global.last_battle_id = global.last_battle_id + "_defeated";

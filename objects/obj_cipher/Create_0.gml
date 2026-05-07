@@ -44,4 +44,7 @@ font = fnt_default;
 // --- THE DEBUG ADDITION ---
 show_debug_message("CHEAT SHEET: The answer is " + string(plaintext) + " (Key: " + string(key) + ")");
 
+// --- SHIFT MINI GAME: start sound ---
+audio_play_sound(ms_start, 10, false);
+
 // ... (Rest of your feedback variables) ...

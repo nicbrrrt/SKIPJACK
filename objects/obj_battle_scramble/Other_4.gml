@@ -18,6 +18,20 @@ camera_set_view_pos(view_camera[0], _x, _y);
 // 4. Force Window Size (Optional)
 window_set_size(1280, 720);
 
+// Background for Greg's fight (rm_level_1 streets battle)
+if (variable_global_exists("last_battle_id") && global.last_battle_id == "greg_boss") {
+    var _bg_layer = layer_get_id("Background");
+    if (layer_exists(_bg_layer)) layer_set_visible(_bg_layer, false);
+
+    var _scale = 0.35;
+    var _layer = layer_create(1, "battle_bg");
+    var _spr_w = sprite_get_width(spr_city_alleyway_background);
+    var _spr_h = sprite_get_height(spr_city_alleyway_background);
+    var _elem  = layer_sprite_create(_layer, (room_width - _spr_w * _scale) / 2, (room_height - _spr_h * _scale) / 2, spr_city_alleyway_background);
+    layer_sprite_xscale(_elem, _scale);
+    layer_sprite_yscale(_elem, _scale);
+}
+
 // Background for David's fight
 if (variable_global_exists("last_battle_id") && global.last_battle_id == "david_quiz") {
     // Hide the room's built-in background so it never bleeds through during shake
@@ -33,4 +47,20 @@ if (variable_global_exists("last_battle_id") && global.last_battle_id == "david_
     layer_sprite_yscale(_elem, _scale);
 }
 
+// Background for Clipper, Lea, and Anomaly (rm_level_1 street battles)
+if (variable_global_exists("last_battle_id")
+    && (global.last_battle_id == "clipper_review"
+     || global.last_battle_id == "lea_review"
+     || global.last_battle_id == "final_boss_jrpg")) {
+    var _bg_layer = layer_get_id("Background");
+    if (layer_exists(_bg_layer)) layer_set_visible(_bg_layer, false);
+
+    var _scale = 0.35;
+    var _layer = layer_create(1, "battle_bg");
+    var _spr_w = sprite_get_width(spr_city_street_battle_background);
+    var _spr_h = sprite_get_height(spr_city_street_battle_background);
+    var _elem  = layer_sprite_create(_layer, (room_width - _spr_w * _scale) / 2, (room_height - _spr_h * _scale) / 2, spr_city_street_battle_background);
+    layer_sprite_xscale(_elem, _scale);
+    layer_sprite_yscale(_elem, _scale);
+}
 
