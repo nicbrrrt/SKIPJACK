@@ -146,6 +146,40 @@ if (room == rm_tutorial_void && instance_exists(obj_tutorial_controller)
     draw_text_transformed(_qx + 5, _qy + _spacing, _item, _scale, _scale, 0);
 }
 
+// --- TOOLTIP (all gameplay rooms) ───────────────────────────────────────────
+var _tip_in_gameplay = (room == rm_tutorial_void || room == rm_hallway  || room == rm_level_1
+                     || room == rm_level_2      || room == rm_cutscene_lab);
+if (_tip_in_gameplay && tip_state != "idle" && tip_alpha > 0 && tip_current_text != "") {
+
+    var _tip    = tip_current_text;
+    var _scale  = 1.2;
+
+    draw_set_font(fnt_dialogue);
+    draw_set_halign(fa_center);
+    draw_set_valign(fa_top);
+
+    var _tw  = string_width(_tip)  * _scale;
+    var _th  = string_height(_tip) * _scale;
+    var _cx  = 320;       // center of 640-wide GUI
+    var _ty  = 310;       // near bottom of 360-high GUI
+    var _pad = 8;
+
+    // Black semi-transparent background box
+    draw_set_color(c_black);
+    draw_set_alpha(tip_alpha * 0.6);
+    draw_rectangle(_cx - _tw / 2 - _pad, _ty - _pad,
+                   _cx + _tw / 2 + _pad, _ty + _th + _pad, false);
+
+    // White tip text
+    draw_set_alpha(tip_alpha);
+    draw_set_color(c_white);
+    draw_text_transformed(_cx, _ty, _tip, _scale, _scale, 0);
+
+    draw_set_alpha(1);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+}
+
 // Only draw pause menu when paused
 if (!global.is_paused) exit;
 

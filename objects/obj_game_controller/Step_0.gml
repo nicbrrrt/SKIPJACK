@@ -184,3 +184,140 @@ if (keyboard_check_pressed(vk_f2)) {
     global.DEBUG_MODE = !global.DEBUG_MODE;
     show_debug_message("[DEBUG] Debug mode " + (global.DEBUG_MODE ? "ENABLED" : "DISABLED"));
 }
+
+// --- TOOLTIP SYSTEM (all gameplay rooms) ---
+var _in_gameplay = (room == rm_tutorial_void || room == rm_hallway  || room == rm_level_1
+                 || room == rm_level_2      || room == rm_cutscene_lab);
+
+if (_in_gameplay && !global.is_paused) {
+
+    // ── Jack movement tracking ────────────────────────────────────────────
+    if (instance_exists(obj_jack)) {
+        if (obj_jack.x != jack_last_x || obj_jack.y != jack_last_y) {
+            jack_idle_frames = 0;
+            jack_last_x      = obj_jack.x;
+            jack_last_y      = obj_jack.y;
+        } else {
+            jack_idle_frames++;
+        }
+    } else {
+        jack_idle_frames = 0;
+    }
+    if (tip_ctxl_cooldown > 0) tip_ctxl_cooldown--;
+
+    // ── Kill instantly when dialogue opens ────────────────────────────────
+    if (instance_exists(obj_textevent) && tip_state != "idle") {
+        tip_state        = "idle";
+        tip_alpha        = 0;
+        tip_timer        = 0;
+        tip_current_text = "";
+    }
+
+    // ── Tab = dismiss early ───────────────────────────────────────────────
+    if (keyboard_check_pressed(vk_tab) && (tip_state == "show" || tip_state == "fade_in")) {
+        tip_state = "fade_out";
+        tip_timer = 0;
+    }
+
+    // ── Contextual triggers (only when idle, no dialogue, cooldown clear) ─
+    if (tip_state == "idle" && !instance_exists(obj_textevent)
+        && tip_ctxl_cooldown <= 0 && instance_exists(obj_jack)) {
+
+        // 1. WASD tip — player hasn't moved for 5 s
+        if (!tip_shown_wasd && jack_idle_frames >= 300) {
+            tip_current_text  = tip_texts[0];
+            tip_state         = "fade_in";
+            tip_timer         = 0;
+            tip_shown_wasd    = true;
+            tip_ctxl_cooldown = 600;
+        }
+
+        // 2. Press E tip — player is within 100 px of any NPC
+        else if (!tip_shown_press_e) {
+            var _near_npc = false;
+            var _npc_list = [obj_kyle, obj_npc1, obj_lea, obj_clipper, obj_final_boss_placeholder];
+            for (var _ni = 0; _ni < array_length(_npc_list); _ni++) {
+                if (instance_exists(_npc_list[_ni])) {
+                    var _npc_inst = instance_find(_npc_list[_ni], 0);
+                    if (_npc_inst != noone
+                        && point_distance(obj_jack.x, obj_jack.y, _npc_inst.x, _npc_inst.y) < 100) {
+                        _near_npc = true;
+                        break;
+                    }
+                }
+            }
+            if (_near_npc) {
+                tip_current_text  = tip_texts[3];
+                tip_state         = "fade_in";
+                tip_timer         = 0;
+                tip_shown_press_e = true;
+                tip_ctxl_cooldown = 600;
+            }
+        }
+
+        // 3. Characters nearby tip — active search quest + player is moving
+        else if (!tip_shown_nearby && jack_idle_frames < 30) {
+            var _searching = false;
+            if (room == rm_hallway) {
+                _searching = (global.quest_talk_to_kyle   && !global.kyle_lesson_done)
+                          || (global.quest_talk_to_david  && !global.david_defeated)
+                          || (global.quest_talk_to_breado && !global.tutorial_complete)
+                          || (global.tutorial_complete    && !global.quest_find_greg_done);
+            }
+            if (room == rm_level_1) {
+                _searching = global.greg_quest_started
+                          && (!global.clipper_defeated || !global.lea_defeated);
+            }
+            if (_searching) {
+                tip_current_text = tip_texts[2];
+                tip_state        = "fade_in";
+                tip_timer        = 0;
+                tip_shown_nearby = true;
+                tip_ctxl_cooldown = 600;
+            }
+        }
+    }
+
+    // ── Passive state machine ─────────────────────────────────────────────
+    switch (tip_state) {
+
+        case "idle":
+            tip_timer++;
+            if (tip_timer >= tip_idle_frames && !instance_exists(obj_textevent)) {
+                tip_current_text = tip_texts[tip_index];
+                tip_state        = "fade_in";
+                tip_timer        = 0;
+            }
+            break;
+
+        case "fade_in":
+            tip_timer++;
+            tip_alpha = tip_timer / tip_fade_frames;
+            if (tip_timer >= tip_fade_frames) {
+                tip_alpha = 1;
+                tip_state = "show";
+                tip_timer = 0;
+            }
+            break;
+
+        case "show":
+            tip_timer++;
+            if (tip_timer >= tip_show_frames) {
+                tip_state = "fade_out";
+                tip_timer = 0;
+            }
+            break;
+
+        case "fade_out":
+            tip_timer++;
+            tip_alpha = 1 - (tip_timer / tip_fade_frames);
+            if (tip_timer >= tip_fade_frames) {
+                tip_alpha        = 0;
+                tip_state        = "idle";
+                tip_timer        = 0;
+                tip_current_text = "";
+                tip_index        = (tip_index + 1) mod array_length(tip_texts);
+            }
+            break;
+    }
+}

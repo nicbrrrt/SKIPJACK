@@ -3,6 +3,19 @@
 // Lock GUI to 640x360 in every room — matches the 2x visual scale of the main menu
 display_set_gui_size(640, 360);
 
+// Reset tooltip system on every room change
+tip_state        = "idle";
+tip_alpha        = 0;
+tip_timer        = 0;
+tip_current_text = "";
+jack_last_x         = 0;
+jack_last_y         = 0;
+jack_idle_frames    = 0;
+tip_ctxl_cooldown   = 0;
+tip_shown_wasd      = false;
+tip_shown_press_e   = false;
+tip_shown_nearby    = false;
+
 // --- FORCE SPAWN JACK ON LOAD ---
 if (variable_global_exists("is_loading_from_save") && global.is_loading_from_save) {
     
