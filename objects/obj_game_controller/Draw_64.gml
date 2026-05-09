@@ -147,8 +147,8 @@ if (room == rm_tutorial_void && instance_exists(obj_tutorial_controller)
 }
 
 // --- TOOLTIP (all gameplay rooms) ───────────────────────────────────────────
-var _tip_in_gameplay = (room == rm_tutorial_void || room == rm_hallway  || room == rm_level_1
-                     || room == rm_level_2      || room == rm_cutscene_lab);
+var _tip_in_gameplay = (room == rm_hallway   || room == rm_level_1
+                     || room == rm_level_2   || room == rm_cutscene_lab);
 if (_tip_in_gameplay && tip_state != "idle" && tip_alpha > 0 && tip_current_text != "") {
 
     var _tip    = tip_current_text;

@@ -6,5 +6,6 @@ myTextCol = c_white;
 isInCutscene = false;
 depth = -y;
 
-showed_intro = false;
-gui_open     = false;
+showed_intro    = false;
+showed_followup = false;   // true after GUI panel closes, fires follow-up dialogue
+gui_open        = false;

@@ -17,12 +17,14 @@ if (!instance_exists(obj_ui_button)) {
 
 // --- TOOLTIP SYSTEM (all gameplay rooms) ---
 tip_texts = [
-    "Tip: Press W, A, S, D to move around.",                            // [0] contextual: WASD
-    "Tip: Reviewing the Codex will make quizzes easier.",               // [1] passive
-    "Tip: The characters are nearby.",                                  // [2] contextual: searching
-    "Tip: Press E near an NPC to talk to them.",                        // [3] contextual: proximity
-    "Tip: Unlocking more characters gives you more data to review.",    // [4] passive
-    "Tip: Learning how to shift letters will make battles easier."      // [5] passive
+    "Tip: Press W, A, S, D to move around.",                                    // [0] contextual: WASD
+    "Tip: Reviewing the Codex will make quizzes easier.",                        // [1] passive
+    "Tip: The characters are nearby, explore a bit to find them.",               // [2] contextual: searching
+    "Tip: Press E near an NPC to talk to them.",                                 // [3] contextual: proximity
+    "Tip: Unlocking more characters gives you more data to review.",             // [4] passive
+    "Tip: Learning how to shift letters will make battles easier.",              // [5] passive
+    "Tip: There are objects you can inspect that can give more answers.",        // [6] passive
+    "Tip: It's worth checking the exclamation points around the level."         // [7] passive
 ];
 tip_index        = 0;
 tip_state        = "idle";   // "idle" | "fade_in" | "show" | "fade_out"

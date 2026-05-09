@@ -22,14 +22,18 @@ if (!showed_intro) {
 }
 
 // STATE: Second interaction — set up and queue the battle
-global.puzzle_word_list = ["CAESAR", "SHIFT", "ROTATE", "ALPHABET", "OFFSET", "CIPHER"];
+global.puzzle_word_list = ["CAESAR", "SHIFT", "ROTATE", "ALPHABET", "OFFSET", "CIPHER",
+                           "PLAINTEXT", "SUBSTITUTION", "CIPHERTEXT"];
 global.puzzle_hint_list = [
     "Roman-era encryption method.",
     "Moving each letter by a fixed number.",
     "Letters wrap around after Z.",
     "26 characters, A through Z.",
     "Another name for the shift value.",
-    "A system used to encode messages."
+    "A system used to encode messages.",
+    "Normal, readable text before it is encrypted.",
+    "A type of cipher.",
+    "Encrypted, unreadable text produced by applying a cryptographic algorithm."
 ];
 global.last_battle_id             = "david_quiz";
 global.jrpg_opponent              = "david_quiz";

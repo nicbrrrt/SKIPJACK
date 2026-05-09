@@ -7,10 +7,22 @@ visible = true;
 // --- GUI CLOSE (E or ESC while panel is open) ---
 if (gui_open) {
     if (keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_escape)) {
-        gui_open                   = false;
-        global.kyle_lesson_done    = true;
-        global.quest_talk_to_david = true;
+        gui_open = false;
+        // Mark lesson done and free player immediately — every time the panel closes
+        if (!global.kyle_lesson_done) {
+            global.kyle_lesson_done    = true;
+            global.quest_talk_to_david = true;
+        }
         if (instance_exists(obj_jack)) obj_jack.isInCutscene = false;
+        // Fire follow-up hint dialogue once (first close only)
+        if (!showed_followup) {
+            showed_followup = true;
+            create_textevent([
+                "By the way, you should explore.",
+                "There are objects around here that can give more notes for quizzes.",
+                "You can see them by the exclamation point. Try to look for them here."
+            ], [id, id, id]);
+        }
     }
     exit;
 }

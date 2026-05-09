@@ -14,7 +14,11 @@ if (instance_exists(obj_jack)) {
     if (_dist < 48 && !instance_exists(obj_textevent)) {
         draw_set_halign(fa_center);
         draw_set_font(fnt_dialogue);
-        draw_text_color(x, y - 40, "[E] CHALLENGE", c_yellow, c_yellow, c_white, c_white, 1);
+        if (room == rm_tutorial_void) {
+            draw_text_color(x, y - 40, "[E] TALK", c_black, c_black, c_black, c_black, 1);
+        } else {
+            draw_text_color(x, y - 40, "[E] CHALLENGE", c_yellow, c_yellow, c_white, c_white, 1);
+        }
         draw_set_halign(fa_left);
     }
 }

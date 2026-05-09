@@ -151,8 +151,10 @@ if (keyboard_check_pressed(vk_escape))
     {
         // --- PAUSE CONDITION FIX ---
         // Allow pause if Jack exists OR if we are in a battle (even if Jack is hidden).
-        // Do NOT pause while the Caesar cipher info panel is open.
-        if (!(instance_exists(obj_kyle) && obj_kyle.gui_open) && (instance_exists(obj_jack) || instance_exists(obj_battle_scramble)))
+        // Do NOT pause while the Caesar cipher info panel or any in-game popup is open.
+        var _popup_open = (instance_exists(obj_kyle) && obj_kyle.gui_open)
+                       || (instance_exists(obj_hallway_poster) && obj_hallway_poster.is_open);
+        if (!_popup_open && (instance_exists(obj_jack) || instance_exists(obj_battle_scramble)))
         {
             global.is_paused = true;
             
@@ -186,8 +188,8 @@ if (keyboard_check_pressed(vk_f2)) {
 }
 
 // --- TOOLTIP SYSTEM (all gameplay rooms) ---
-var _in_gameplay = (room == rm_tutorial_void || room == rm_hallway  || room == rm_level_1
-                 || room == rm_level_2      || room == rm_cutscene_lab);
+var _in_gameplay = (room == rm_hallway   || room == rm_level_1
+                 || room == rm_level_2   || room == rm_cutscene_lab);
 
 if (_in_gameplay && !global.is_paused) {
 
