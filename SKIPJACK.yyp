@@ -186,6 +186,8 @@
     {"id":{"name":"snd_generic_background_music","path":"sounds/snd_generic_background_music/snd_generic_background_music.yy",},},
     {"id":{"name":"snd_hurt","path":"sounds/snd_hurt/snd_hurt.yy",},},
     {"id":{"name":"snd_moveselect","path":"sounds/snd_moveselect/snd_moveselect.yy",},},
+    {"id":{"name":"snd_packet_battle_normal_music","path":"sounds/snd_packet_battle_normal_music/snd_packet_battle_normal_music.yy",},},
+    {"id":{"name":"snd_rm_level_1_city_music","path":"sounds/snd_rm_level_1_city_music/snd_rm_level_1_city_music.yy",},},
     {"id":{"name":"snd_select","path":"sounds/snd_select/snd_select.yy",},},
     {"id":{"name":"snd_voice1","path":"sounds/snd_voice1/snd_voice1.yy",},},
     {"id":{"name":"snd_voice2","path":"sounds/snd_voice2/snd_voice2.yy",},},

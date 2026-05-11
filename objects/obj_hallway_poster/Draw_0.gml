@@ -11,7 +11,7 @@ if (!is_open && global.kyle_lesson_done) {
     draw_set_valign(fa_bottom);
     draw_set_color(has_been_opened ? c_white : c_yellow);
     draw_set_alpha(_pulse);
-    draw_text_transformed(x, y - 24, "!", 2.2, 2.2, 0);
+    draw_text_transformed(x, y - 8, "!", 2.2, 2.2, 0);
 
     draw_set_alpha(1);
     draw_set_color(c_white);
