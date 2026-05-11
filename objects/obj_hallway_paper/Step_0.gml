@@ -6,8 +6,9 @@ player_nearby = instance_exists(obj_jack)
 // Open popup — E key while nearby, Kyle's lesson done, no dialogue active
 if (player_nearby && keyboard_check_pressed(ord("E")) && !is_open
     && !instance_exists(obj_textevent) && global.kyle_lesson_done) {
-    is_open         = true;
-    has_been_opened = true;
+    is_open             = true;
+    has_been_opened     = true;
+    global.paper_opened = true; // persist across room reloads
 }
 
 // Close popup — X key

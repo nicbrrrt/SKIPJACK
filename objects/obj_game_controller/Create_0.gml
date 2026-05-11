@@ -35,6 +35,9 @@ tip_idle_frames  = 300;      // 5 s between passive tips
 tip_fade_frames  = 40;       // ~0.67 s fade in/out
 tip_show_frames  = 180;      // 3 s fully visible
 
+// Secondary objective flash timer (counts down after all objects inspected)
+inspect_flash_timer = 0;
+
 // Contextual tracking
 jack_last_x         = 0;
 jack_last_y         = 0;

@@ -1,7 +1,9 @@
 // obj_hallway_computer_1 — Create Event
 
+depth = -bbox_bottom; // sort by sprite bottom edge, matching Jack's feet
+
 is_open         = false;
-has_been_opened = false;
+has_been_opened = global.computer1_opened; // restored from global — survives room reloads
 player_nearby   = false;
 interact_radius = 80;
 

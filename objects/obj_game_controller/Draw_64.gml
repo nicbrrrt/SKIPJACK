@@ -59,6 +59,47 @@ if (room != rm_combat && room != rm_battle_scramble && room != rm_menu && room !
     if (_qd_active) { draw_text_transformed(_qx + 5, _qy + (_spacing * _row), "> Find David and take his quiz", _scale, _scale, 0); _row++; }
     if (_qb_active) { draw_text_transformed(_qx + 5, _qy + (_spacing * _row), "> Find Breado for combat training", _scale, _scale, 0); _row++; }
     if (_qg_active) { draw_text_transformed(_qx + 5, _qy + (_spacing * _row), "> Find Greg at end of hall", _scale, _scale, 0); }
+
+    // ── Secondary objective: inspect all hallway objects ─────────────────────
+    if (_qd_active) {
+        var _all_done = global.all_objects_inspected;
+        var _obj_str  = _all_done ? "Completed." : "> Explore and inspect all the objects";
+
+        var _sec_max_w = max(string_width("SECONDARY:"), string_width(_obj_str) + 5) * _scale;
+        var _sec_w     = _sec_max_w + 20;
+        var _sec_h     = _spacing * 2 + 8;
+        var _sec_y     = _qy - 5 + _box_h + 8;   // 8 px gap below main box
+
+        // Rapid white/black flash when newly completed
+        var _fl_bg    = c_black;
+        var _fl_alpha = 0.6;
+        if (inspect_flash_timer > 0 && inspect_flash_timer mod 6 < 3) {
+            _fl_bg    = c_white;
+            _fl_alpha = 0.85;
+        }
+        draw_set_color(_fl_bg);
+        draw_set_alpha(_fl_alpha);
+        draw_rectangle(_qx - 5, _sec_y, _qx + _sec_w, _sec_y + _sec_h, false);
+        draw_set_alpha(1);
+
+        // "SECONDARY:" header
+        draw_set_color(c_lime);
+        draw_text_transformed(_qx, _sec_y + 5, "SECONDARY:", _scale, _scale, 0);
+
+        // Objective text — dark green once done, white while active
+        var _done_col = make_color_rgb(0, 140, 0);
+        draw_set_color(_all_done ? _done_col : c_white);
+        draw_text_transformed(_qx + 5, _sec_y + _spacing + 5, _obj_str, _scale, _scale, 0);
+
+        // Strikethrough line over "Completed."
+        if (_all_done) {
+            var _tw = string_width(_obj_str) * _scale;
+            var _th = string_height("Ag")   * _scale;
+            draw_set_color(_done_col);
+            draw_line(_qx + 5,       _sec_y + _spacing + 5 + _th * 0.5,
+                      _qx + 5 + _tw, _sec_y + _spacing + 5 + _th * 0.5);
+        }
+    }
 }
 
 // --- QUEST TRACKER: LEVEL 1 (Find Greg) ---

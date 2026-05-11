@@ -49,6 +49,14 @@ if (!variable_global_exists("david_defeated"))        global.david_defeated     
 if (!variable_global_exists("david_quiz_attempted"))  global.david_quiz_attempted  = false;
 if (!variable_global_exists("quest_talk_to_breado"))  global.quest_talk_to_breado  = false;
 
+// --- HALLWAY INSPECTABLE OBJECT FLAGS ---
+// Stored globally so they survive room reloads (e.g. returning from David's battle)
+if (!variable_global_exists("poster_opened"))         global.poster_opened         = false;
+if (!variable_global_exists("paper_opened"))          global.paper_opened          = false;
+if (!variable_global_exists("computer1_opened"))      global.computer1_opened      = false;
+if (!variable_global_exists("computer2_opened"))      global.computer2_opened      = false;
+if (!variable_global_exists("all_objects_inspected")) global.all_objects_inspected = false;
+
 // --- TUTORIAL FLAGS ---
 if (!variable_global_exists("seen_path_tutorial"))    global.seen_path_tutorial    = false;
 if (!variable_global_exists("seen_cipher_tutorial"))  global.seen_cipher_tutorial  = false;

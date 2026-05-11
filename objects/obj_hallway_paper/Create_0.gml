@@ -1,7 +1,9 @@
 // obj_hallway_paper — Create Event
 
+depth = -bbox_bottom; // sort by sprite bottom edge, matching Jack's feet
+
 is_open         = false;      // is the popup window currently showing
-has_been_opened = false;      // true after first interaction — marker turns white
+has_been_opened = global.paper_opened; // restored from global — survives room reloads
 player_nearby   = false;      // is Jack within interaction range
 interact_radius = 80;
 

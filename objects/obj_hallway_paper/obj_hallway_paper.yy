@@ -32,7 +32,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"spr_paper",
+    "path":"sprites/spr_paper/spr_paper.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

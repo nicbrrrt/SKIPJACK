@@ -7,8 +7,9 @@ player_nearby = instance_exists(obj_jack)
 // Open popup — E key while nearby, no NPC dialogue active (gated on Kyle lesson)
 if (player_nearby && keyboard_check_pressed(ord("E")) && !is_open
     && !instance_exists(obj_textevent) && global.kyle_lesson_done) {
-    is_open         = true;
-    has_been_opened = true;   // marker permanently turns white after first open
+    is_open              = true;
+    has_been_opened      = true;
+    global.poster_opened = true; // persist across room reloads
 }
 
 // Close popup — X key

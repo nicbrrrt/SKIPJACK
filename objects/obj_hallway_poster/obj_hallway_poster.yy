@@ -32,7 +32,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"spr_poster",
+    "path":"sprites/spr_poster/spr_poster.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

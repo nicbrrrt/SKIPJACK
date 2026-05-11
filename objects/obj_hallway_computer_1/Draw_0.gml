@@ -1,5 +1,7 @@
 // obj_hallway_computer_1 — Draw Event (world space)
-// Invisible except for the "!" prompt. Hidden until Kyle's lesson is done.
+
+// Always draw the assigned sprite (custom Draw events suppress automatic rendering)
+draw_self();
 
 if (!is_open && global.kyle_lesson_done) {
     var _pulse = 0.7 + sin(current_time * 0.005) * 0.3;

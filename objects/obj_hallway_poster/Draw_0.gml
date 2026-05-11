@@ -1,8 +1,9 @@
-// rm_hallway_poster — Draw Event (world space)
-// No world sprite — the object is invisible except for the "!" prompt.
+// obj_hallway_poster — Draw Event (world space)
 
-// Always show the pulsing "!" so the object is visible when entering the room.
-// Hides only while the popup is open (no need to prompt what's already open).
+// Always draw the poster sprite (custom Draw events suppress automatic rendering)
+draw_self();
+
+// Show the pulsing "!" after Kyle's lesson, while the popup is closed
 if (!is_open && global.kyle_lesson_done) {
     var _pulse = 0.7 + sin(current_time * 0.005) * 0.3;
 

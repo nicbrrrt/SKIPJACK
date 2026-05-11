@@ -187,6 +187,18 @@ if (keyboard_check_pressed(vk_f2)) {
     show_debug_message("[DEBUG] Debug mode " + (global.DEBUG_MODE ? "ENABLED" : "DISABLED"));
 }
 
+// --- SECONDARY OBJECTIVE: inspect all hallway objects ---
+if (room == rm_hallway && !global.all_objects_inspected
+    && global.quest_talk_to_david && !global.david_defeated) {
+    if (global.poster_opened && global.paper_opened
+     && global.computer1_opened && global.computer2_opened) {
+        global.all_objects_inspected = true;
+        inspect_flash_timer          = 90; // 1.5 s flash at 60 fps
+        audio_play_sound(snd_objective_complete, 10, false);
+    }
+}
+if (inspect_flash_timer > 0) inspect_flash_timer--;
+
 // --- TOOLTIP SYSTEM (all gameplay rooms) ---
 var _in_gameplay = (room == rm_hallway   || room == rm_level_1
                  || room == rm_level_2   || room == rm_cutscene_lab);

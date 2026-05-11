@@ -95,31 +95,47 @@ if (battle_state == "player_input") {
         }
     }
 
-    // SMALLER UI BOX
-    draw_set_color(c_black);
-    draw_set_alpha(0.8);
-    draw_roundrect(140, 300, 500, 355, false); 
-    draw_set_alpha(1);
-    
-    draw_set_halign(fa_center);
-    draw_set_valign(fa_middle);
-    
     if (variable_instance_exists(id, "fnt_dialogue")) draw_set_font(fnt_dialogue); else draw_set_font(-1);
-    
-    // Hint
-    draw_set_color(c_yellow);
-    draw_text_transformed(_w/2, 315, "HINT: " + current_hint, 0.8, 0.8, 0);
-    
-    // Guess String
+    draw_set_halign(fa_center);
+    draw_set_valign(fa_top);
+
+    var _scale   = 1.2;
+    var _spacing = 18;
+    var _pad     = 4;
+
+    // Build guess string
     var _str = "";
     var _len = string_length(target_word);
-    for(var i=0; i<_len; i++) {
+    for (var i = 0; i < _len; i++) {
         if (i < string_length(player_guess)) _str += string_char_at(player_guess, i+1) + " ";
-        else _str += "_ "; 
+        else _str += "_ ";
     }
-    
+
+    // Measure both lines at draw scale to size the box
+    var _hint_label = "HINT:  " + current_hint;
+    var _hint_w  = string_width(_hint_label) * _scale;
+    var _guess_w = string_width(_str)        * _scale;
+    var _line_h  = string_height("Ag")       * _scale;
+
+    // Dynamic background — stretches to fit whichever line is wider
+    var _box_half = max(_hint_w, _guess_w) * 0.5 + _pad;
+    var _box_h    = _line_h + _spacing + _line_h + _pad * 2;
+    var _box_y1   = _h - _box_h - 6;
+    var _box_y2   = _h - 6;
+
+    draw_set_color(c_black);
+    draw_set_alpha(0.6);
+    draw_rectangle(_w * 0.5 - _box_half, _box_y1,
+                   _w * 0.5 + _box_half, _box_y2, false);
+    draw_set_alpha(1);
+
+    // Hint row — yellow, matches OBJECTIVES: header style
+    draw_set_color(c_yellow);
+    draw_text_transformed(_w * 0.5, _box_y1 + _pad, _hint_label, _scale, _scale, 0);
+
+    // Answer blanks — white, same scale
     draw_set_color(c_white);
-    draw_text_transformed(_w/2, 340, _str, 1.2, 1.2, 0);
+    draw_text_transformed(_w * 0.5, _box_y1 + _pad + _spacing, _str, _scale, _scale, 0);
 }
 
 // Reset
