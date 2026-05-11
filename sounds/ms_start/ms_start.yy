@@ -21,6 +21,6 @@
   "resourceType":"GMSound",
   "resourceVersion":"2.0",
   "sampleRate":44100,
-  "soundFile":"ms_start.mp3",
-  "volume":0.2,
+  "soundFile":"ms_start.ogg",
+  "volume":1.0,
 }

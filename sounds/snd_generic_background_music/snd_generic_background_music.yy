@@ -21,6 +21,6 @@
   "resourceType":"GMSound",
   "resourceVersion":"2.0",
   "sampleRate":44100,
-  "soundFile":"snd_generic_background_music.mp3",
-  "volume":0.2,
+  "soundFile":"snd_generic_background_music.ogg",
+  "volume":1.0,
 }

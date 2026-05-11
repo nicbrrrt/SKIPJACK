@@ -1,6 +1,6 @@
 {
   "$GMSound":"v2",
-  "%Name":"snd_rm_level_1_city_music",
+  "%Name":"snd_packet_battle_normal_music_3",
   "audioGroupId":{
     "name":"audiogroup_default",
     "path":"audiogroups/audiogroup_default",
@@ -10,9 +10,9 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":216.28227,
+  "duration":96.97814,
   "exportDir":"",
-  "name":"snd_rm_level_1_city_music",
+  "name":"snd_packet_battle_normal_music_3",
   "parent":{
     "name":"Music",
     "path":"folders/Sounds/Music.yy",
@@ -21,6 +21,6 @@
   "resourceType":"GMSound",
   "resourceVersion":"2.0",
   "sampleRate":44100,
-  "soundFile":"snd_rm_level_1_city_music.ogg",
+  "soundFile":"snd_packet_battle_normal_music_3.ogg",
   "volume":1.0,
 }

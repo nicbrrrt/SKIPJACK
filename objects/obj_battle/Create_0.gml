@@ -30,9 +30,12 @@ if (room != rm_combat) {
     exit;
 }
 
-// 3.5. BATTLE MUSIC
+// 3.5. BATTLE MUSIC — random track each fight
 audio_stop_all();
-audio_play_sound(snd_packet_battle_normal_music, 10, true);
+var _packet_tracks = [snd_packet_battle_normal_music,
+                      snd_packet_battle_normal_music_2,
+                      snd_packet_battle_normal_music_3];
+audio_play_sound(_packet_tracks[irandom(2)], 10, true);
 
 // Set background for Bread's fight — create a fresh layer (no black tint) in room space
 if (battle_id == "tutorial") {

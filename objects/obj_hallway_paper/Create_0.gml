@@ -1,6 +1,6 @@
 // obj_hallway_paper — Create Event
 
-depth = -bbox_bottom; // sort by sprite bottom edge, matching Jack's feet
+depth = -y; // use placement y as sort key (bbox_bottom over-extends tall sprites)
 
 is_open         = false;      // is the popup window currently showing
 has_been_opened = global.paper_opened; // restored from global — survives room reloads

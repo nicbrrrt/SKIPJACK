@@ -1,18 +1,20 @@
-// Check if we are in the menu OR the settings room
-if (room == rm_menu || room == rm_settings || room == rm_tutorial_void)
+// ── Menu / Cipher-select: keep ms_start playing ──────────────────────────────
+if (room == rm_menu || room == rm_settings || room == rm_cipher_select)
 {
-	// If we are, and the music *isn't* playing, start it.
-	if (!audio_is_playing(ms_start))
-	{
-		audio_play_sound(ms_start, 10, true);
-	}
+    audio_stop_sound(snd_tutorial_void_music);
+    if (!audio_is_playing(ms_start))
+        audio_play_sound(ms_start, 10, true);
 }
-// If we are in ANY other room (like the main game)
-else 
+// ── Tutorial void: its own ambient track ─────────────────────────────────────
+else if (room == rm_tutorial_void)
 {
-	// If the menu music *is* playing, stop it.
-	if (audio_is_playing(ms_start))
-	{
-		audio_stop_sound(ms_start);
-	}
+    audio_stop_sound(ms_start);
+    if (!audio_is_playing(snd_tutorial_void_music))
+        audio_play_sound(snd_tutorial_void_music, 10, true);
+}
+// ── All other rooms: silence both menu tracks ─────────────────────────────────
+else
+{
+    audio_stop_sound(ms_start);
+    audio_stop_sound(snd_tutorial_void_music);
 }

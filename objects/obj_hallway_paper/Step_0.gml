@@ -1,5 +1,7 @@
 // obj_hallway_paper — Step Event
 
+depth = -y; // refresh every step so it's guaranteed correct after full init
+
 player_nearby = instance_exists(obj_jack)
              && point_distance(x, y, obj_jack.x, obj_jack.y) < interact_radius;
 

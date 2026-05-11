@@ -64,6 +64,8 @@ if (variable_global_exists("puzzle_word_list") && is_array(global.puzzle_word_li
 }
 
 // --- 4. FUNCTION DEFINITIONS ---
+last_puzzle_idx = -1; // tracks the index used last; excluded from next random pick
+
 function create_buttons(_chars_array) {
     var _count      = array_length(_chars_array);
     var _angle_step = 360 / _count;
@@ -79,7 +81,16 @@ function create_buttons(_chars_array) {
 function load_next_puzzle() {
     randomize();
     if (variable_global_exists("puzzle_word_list") && is_array(global.puzzle_word_list) && array_length(global.puzzle_word_list) > 0) {
-        var _idx     = irandom(array_length(global.puzzle_word_list) - 1);
+        var _list_len = array_length(global.puzzle_word_list);
+        var _idx;
+        if (_list_len > 1) {
+            // Pick any index except the one just used
+            do { _idx = irandom(_list_len - 1); }
+            until (_idx != last_puzzle_idx);
+        } else {
+            _idx = 0;
+        }
+        last_puzzle_idx = _idx;
         target_word  = global.puzzle_word_list[_idx];
         current_hint = (variable_global_exists("puzzle_hint_list")
                         && is_array(global.puzzle_hint_list)
@@ -87,7 +98,16 @@ function load_next_puzzle() {
                        ? global.puzzle_hint_list[_idx]
                        : "QUEST TOPIC: Decode the keyword!";
     } else {
-        var _pick    = questions[irandom(array_length(questions) - 1)];
+        var _q_len = array_length(questions);
+        var _idx;
+        if (_q_len > 1) {
+            do { _idx = irandom(_q_len - 1); }
+            until (_idx != last_puzzle_idx);
+        } else {
+            _idx = 0;
+        }
+        last_puzzle_idx = _idx;
+        var _pick    = questions[_idx];
         target_word  = _pick.word;
         current_hint = _pick.hint;
     }

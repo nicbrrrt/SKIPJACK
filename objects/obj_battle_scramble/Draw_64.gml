@@ -111,13 +111,18 @@ if (battle_state == "player_input") {
         else _str += "_ ";
     }
 
-    // Measure both lines at draw scale to size the box
-    var _hint_label = "HINT:  " + current_hint;
-    var _hint_w  = string_width(_hint_label) * _scale;
-    var _guess_w = string_width(_str)        * _scale;
-    var _line_h  = string_height("Ag")       * _scale;
+    // Measure hint — shrink scale if it would overflow the 640 px screen
+    var _hint_label  = "HINT:  " + current_hint;
+    var _max_hint_px = 580.0;                                  // max px across screen
+    var _hint_raw_w  = string_width(_hint_label);              // measured at scale 1.0
+    var _hint_scale  = (_hint_raw_w * _scale > _max_hint_px)
+                       ? (_max_hint_px / _hint_raw_w)
+                       : _scale;
+    var _hint_w  = _hint_raw_w  * _hint_scale;
+    var _guess_w = string_width(_str) * _scale;                // blanks never overflow
+    var _line_h  = string_height("Ag") * _scale;
 
-    // Dynamic background — stretches to fit whichever line is wider
+    // Dynamic background — sized to whichever line is wider
     var _box_half = max(_hint_w, _guess_w) * 0.5 + _pad;
     var _box_h    = _line_h + _spacing + _line_h + _pad * 2;
     var _box_y1   = _h - _box_h - 6;
@@ -129,11 +134,11 @@ if (battle_state == "player_input") {
                    _w * 0.5 + _box_half, _box_y2, false);
     draw_set_alpha(1);
 
-    // Hint row — yellow, matches OBJECTIVES: header style
+    // Hint row — yellow, auto-scaled to stay on screen
     draw_set_color(c_yellow);
-    draw_text_transformed(_w * 0.5, _box_y1 + _pad, _hint_label, _scale, _scale, 0);
+    draw_text_transformed(_w * 0.5, _box_y1 + _pad, _hint_label, _hint_scale, _hint_scale, 0);
 
-    // Answer blanks — white, same scale
+    // Answer blanks — white, full scale
     draw_set_color(c_white);
     draw_text_transformed(_w * 0.5, _box_y1 + _pad + _spacing, _str, _scale, _scale, 0);
 }

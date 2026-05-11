@@ -21,6 +21,6 @@
   "resourceType":"GMSound",
   "resourceVersion":"2.0",
   "sampleRate":44100,
-  "soundFile":"snd_packet_battle_normal_music.mp3",
+  "soundFile":"snd_packet_battle_normal_music.ogg",
   "volume":1.0,
 }
