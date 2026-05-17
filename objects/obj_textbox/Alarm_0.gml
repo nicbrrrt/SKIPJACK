@@ -25,42 +25,56 @@ if(portrait[page] == -1){
 }
 
 draw_set_font(font[page]);
-charSize = string_width("M");		//gets new charSize under current font
-charHeight = string_height("M");	//same for width
+charSize   = string_width("M");		//gets new charSize under current font
+charHeight = string_height("M");	//same for height
 #endregion
 
 #region GET THE BREAKPOINTS AND TEXT EFFECTS
 //Again only need to do this if our CURRENT page is "normal". Separated from above for readability.
 if(type[page] == 0){
-	text_NE = text[page]; 
+	text_NE = text[page];
 	str_len = string_length(text_NE);
-	
+
 	//Get variables ready
 	var by = 0, ty = 0, cc = 1, breakpoint = 0;
 	var next_space = 0, char, txtwidth = boxWidth-(2*x_buffer), char_max = txtwidth div charSize;
 
 	//Reset the text effects and breakpoints arrays
 	text_effects = -1;
-	breakpoints = -1;
-	
+	breakpoints  = -1;
+
 	//Loop through and save the effect positions and breakpoints
 	repeat(str_len){
 		//Save Effect Positions
 		char = string_char_at(text[page], cc);
-		
+
 		//Get next space, deal with new lines
 		if(cc >= next_space){
 			next_space = cc;
 			while(next_space < str_len and string_copy(text_NE, next_space,1) != " ") next_space++;
 			var linewidth = (next_space-breakpoint)*charSize;
-			if (linewidth >= txtwidth) { breakpoint = cc; breakpoints[by] = cc; by++; } 
+			if (linewidth >= txtwidth) { breakpoint = cc; breakpoints[by] = cc; by++; }
 		}
-	
+
 		cc++;
 	}
+
+	// --- DYNAMIC BOX HEIGHT ---
+	// by = number of forced line-breaks, so total lines = by + 1
+	var _num_lines  = by + 1;
+	var _min_box_h  = sprite_get_height(dialogue_box) * scale;
+	var _max_box_h  = floor(gui_height * 0.70); // never taller than 70% of screen
+	var _text_h     = (_num_lines * charHeight) + (y_buffer * 2);
+	boxHeight       = clamp(_text_h, _min_box_h, _max_box_h);
+
+	// Re-anchor to screen bottom (box grows upward)
+	pos_y           = gui_height - boxHeight - 8;
+	name_box_y      = pos_y - (23 * scale);
+	name_box_text_y = name_box_y + y_buffer;
+	finishede_y     = pos_y + boxHeight - y_buffer;
 }
 #endregion
-			
+
 #region Get the emotes
 if(emotes != -1 and emotes[page] != -1){
 	var sp = speaker[page]; var ep = emotes[page];

@@ -11,7 +11,11 @@ if (!instance_exists(obj_game_controller)) {
 if (instance_exists(obj_jack)) instance_deactivate_object(obj_jack);
 
 audio_stop_all();
-audio_play_sound(snd_battle_music, 10, true);
+if (global.last_battle_id == "final_boss_jrpg") {
+    audio_play_sound(snd_quiz_battle_boss_music, 10, true);
+} else {
+    audio_play_sound(snd_battle_music, 10, true);
+}
 
 // --- 2. BATTLE VARIABLES ---
 player_sprite = spr_jack_battle;

@@ -2,9 +2,9 @@
   "$GMSprite":"v2",
   "%Name":"spr_city_alleyway_background",
   "bboxMode":0,
-  "bbox_bottom":1535,
+  "bbox_bottom":359,
   "bbox_left":0,
-  "bbox_right":2751,
+  "bbox_right":639,
   "bbox_top":0,
   "collisionKind":1,
   "collisionTolerance":0,
@@ -12,14 +12,14 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"5adec6c3-bc2e-4339-8a79-b40882461d61","name":"5adec6c3-bc2e-4339-8a79-b40882461d61","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"49af610d-79dd-43ef-904c-e1d7b71ecae8","name":"49af610d-79dd-43ef-904c-e1d7b71ecae8","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
-  "height":1536,
+  "height":360,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"3d267f97-91b1-404a-8f13-4796667ba0e6","blendMode":0,"displayName":"default","isLocked":false,"name":"3d267f97-91b1-404a-8f13-4796667ba0e6","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"f55e9341-6751-49c4-bd56-a51d070c8213","blendMode":0,"displayName":"default","isLocked":false,"name":"f55e9341-6751-49c4-bd56-a51d070c8213","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"spr_city_alleyway_background",
   "nineSlice":null,
@@ -69,8 +69,8 @@
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"5adec6c3-bc2e-4339-8a79-b40882461d61","path":"sprites/spr_city_alleyway_background/spr_city_alleyway_background.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
-              },"Disabled":false,"id":"e4efd483-1575-4d5a-ac50-6190f591550d","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"49af610d-79dd-43ef-904c-e1d7b71ecae8","path":"sprites/spr_city_alleyway_background/spr_city_alleyway_background.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"b42efc02-a623-4ccf-9d74-29ec74226194","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,
@@ -86,5 +86,5 @@
   },
   "type":0,
   "VTile":false,
-  "width":2752,
+  "width":640,
 }

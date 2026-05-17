@@ -1,7 +1,10 @@
 // --- Updated obj_textbox Draw Event ---
 
 //Draw textbox
-draw_sprite_ext(dialogue_box, 0, pos_x,pos_y, scale,scale, 0, c_white, 1);
+// Scale sprite vertically to match the dynamic box height
+var _sprite_h = sprite_get_height(dialogue_box);
+var _yscale   = (_sprite_h > 0) ? (boxHeight / _sprite_h) : scale;
+draw_sprite_ext(dialogue_box, 0, pos_x, pos_y, scale, _yscale, 0, c_white, 1);
 
 //Draw portrait
 if(portrait[page] != -1){

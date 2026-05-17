@@ -70,9 +70,6 @@ if (battle_state != "win") {
     draw_healthbar(_enemy_x - 40, _enemy_y - 90, _enemy_x + 40, _enemy_y - 80, (current_hp_enemy/max_hp_enemy)*100, c_black, c_red, c_green, 0, true, true);
 }
 
-// Healthbar
-draw_healthbar(_enemy_x - 40, _enemy_y - 90, _enemy_x + 40, _enemy_y - 80, (current_hp_enemy/max_hp_enemy)*100, c_black, c_red, c_green, 0, true, true);
-
 // --- 2. PLAYER (Right) ---
 var _player_x = (_w * 0.75) + player_x_offset;
 // Match the base level

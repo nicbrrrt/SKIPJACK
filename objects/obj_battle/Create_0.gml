@@ -30,27 +30,32 @@ if (room != rm_combat) {
     exit;
 }
 
-// 3.5. BATTLE MUSIC — random track each fight
+// 3.5. BATTLE MUSIC — boss track for ANOMALY, random for everyone else
 audio_stop_all();
-var _packet_tracks = [snd_packet_battle_normal_music,
-                      snd_packet_battle_normal_music_2,
-                      snd_packet_battle_normal_music_3];
-audio_play_sound(_packet_tracks[irandom(2)], 10, true);
-
-// Set background for Bread's fight — create a fresh layer (no black tint) in room space
-if (battle_id == "tutorial") {
-    var _layer = layer_create(1, "battle_bg");
-    var _spr_w = sprite_get_width(spr_com_lab_battle_background);
-    var _spr_h = sprite_get_height(spr_com_lab_battle_background);
-    layer_sprite_create(_layer, (room_width - _spr_w) / 2, (room_height - _spr_h) / 2, spr_com_lab_battle_background);
+if (battle_id == "final_boss_phase1") {
+    audio_play_sound(snd_packet_battle_boss_music, 10, true);
+} else {
+    var _packet_tracks = [snd_packet_battle_normal_music,
+                          snd_packet_battle_normal_music_2,
+                          snd_packet_battle_normal_music_3];
+    audio_play_sound(_packet_tracks[irandom(2)], 10, true);
 }
 
-// Set background for Greg's hallway fight
-if (battle_id == "greg_fight") {
-    var _layer = layer_create(1, "battle_bg");
-    var _spr_w = sprite_get_width(spr_battle_hallway_background);
-    var _spr_h = sprite_get_height(spr_battle_hallway_background);
-    layer_sprite_create(_layer, (room_width - _spr_w) / 2, (room_height - _spr_h) / 2, spr_battle_hallway_background);
+// --- PACKET BATTLE BACKGROUNDS ---
+// rm_combat has views disabled: the room (2752x1536) is scaled to fit the window.
+// Place sprite at (0,0) and scale to fill the full room so it always covers the screen.
+var _bg_spr = -1;
+if (battle_id == "tutorial")         _bg_spr = spr_com_lab_battle_background;
+if (battle_id == "greg_fight")       _bg_spr = spr_battle_hallway_background;
+if (battle_id == "final_boss_phase1") _bg_spr = spr_city_street_battle_background;
+
+if (_bg_spr != -1) {
+    var _layer = layer_create(1, "battle_bg"); // depth 1: behind instances (0), in front of black Background (200)
+    var _spr_w = sprite_get_width(_bg_spr);
+    var _spr_h = sprite_get_height(_bg_spr);
+    var _elem  = layer_sprite_create(_layer, 0, 0, _bg_spr);
+    layer_sprite_xscale(_elem, room_width  / _spr_w);
+    layer_sprite_yscale(_elem, room_height / _spr_h);
 }
 
 // 4. BATTLE STATS

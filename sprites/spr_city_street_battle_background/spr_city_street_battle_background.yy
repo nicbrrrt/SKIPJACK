@@ -2,9 +2,9 @@
   "$GMSprite":"v2",
   "%Name":"spr_city_street_battle_background",
   "bboxMode":0,
-  "bbox_bottom":1535,
+  "bbox_bottom":359,
   "bbox_left":0,
-  "bbox_right":2751,
+  "bbox_right":639,
   "bbox_top":0,
   "collisionKind":1,
   "collisionTolerance":0,
@@ -12,14 +12,14 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"c31e121d-659c-44c0-b3a0-b838ff92d7df","name":"c31e121d-659c-44c0-b3a0-b838ff92d7df","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"f726d5c7-a454-4cbf-8871-7b241b3ac0dc","name":"f726d5c7-a454-4cbf-8871-7b241b3ac0dc","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
-  "height":1536,
+  "height":360,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"cf5d0cb6-8620-45ae-b46c-aeede73624fb","blendMode":0,"displayName":"default","isLocked":false,"name":"cf5d0cb6-8620-45ae-b46c-aeede73624fb","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"78f19bf3-c046-41cf-9137-6721e00c84e0","blendMode":0,"displayName":"default","isLocked":false,"name":"78f19bf3-c046-41cf-9137-6721e00c84e0","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"spr_city_street_battle_background",
   "nineSlice":null,
@@ -69,8 +69,8 @@
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"c31e121d-659c-44c0-b3a0-b838ff92d7df","path":"sprites/spr_city_street_battle_background/spr_city_street_battle_background.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
-              },"Disabled":false,"id":"17619ecf-501d-40df-9065-a807bd984efd","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"f726d5c7-a454-4cbf-8871-7b241b3ac0dc","path":"sprites/spr_city_street_battle_background/spr_city_street_battle_background.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"2f6b9939-428f-4362-af29-7cd532214352","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,
@@ -86,5 +86,5 @@
   },
   "type":0,
   "VTile":false,
-  "width":2752,
+  "width":640,
 }

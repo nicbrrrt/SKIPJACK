@@ -2,9 +2,9 @@
   "$GMSprite":"v2",
   "%Name":"spr_battle_hallway_background",
   "bboxMode":0,
-  "bbox_bottom":1535,
+  "bbox_bottom":359,
   "bbox_left":0,
-  "bbox_right":2751,
+  "bbox_right":639,
   "bbox_top":0,
   "collisionKind":1,
   "collisionTolerance":0,
@@ -12,14 +12,14 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"1450887f-ba70-4e6f-bc83-b3721d237ad1","name":"1450887f-ba70-4e6f-bc83-b3721d237ad1","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"7337ecee-2d2c-4223-92a0-451c60c571db","name":"7337ecee-2d2c-4223-92a0-451c60c571db","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
-  "height":1536,
+  "height":360,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"60de9467-bd21-49a7-8c87-a59fc4347937","blendMode":0,"displayName":"default","isLocked":false,"name":"60de9467-bd21-49a7-8c87-a59fc4347937","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"d7b92a58-cc8f-4c51-a979-f7a4a7dfbb12","blendMode":0,"displayName":"default","isLocked":false,"name":"d7b92a58-cc8f-4c51-a979-f7a4a7dfbb12","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
   "name":"spr_battle_hallway_background",
   "nineSlice":null,
@@ -69,8 +69,8 @@
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"1450887f-ba70-4e6f-bc83-b3721d237ad1","path":"sprites/spr_battle_hallway_background/spr_battle_hallway_background.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
-              },"Disabled":false,"id":"b2c519cc-5bf9-4a10-b298-a9771c48e7f9","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"7337ecee-2d2c-4223-92a0-451c60c571db","path":"sprites/spr_battle_hallway_background/spr_battle_hallway_background.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"8a8ad2a9-7c76-4eb3-bd31-ec7c2d54aa67","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,
@@ -86,5 +86,5 @@
   },
   "type":0,
   "VTile":false,
-  "width":2752,
+  "width":640,
 }

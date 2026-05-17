@@ -166,7 +166,8 @@ else if (battle_state == "win") {
     // On the very first frame of victory:
     if (timer == 1) {
         audio_stop_sound(snd_battle_music);
-        // audio_play_sound(snd_boss_explosion, 10, false); 
+        audio_stop_sound(snd_quiz_battle_boss_music);
+        // audio_play_sound(snd_boss_explosion, 10, false);
     }
 
     // --- VISUAL FX DURING DEATH ---
@@ -211,6 +212,7 @@ else if (battle_state == "lose") {
 
     if (timer == 1) {
         audio_stop_sound(snd_battle_music);
+        audio_stop_sound(snd_quiz_battle_boss_music);
         player_sprite = spr_jack_hurt;
     }
 
