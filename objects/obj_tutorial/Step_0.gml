@@ -1,14 +1,19 @@
-// Fade in effect
+// Fade in
 if (alpha < 1) alpha += 0.1;
 
-// Input to Dismiss
+// Dismiss / advance page
 if (keyboard_check_pressed(vk_space) || keyboard_check_pressed(vk_enter)) {
-    
-    // 1. Spawn the actual minigame now
-    if (next_object != noone) {
-        instance_create_layer(0, 0, "Instances", next_object);
+
+    // If a page 2 image exists and we're still on page 1 — advance
+    if (tutorial_image != -1 && page == 1) {
+        page  = 2;
+        alpha = 0; // reset fade so page 2 fades in cleanly
     }
-    
-    // 2. Destroy this tutorial
-    instance_destroy();
+    // Otherwise dismiss and spawn the minigame
+    else {
+        if (next_object != noone) {
+            instance_create_layer(0, 0, "Instances", next_object);
+        }
+        instance_destroy();
+    }
 }

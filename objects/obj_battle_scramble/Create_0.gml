@@ -44,6 +44,7 @@ enemy_flash_timer = 0;
 player_flash_timer = 0;
 player_x_offset   = 0;
 enemy_x_offset    = 0;
+quiz_lose_snd     = -1; // tracks the snd_enemy_lose_quiz instance for fading
 
 // --- 3. PUZZLE DATA ---
 battle_state  = "setup";

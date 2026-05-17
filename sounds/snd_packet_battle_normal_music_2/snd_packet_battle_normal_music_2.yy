@@ -22,5 +22,5 @@
   "resourceVersion":"2.0",
   "sampleRate":44100,
   "soundFile":"snd_packet_battle_normal_music_2.ogg",
-  "volume":1.0,
+  "volume":0.85,
 }

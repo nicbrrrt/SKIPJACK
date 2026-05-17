@@ -1,6 +1,6 @@
 {
   "$GMSound":"v2",
-  "%Name":"snd_packet_battle_normal_music_3",
+  "%Name":"snd_player_packet_win",
   "audioGroupId":{
     "name":"audiogroup_default",
     "path":"audiogroups/audiogroup_default",
@@ -10,17 +10,17 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":96.97814,
+  "duration":0.95845807,
   "exportDir":"",
-  "name":"snd_packet_battle_normal_music_3",
+  "name":"snd_player_packet_win",
   "parent":{
-    "name":"Music",
-    "path":"folders/Sounds/Music.yy",
+    "name":"Battle Sounds",
+    "path":"folders/Sounds/Battle Sounds.yy",
   },
   "preload":false,
   "resourceType":"GMSound",
   "resourceVersion":"2.0",
   "sampleRate":44100,
-  "soundFile":"snd_packet_battle_normal_music_3.ogg",
-  "volume":0.4,
+  "soundFile":"snd_player_packet_win.ogg",
+  "volume":1.0,
 }

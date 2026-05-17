@@ -1,6 +1,6 @@
 {
   "$GMSprite":"v2",
-  "%Name":"spr_hallway_paper",
+  "%Name":"spr_tutorial_img_1",
   "bboxMode":0,
   "bbox_bottom":359,
   "bbox_left":0,
@@ -12,28 +12,28 @@
   "edgeFiltering":false,
   "For3D":false,
   "frames":[
-    {"$GMSpriteFrame":"v1","%Name":"3d4d1cec-1500-477c-82de-6b3358d6ed52","name":"3d4d1cec-1500-477c-82de-6b3358d6ed52","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"efd68e29-abd7-4d52-aed4-7f4e4527042a","name":"efd68e29-abd7-4d52-aed4-7f4e4527042a","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
   "height":360,
   "HTile":false,
   "layers":[
-    {"$GMImageLayer":"","%Name":"00096b56-5128-4485-a36f-ec65ef075d1b","blendMode":0,"displayName":"default","isLocked":false,"name":"00096b56-5128-4485-a36f-ec65ef075d1b","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
+    {"$GMImageLayer":"","%Name":"0b8c95db-892a-42aa-8092-4c104637c079","blendMode":0,"displayName":"default","isLocked":false,"name":"0b8c95db-892a-42aa-8092-4c104637c079","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
-  "name":"spr_hallway_paper",
+  "name":"spr_tutorial_img_1",
   "nineSlice":null,
   "origin":0,
   "parent":{
-    "name":"In Game Object",
-    "path":"folders/Sprites/In Game Object.yy",
+    "name":"Tutorial",
+    "path":"folders/Sprites/Tutorial.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",
   "resourceVersion":"2.0",
   "sequence":{
     "$GMSequence":"v1",
-    "%Name":"spr_hallway_paper",
+    "%Name":"spr_tutorial_img_1",
     "autoRecord":true,
     "backdropHeight":768,
     "backdropImageOpacity":0.5,
@@ -57,7 +57,7 @@
       "resourceType":"KeyframeStore<MomentsEventKeyframe>",
       "resourceVersion":"2.0",
     },
-    "name":"spr_hallway_paper",
+    "name":"spr_tutorial_img_1",
     "playback":1,
     "playbackSpeed":30.0,
     "playbackSpeedType":0,
@@ -69,8 +69,8 @@
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"3d4d1cec-1500-477c-82de-6b3358d6ed52","path":"sprites/spr_hallway_paper/spr_hallway_paper.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
-              },"Disabled":false,"id":"92cc8ca5-803e-4604-b974-23177a3e0315","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"efd68e29-abd7-4d52-aed4-7f4e4527042a","path":"sprites/spr_tutorial_img_1/spr_tutorial_img_1.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"d71e6b7b-c474-49a6-b813-6f6a81873ef2","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,

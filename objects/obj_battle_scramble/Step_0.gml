@@ -105,10 +105,10 @@ if (battle_state == "player_attack")
     if (timer == 15) {
         player_sprite = spr_jack_hit; 
         image_index = 0;
-        audio_play_sound(snd_attack_impact, 10, false); 
+        audio_play_sound(snd_attack_impact, 10, false);
         shake_magnitude = 8;
-        enemy_flash_timer = 10; 
-        audio_play_sound(snd_hurt, 10, false); 
+        enemy_flash_timer = 10;
+        audio_play_sound(snd_hurt, 10, false);
         current_hp_enemy -= 35;
         instance_create_depth(display_get_gui_width()*0.2, display_get_gui_height()*0.4 - 50, -16000, obj_damage_text).damage_amount = "-35";
     }
@@ -163,11 +163,17 @@ else if (battle_state == "enemy_turn")
 else if (battle_state == "win") {
     timer++;
     
-    // On the very first frame of victory:
+    // On the very first frame of the death animation:
     if (timer == 1) {
         audio_stop_sound(snd_battle_music);
         audio_stop_sound(snd_quiz_battle_boss_music);
+        quiz_lose_snd = audio_play_sound(snd_enemy_lose_quiz, 10, false);
         // audio_play_sound(snd_boss_explosion, 10, false);
+    }
+
+    // Begin fading the lose jingle 30 frames before the room transition (timer > 150)
+    if (timer == 120) {
+        audio_sound_gain(quiz_lose_snd, 0, 500); // fade to silence over ~500 ms
     }
 
     // --- VISUAL FX DURING DEATH ---
@@ -198,6 +204,7 @@ else if (battle_state == "win") {
     global.battle_result = "win";
     global.is_jrpg = false;
 
+    audio_stop_sound(quiz_lose_snd); // hard-stop before room change (safety net)
     instance_activate_all();
     room_goto(global.return_room);
     instance_destroy();

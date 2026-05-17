@@ -53,7 +53,7 @@ if (keyboard_check_pressed(vk_enter)) {
         if (success_timer == 0) { // Only trigger once
             text_color = c_lime;
             status_msg = "ACCESS GRANTED";
-            // audio_play_sound(snd_success, 1, false); // Optional sound
+            audio_play_sound(snd_player_packet_win, 10, false);
             success_timer = 60; // Wait 1 second (60 frames) before closing
         }
     } else {

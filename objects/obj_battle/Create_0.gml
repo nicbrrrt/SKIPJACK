@@ -70,9 +70,11 @@ cipher_mode = "first";
 if (!instance_exists(obj_path)) {
     if (global.seen_path_tutorial == false) {
         var tut = instance_create_layer(0, 0, "Instances", obj_tutorial);
-        tut.text_title = "PATHFINDING PROTOCOL";
-        tut.text_body = "Connect START (S) to GOAL (G).\nAvoid firewalls!";
-        tut.next_object = obj_path;
+        tut.text_title     = "PATHFINDING PROTOCOL";
+        tut.text_body      = "Connect START (S) to GOAL (G).\nAvoid firewalls!";
+        tut.next_object    = obj_path;
+        tut.tutorial_image      = spr_tutorial_img_1;
+        tut.tutorial_image_body = "Use ARROW KEYS to move around the maze.\nPress ENTER when you've reached the goal.";
         global.seen_path_tutorial = true;
     } else {
         instance_create_layer(0, 0, "Instances", obj_path);
