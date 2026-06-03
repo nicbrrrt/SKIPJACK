@@ -1,19 +1,17 @@
 {
   "$GMRoom":"v1",
   "%Name":"rm_settings",
-  "creationCodeFile":"",
+  "creationCodeFile":"rooms/rm_settings/RoomCreationCode.gml",
   "inheritCode":false,
   "inheritCreationOrder":false,
   "inheritLayers":false,
   "instanceCreationOrder":[
-    {"name":"inst_2FE4FFDE","path":"rooms/rm_settings/rm_settings.yy",},
-    {"name":"inst_5E22F0AA","path":"rooms/rm_settings/rm_settings.yy",},
+    {"name":"inst_SETTINGS_UI","path":"rooms/rm_settings/rm_settings.yy",},
   ],
   "isDnd":false,
   "layers":[
     {"$GMRInstanceLayer":"","%Name":"Instances","depth":0,"effectEnabled":true,"effectType":null,"gridX":32,"gridY":32,"hierarchyFrozen":false,"inheritLayerDepth":false,"inheritLayerSettings":false,"inheritSubLayers":true,"inheritVisibility":true,"instances":[
-        {"$GMRInstance":"v4","%Name":"inst_2FE4FFDE","colour":4294967295,"frozen":false,"hasCreationCode":false,"ignore":false,"imageIndex":0,"imageSpeed":1.0,"inheritCode":false,"inheritedItemId":null,"inheritItemSettings":false,"isDnd":false,"name":"inst_2FE4FFDE","objectId":{"name":"obj_checkbox_fullscreen","path":"objects/obj_checkbox_fullscreen/obj_checkbox_fullscreen.yy",},"properties":[],"resourceType":"GMRInstance","resourceVersion":"2.0","rotation":0.0,"scaleX":1.0,"scaleY":1.0,"x":762.0,"y":291.0,},
-        {"$GMRInstance":"v4","%Name":"inst_5E22F0AA","colour":4294967295,"frozen":false,"hasCreationCode":false,"ignore":false,"imageIndex":0,"imageSpeed":1.0,"inheritCode":false,"inheritedItemId":null,"inheritItemSettings":false,"isDnd":false,"name":"inst_5E22F0AA","objectId":{"name":"obj_button_back","path":"objects/obj_button_back/obj_button_back.yy",},"properties":[],"resourceType":"GMRInstance","resourceVersion":"2.0","rotation":0.0,"scaleX":0.169,"scaleY":0.22749999,"x":218.0,"y":160.0,},
+        {"$GMRInstance":"v4","%Name":"inst_SETTINGS_UI","colour":4294967295,"frozen":false,"hasCreationCode":false,"ignore":false,"imageIndex":0,"imageSpeed":1.0,"inheritCode":false,"inheritedItemId":null,"inheritItemSettings":false,"isDnd":false,"name":"inst_SETTINGS_UI","objectId":{"name":"obj_settings_ui","path":"objects/obj_settings_ui/obj_settings_ui.yy",},"properties":[],"resourceType":"GMRInstance","resourceVersion":"2.0","rotation":0.0,"scaleX":1.0,"scaleY":1.0,"x":0.0,"y":0.0,},
       ],"layers":[],"name":"Instances","properties":[],"resourceType":"GMRInstanceLayer","resourceVersion":"2.0","userdefinedDepth":false,"visible":true,},
     {"$GMRBackgroundLayer":"","%Name":"Background","animationFPS":30.0,"animationSpeedType":0,"colour":4294967295,"depth":100,"effectEnabled":true,"effectType":"_filter_outline","gridX":32,"gridY":32,"hierarchyFrozen":false,"hspeed":0.0,"htiled":false,"inheritLayerDepth":false,"inheritLayerSettings":false,"inheritSubLayers":true,"inheritVisibility":true,"layers":[],"name":"Background","properties":[
         {"name":"g_OutlineColour","type":1,"value":"#FFFFFFFF",},

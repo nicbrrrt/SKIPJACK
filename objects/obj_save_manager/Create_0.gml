@@ -93,6 +93,7 @@ function load_game() {
 
     // Restore all global flags with safety defaults
     global.tutorial_complete   = _field_or(_data, "tutorial_done",        false);
+    if (global.tutorial_complete) { global.controls_hint_unlocked = true; }
     global.level1_intro_done   = _field_or(_data, "intro_done",           false);
     global.greg_defeated       = _field_or(_data, "greg_dead",            false);
     global.greg_quest_started   = _field_or(_data, "greg_started",         false);

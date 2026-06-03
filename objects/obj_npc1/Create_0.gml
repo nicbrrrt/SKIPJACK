@@ -7,6 +7,7 @@ image_speed  = 0;
 image_index  = 0;
 
 myPortrait = spr_greg_portrait;
+myPortraitTalk = spr_greg_portrait;
 myVoice = snd_voice2; 
 myFont = fnt_dialogue;
 

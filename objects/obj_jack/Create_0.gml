@@ -32,6 +32,7 @@ my_tilemap = -1;
 
 // --- DIALOGUE SYSTEM ---
 myPortrait = spr_jack_portrait;
+myPortraitTalk = spr_jack_portrait;
 myVoice = snd_voice1;
 myFont = fnt_dialogue;
 myName = "Jack";

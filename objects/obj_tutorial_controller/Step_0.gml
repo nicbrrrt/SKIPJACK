@@ -7,20 +7,22 @@ if (instance_exists(obj_transition)) exit;
 switch (tutorial_phase) {
 
     // ------------------------------------------------------------------
-    // PHASE 0 — Intro greeting: wait for the player to press E to dismiss
+    // PHASE 0 — Welcome intro: wait for the player to finish reading
     // ------------------------------------------------------------------
     case 0:
-        if (!first_dialogue_shown) exit;        // Alarm hasn't fired yet
-        if (instance_exists(obj_textevent)) exit; // Player still reading
+        if (!first_dialogue_shown) exit;
+        if (instance_exists(obj_textevent)) exit;
 
-        // Greeting dismissed — now show WASD movement instructions
         tutorial_phase = 1;
         if (instance_exists(obj_npc1)) {
             var _greg = instance_find(obj_npc1, 0);
             create_textevent(
-                ["Now let's get you moving.",
-                 "Try pressing W, A, S, and D to walk around!"],
-                [_greg, _greg]
+                [
+                    "Let's start with movement.",
+                    "Use W, A, S, and D to walk around.",
+                    "Try each key — they'll light up in the corner once you've pressed them all!"
+                ],
+                [_greg, _greg, _greg]
             );
         }
         break;
@@ -29,7 +31,7 @@ switch (tutorial_phase) {
     // PHASE 1 — WASD tracking: register each key press once
     // ------------------------------------------------------------------
     case 1:
-        if (instance_exists(obj_textevent)) exit; // Wait for instruction dialogue to close
+        if (instance_exists(obj_textevent)) exit;
 
         if (keyboard_check_pressed(ord("W"))) w_pressed = true;
         if (keyboard_check_pressed(ord("A"))) a_pressed = true;
@@ -41,9 +43,12 @@ switch (tutorial_phase) {
             if (instance_exists(obj_npc1)) {
                 var _greg = instance_find(obj_npc1, 0);
                 create_textevent(
-                    ["Nice! You've got movement down.",
-                     "Now walk over to me and press E!"],
-                    [_greg, _greg]
+                    [
+                        "Nice work — you've got movement down!",
+                        "Walk over to me and press E to interact.",
+                        "E is also how you advance any conversation in the game."
+                    ],
+                    [_greg, _greg, _greg]
                 );
             }
         }
@@ -53,7 +58,7 @@ switch (tutorial_phase) {
     // PHASE 2 — Walk to Greg: detect proximity + E press
     // ------------------------------------------------------------------
     case 2:
-        if (instance_exists(obj_textevent)) exit; // Wait for "walk to me" dialogue to close
+        if (instance_exists(obj_textevent)) exit;
 
         if (instance_exists(obj_jack) && instance_exists(obj_npc1)) {
             var _greg = instance_find(obj_npc1, 0);
@@ -62,27 +67,33 @@ switch (tutorial_phase) {
 
                 tutorial_phase = 3;
                 create_textevent(
-                    ["There you go — you're a natural!",
-                     "Welcome to SkipJack.",
-                     "This game is all about cryptography.",
-                     "Cryptography is the art of hiding and revealing secret messages.",
-                     "You'll decode enemy transmissions and crack ciphers.",
-                     "Use what you learn to fight back!",
-                     "Ready to begin? Let's move out!"],
-                    [_greg, _greg, _greg, _greg, _greg, _greg, _greg]
+                    [
+                        "There you go! You're already getting the hang of it.",
+                        "Remember: WASD to move, E to talk and continue.",
+                        "Press TAB anytime if you forget — a small reminder can stay on your screen.",
+                        "Alright, let's head out!"
+                    ],
+                    [_greg, _greg, _greg, _greg]
                 );
             }
         }
         break;
 
     // ------------------------------------------------------------------
-    // PHASE 3 — Congratulations dialogue closed → fade to next level
+    // PHASE 3 — Wrap-up → unlock controls hint → fade to next level
     // ------------------------------------------------------------------
     case 3:
         if (instance_exists(obj_textevent)) exit;
 
-        tutorial_done  = true;
-        var _t         = instance_create_depth(0, 0, -9999, obj_transition);
+        tutorial_done = true;
+        global.controls_hint_unlocked = true;
+        global.controls_hint_visible  = true;
+
+        if (!instance_exists(obj_ui_button)) {
+            instance_create_depth(0, 0, -15000, obj_ui_button);
+        }
+
+        var _t = instance_create_depth(0, 0, -9999, obj_transition);
         _t.target_room = rm_cutscene_lab;
         _t.target_x    = 554;
         _t.target_y    = 223;

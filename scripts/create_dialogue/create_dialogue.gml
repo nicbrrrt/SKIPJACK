@@ -90,13 +90,22 @@ function create_dialogue() {
 			else { portrait_idle_y[i] = -1; }
 		
 		
+			// Multi-frame portraits auto-animate while text is revealing
+			if (portrait_talk[i] == -1 and portrait[i] != -1 and sprite_get_number(portrait[i]) > 1) {
+				portrait_talk[i] = portrait[i];
+			}
+
 			if(portrait_talk[i] != -1){ 
 				portrait_talk_n[i] = sprite_get_number(portrait_talk[i]);
-				portrait_talk_s[i] = sprite_get_speed(portrait_talk[i])/room_speed;
+				var _portrait_spd = sprite_get_speed(portrait_talk[i]);
+				if (_portrait_spd <= 0) { _portrait_spd = 30; }
+				portrait_talk_s[i] = _portrait_spd / room_speed;
 			}
 			if(portrait_idle[i] != -1){ 
 				portrait_idle_n[i] = sprite_get_number(portrait_idle[i]);
-				portrait_idle_s[i] = sprite_get_speed(portrait_idle[i])/room_speed;
+				var _idle_spd = sprite_get_speed(portrait_idle[i]);
+				if (_idle_spd <= 0) { _idle_spd = 30; }
+				portrait_idle_s[i] = _idle_spd / room_speed;
 			}
 			i++;
 		}

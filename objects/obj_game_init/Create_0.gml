@@ -88,7 +88,12 @@ if (!variable_global_exists("cam_pan_to_y"))    global.cam_pan_to_y    = 0;
 
 // --- UI/AUDIO ---
 if (!variable_global_exists("game_volume"))  global.game_volume = 1;
+audio_master_gain(global.game_volume);
 if (!variable_global_exists("is_paused"))    global.is_paused   = false;
+
+// --- CONTROLS REMINDER (TAB panel, unlocked after intro tutorial) ---
+if (!variable_global_exists("controls_hint_unlocked")) global.controls_hint_unlocked = false;
+if (!variable_global_exists("controls_hint_visible"))  global.controls_hint_visible  = true;
 
 // Lock GUI to 640x360 (2x visual scale, matching the main menu) from the first room onward
 display_set_gui_size(640, 360);

@@ -1,9 +1,9 @@
 // obj_tutorial_controller — Create Event
 // Four-phase tutorial state machine.
-//   Phase 0: Intro greeting — player presses E to advance
+//   Phase 0: Welcome + game pitch — player presses E to advance
 //   Phase 1: WASD tracking — player presses all four movement keys
 //   Phase 2: Walk to Greg — player walks over and presses E
-//   Phase 3: Congratulations — dialogue plays, then room transitions
+//   Phase 3: Wrap-up + TAB hint — dialogue plays, then room transitions
 
 tutorial_phase        = 0;
 first_dialogue_shown  = false; // set true by Alarm 0 once dialogue fires

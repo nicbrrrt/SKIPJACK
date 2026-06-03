@@ -1,17 +1,18 @@
 // --- Draw Event of obj_start_combat ---
-if (visible) {
-    // This draws the NPC 2 sprite assigned to this object
-    draw_self(); 
-    
-    // Check distance to Jack
-    var _player = instance_find(obj_jack, 0);
-    if (_player != noone && point_distance(x, y, _player.x, _player.y) < interaction_range) {
-        draw_set_color(c_white);
-        draw_set_halign(fa_center);
-        
-        // Draw "Press E to Talk" above the NPC's head (adjust -40 if needed)
-        draw_text(x, y - 48, "Press E to Talk"); 
-        
-        draw_set_halign(fa_left);
-    }
-}
+if (!visible) exit;
+
+draw_self();
+
+if (!instance_exists(obj_jack)) exit;
+if (instance_exists(obj_textevent)) exit;
+if (obj_jack.isInCutscene) exit;
+
+var _player = instance_find(obj_jack, 0);
+if (_player == noone) exit;
+if (point_distance(x, y, _player.x, _player.y) >= interaction_range) exit;
+
+draw_set_color(c_white);
+draw_set_halign(fa_center);
+draw_set_font(fnt_dialogue);
+draw_text(x, y - 48, "[E] TALK");
+draw_set_halign(fa_left);

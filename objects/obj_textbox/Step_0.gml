@@ -4,6 +4,24 @@ if (mouse_wheel_up())   scroll_y  = max(scroll_y - stringHeight, 0);
 var _max_scroll = max(0, (cy_max * stringHeight) - (boxHeight - y_buffer * 2));
 scroll_y = min(scroll_y, _max_scroll);
 
+// Advance full-body portrait animation every frame while text is typing
+if (portrait[page] != -1 && portrait_talk[page] != -1 && portrait_talk[page] == portrait[page]) {
+	var _talking = (type[page] == 0 && charCount < str_len && !pause);
+	if (_talking) {
+		portrait_talk_c += portrait_talk_s[page];
+		if (portrait_talk_c >= portrait_talk_n[page]) { portrait_talk_c = 0; }
+	}
+}
+
+// Separate idle sprite animation while waiting for input
+if (portrait[page] != -1 && portrait_idle[page] != -1 && portrait_idle[page] != portrait[page]) {
+	var _waiting = (type[page] == 1 || charCount >= str_len);
+	if (_waiting) {
+		portrait_idle_c += portrait_idle_s[page];
+		if (portrait_idle_c >= portrait_idle_n[page]) { portrait_idle_c = 0; }
+	}
+}
+
 //We check the type of dialogue to see if it is 1) "normal" or 2) a player choice dialogue.
 
 #region TYPE 0: NORMAL
