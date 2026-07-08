@@ -34,6 +34,7 @@ if (caesar_hover && mouse_check_button_pressed(mb_left) && !instance_exists(obj_
         if (instance_exists(obj_save_manager)) obj_save_manager.load_game();
     } else {
         show_debug_message("CIPHER SELECT: No save — starting fresh intro.");
+        global.e_dialogue_intro_shown = false;
     }
 }
 

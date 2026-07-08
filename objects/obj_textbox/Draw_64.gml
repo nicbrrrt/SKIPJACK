@@ -278,3 +278,34 @@ else {
 	#endregion
 }
 #endregion
+
+// On-screen reminder — right side of the dialogue box
+var _pulse = 0.65 + sin(current_time / 200) * 0.35;
+var _hint_x  = pos_x + boxWidth + (10 * scale);
+var _hint_y  = pos_y + boxHeight * 0.5;
+var _hint_str = "Press E\nto continue";
+var _hint_sx = 0.9;
+var _hint_sy = 0.9;
+
+draw_set_font(fnt_dialogue);
+draw_set_halign(fa_left);
+draw_set_valign(fa_middle);
+draw_set_alpha(1);
+
+// Thin 1px border (not a thick shadow copy)
+draw_set_color(c_black);
+for (var _d = 0; _d < 8; _d++) {
+	var _ox = lengthdir_x(1, _d * 45);
+	var _oy = lengthdir_y(1, _d * 45);
+	draw_text_transformed(_hint_x + _ox, _hint_y + _oy, _hint_str, _hint_sx, _hint_sy, 0);
+}
+
+// Yellow fill — only this layer pulses
+draw_set_color(c_yellow);
+draw_set_alpha(_pulse);
+draw_text_transformed(_hint_x, _hint_y, _hint_str, _hint_sx, _hint_sy, 0);
+
+draw_set_alpha(1);
+draw_set_halign(fa_left);
+draw_set_valign(fa_top);
+draw_set_color(c_white);

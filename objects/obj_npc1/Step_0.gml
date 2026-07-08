@@ -1,5 +1,5 @@
 // --- 1. VISUALS & DEPTH ---
-depth = -y;
+event_inherited();
 
 // Visibility: Hide Greg in combat rooms
 if (room == rm_combat || room == rm_battle_scramble) { 
@@ -8,12 +8,6 @@ if (room == rm_combat || room == rm_battle_scramble) {
 } else {
     visible = true;
 }
-
-// Simple idle animation
-if (sprite_index != spr_npc1_idle) { sprite_index = spr_npc1_idle; }
-image_speed = 0;
-image_index = 0;
-
 
 // --- 2. INTERACTION LOGIC (Consolidated) ---
 if (instance_exists(obj_jack)) {

@@ -1,3 +1,5 @@
+if (variable_global_exists("is_paused") && global.is_paused) exit;
+
 if (active) {
     timer -= 1;
 

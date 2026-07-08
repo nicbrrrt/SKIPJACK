@@ -1,3 +1,4 @@
 // --- ALARM 0 ---
-// Just start the game.
+if (variable_global_exists("is_paused") && global.is_paused) exit;
+
 load_next_puzzle();

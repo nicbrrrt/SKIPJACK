@@ -1,4 +1,5 @@
 // --- User Event 1 of obj_battle ---
+if (variable_global_exists("is_paused") && global.is_paused) exit;
 
 if (cipher_mode == "packet") {
     enemy_hp -= 3;

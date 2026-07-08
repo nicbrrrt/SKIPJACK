@@ -7,10 +7,9 @@ if (variable_global_exists("controls_hint_unlocked") && global.controls_hint_unl
     }
 }
 
-// 1. EXIT IMMEDIATELY IF IN COMBAT
+// CODEX BUTTON — only after full tutorial, not in combat/quiz rooms
 if (room == rm_combat || room == rm_battle_scramble) exit;
 
-// 2. CODEX BUTTON — only after full tutorial is complete
 if (global.tutorial_complete) {
     var gui_w = display_get_gui_width();
     var button_x = gui_w - 60;

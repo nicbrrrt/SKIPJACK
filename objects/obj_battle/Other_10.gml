@@ -1,7 +1,9 @@
 // --- USER EVENT 0 (CIPHER SPAWN) ---
+if (variable_global_exists("is_paused") && global.is_paused) exit;
 
 show_debug_message("BATTLE: Spawning Cipher...");
-state = "CIPHER1"; 
+state = "CIPHER1";
+cipher_key = scr_roll_cipher_key();
 
 if (global.seen_cipher_tutorial == false) {
     var tut = instance_create_layer(0, 0, "Instances", obj_tutorial);

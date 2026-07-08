@@ -58,6 +58,7 @@ function save_game() {
         quest_talk_to_david:  _global_or("quest_talk_to_david",  false),
         david_defeated:        _global_or("david_defeated",        false),
         david_quiz_attempted:  _global_or("david_quiz_attempted",  false),
+        scramble_tutorial_done: _global_or("scramble_tutorial_done", false),
         quest_talk_to_breado:  _global_or("quest_talk_to_breado",  false),
 
         // Battle handoff state (so saving mid-battle-setup is safe)
@@ -112,6 +113,7 @@ function load_game() {
     global.quest_talk_to_david  = _field_or(_data, "quest_talk_to_david",  false);
     global.david_defeated        = _field_or(_data, "david_defeated",        false);
     global.david_quiz_attempted  = _field_or(_data, "david_quiz_attempted",  false);
+    global.scramble_tutorial_done = _field_or(_data, "scramble_tutorial_done", false);
     global.quest_talk_to_breado  = _field_or(_data, "quest_talk_to_breado",  false);
 
     global.quest_clipper_done   = _field_or(_data, "clipper_done",         false);

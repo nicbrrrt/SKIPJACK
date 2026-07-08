@@ -47,19 +47,3 @@ draw_set_color(d_pressed ? _col_done : _col_todo);
 draw_text_transformed(_x + 5 + _key_gap * _scale * 3,      _y + _row_h * 2, "D", _scale, _scale, 0);
 
 draw_set_color(c_white);
-
-// First intro dialogue: remind new players to press E
-if (!tutorial_done && tutorial_phase == 0 && first_dialogue_shown && instance_exists(obj_textevent)) {
-	var _gw = display_get_gui_width();
-	var _gh = display_get_gui_height();
-	draw_set_font(fnt_dialogue);
-	draw_set_halign(fa_center);
-	draw_set_valign(fa_top);
-	var _pulse = 0.65 + sin(current_time / 200) * 0.35;
-	draw_set_color(c_yellow);
-	draw_set_alpha(_pulse);
-	draw_text_transformed(_gw * 0.5, _gh - 40, "Press E to continue", 0.95, 0.95, 0);
-	draw_set_alpha(1);
-	draw_set_halign(fa_left);
-	draw_set_color(c_white);
-}

@@ -1,4 +1,6 @@
 // Scroll support
+if (variable_global_exists("is_paused") && global.is_paused) exit;
+
 if (mouse_wheel_down()) scroll_y += stringHeight;
 if (mouse_wheel_up())   scroll_y  = max(scroll_y - stringHeight, 0);
 var _max_scroll = max(0, (cy_max * stringHeight) - (boxHeight - y_buffer * 2));

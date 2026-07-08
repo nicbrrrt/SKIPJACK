@@ -1,3 +1,5 @@
+if (variable_global_exists("is_paused") && global.is_paused) exit;
+
 // obj_path Step Event - WITH NO BACKTRACKING
 var cursor_moved = false;
 
@@ -124,8 +126,7 @@ if (keyboard_check_pressed(vk_enter)) {
         if (instance_exists(obj_battle)) {
             show_debug_message("=== PATH: obj_battle found! Calling event_user(0) ===");
             with (obj_battle) {
-                cipher_key = the_key;
-                event_user(0); // Path success
+                event_user(0);
             }
         } else {
             show_debug_message("=== PATH: ERROR - obj_battle does not exist! ===");

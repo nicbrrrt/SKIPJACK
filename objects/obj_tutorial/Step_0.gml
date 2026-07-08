@@ -1,4 +1,6 @@
 // Fade in
+if (variable_global_exists("is_paused") && global.is_paused) exit;
+
 if (alpha < 1) alpha += 0.1;
 
 // Dismiss / advance page

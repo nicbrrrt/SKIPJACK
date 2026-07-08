@@ -7,6 +7,23 @@ if (room != rm_hallway) { visible = false; exit; }
 visible = global.kyle_lesson_done;
 if (!visible) exit;
 
+// --- RETURNING FROM TUTORIAL WIN ---
+if (global.last_battle_id == "scramble_tutorial_done" && global.battle_result == "win") {
+    if (!active_dialogue) {
+        active_dialogue = true;
+        create_textevent([
+            "Nice work! You learned the basics of quiz combat.",
+            "Talk to me again when you're ready for the real Caesar Cipher quiz!"
+        ], [id, id]);
+    }
+    if (active_dialogue && !instance_exists(obj_textevent)) {
+        global.last_battle_id = "none";
+        global.battle_result  = "none";
+        active_dialogue       = false;
+    }
+    exit;
+}
+
 // --- RETURNING FROM WIN ---
 if (global.last_battle_id == "david_quiz_defeated" && global.battle_result == "win") {
     if (!active_dialogue) {
@@ -40,7 +57,8 @@ if (global.david_quiz_attempted && global.battle_result == "lose" && !global.dav
 }
 
 // --- TRANSITION TO BATTLE (pre-battle dialogue done) ---
-if (active_dialogue && global.last_battle_id == "david_quiz" && !instance_exists(obj_textevent)) {
+if (active_dialogue && (global.last_battle_id == "david_quiz" || global.last_battle_id == "scramble_tutorial")
+    && !instance_exists(obj_textevent)) {
     active_dialogue = false;
     room_goto(rm_battle_scramble);
     exit;

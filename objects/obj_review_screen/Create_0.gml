@@ -1,14 +1,61 @@
 // --- obj_review_screen Create Event ---
-// Standalone Review Mode overlay opened from the main menu REVIEW button.
-// The in-game Codex (C key / obj_codex_manager) is separate and untouched.
+// Main-menu CODEX / modules browser (separate from in-game C-key codex).
+
+display_set_gui_size(window_get_width(), window_get_height());
 
 current_tab    = 0;
 current_module = 0;
+content_scroll = 0;
+
+// Layout cache (filled by review_refresh_layout)
+card_x = 0; card_y = 0; card_w = 0; card_h = 0;
+tab_h = 42; tab_w = 0; tab_cnt = 0; tab_strip_y = 0;
+pad = 28;
+content_y1 = 0; content_y2 = 0; body_x = 0; body_y = 0; body_w = 0; body_h = 0;
+hint_y = 0;
+
+function review_refresh_layout() {
+    var _gw = display_get_gui_width();
+    var _gh = display_get_gui_height();
+    card_w = _gw * 0.82;
+    card_h = _gh * 0.86;
+    card_x = (_gw - card_w) * 0.5;
+    card_y = (_gh - card_h) * 0.5;
+    tab_cnt = array_length(tabs);
+    tab_w   = card_w / tab_cnt;
+    tab_strip_y = card_y + 30;
+    hint_y      = card_y + card_h - 30;
+    content_y1  = tab_strip_y + tab_h + 4;
+    content_y2  = hint_y - 12;
+    body_x      = card_x + pad;
+    body_y      = content_y1 + 52;
+    body_w      = card_w - pad * 2;
+    body_h      = max(40, content_y2 - body_y);
+}
+
+function review_active_mod_count() {
+    return array_length(tabs[current_tab].modules);
+}
+
+function review_active_mod() {
+    var _mods = tabs[current_tab].modules;
+    var _n = array_length(_mods);
+    if (_n <= 0) return { title: "NO MODULES", content: "" };
+    current_module = clamp(current_module, 0, _n - 1);
+    return _mods[current_module];
+}
+
+function review_content_height(_text) {
+    return string_height_ext(_text, 22, body_w);
+}
+
+function review_max_scroll(_text) {
+    return max(0, review_content_height(_text) - body_h);
+}
 
 // Tab structure: { label, locked, modules: [ { title, content } ] }
 tabs = [
 
-    // ── Tab 0: Cybersecurity (unlocked) ──────────────────────────────────
     {
         label:  "Cybersecurity",
         locked: false,
@@ -85,7 +132,6 @@ tabs = [
         ]
     },
 
-    // ── Tab 1: Caesar Cipher (unlocked) ──────────────────────────────────
     {
         label:  "Caesar Cipher",
         locked: false,
@@ -150,7 +196,6 @@ tabs = [
         ]
     },
 
-    // ── Tab 2: Atbash Cipher (locked) ────────────────────────────────────
     {
         label:  "Atbash Cipher",
         locked: true,
@@ -166,51 +211,11 @@ tabs = [
                     "  A B C D E F G H ... Z\n" +
                     "  Z Y X W V U T S ... A\n" +
                     "\n" +
-                    "No key is required -- the reversed alphabet IS the cipher. Anyone who\n" +
-                    "knows the method can immediately decode any message, making it purely\n" +
-                    "an educational tool today."
-            },
-            {
-                title: "ENCRYPTION EXAMPLE",
-                content:
-                    "Apply the reversed-alphabet table to each letter in the message:\n" +
-                    "\n" +
-                    "  Plaintext:   H  E  L  L  O\n" +
-                    "  Ciphertext:  S  V  O  O  L\n" +
-                    "\n" +
-                    "The same substitution table is used every time -- fixed and keyless.\n" +
-                    "\n" +
-                    "SELF-RECIPROCAL PROPERTY\n" +
-                    "Atbash is its own inverse: apply it once to encrypt, apply it again\n" +
-                    "to decrypt -- the same operation both ways. This is because the\n" +
-                    "reversed-alphabet mapping undoes itself perfectly.\n" +
-                    "\n" +
-                    "  Encrypt HELLO  ->  SVOOL\n" +
-                    "  Encrypt SVOOL  ->  HELLO"
-            },
-            {
-                title: "PROPERTIES & WEAKNESS",
-                content:
-                    "HISTORICAL CONTEXT\n" +
-                    "Atbash was originally used for the Hebrew alphabet and appears in the\n" +
-                    "Book of Jeremiah in the Bible. Later it was adapted for the Latin\n" +
-                    "alphabet. It represents one of the earliest recorded examples of a\n" +
-                    "substitution cipher.\n" +
-                    "\n" +
-                    "NO SECRET KEY\n" +
-                    "The algorithm itself is the only 'key.' Since there is just one\n" +
-                    "possible mapping, any attacker who knows the cipher name can instantly\n" +
-                    "decode every message -- there is nothing to keep secret.\n" +
-                    "\n" +
-                    "WEAKNESS\n" +
-                    "Trivially broken. Offers zero cryptographic security for modern use.\n" +
-                    "Its value today is purely educational -- understanding Atbash builds\n" +
-                    "intuition for how substitution ciphers and key spaces work."
+                    "No key is required -- the reversed alphabet IS the cipher."
             }
         ]
     },
 
-    // ── Tab 3: Vigenère Cipher (locked) ──────────────────────────────────
     {
         label:  "Vigenere Cipher",
         locked: true,
@@ -219,52 +224,10 @@ tabs = [
                 title: "HOW IT WORKS",
                 content:
                     "The Vigenere Cipher extends the Caesar Cipher by applying MULTIPLE\n" +
-                    "different shift values using a repeating keyword. Instead of every\n" +
-                    "letter shifting by the same amount, each letter shifts by the value\n" +
-                    "of the corresponding keyword letter.\n" +
-                    "\n" +
-                    "Letter values:  A=0  B=1  C=2 ... Z=25\n" +
-                    "\n" +
-                    "The keyword repeats across the full length of the message, so a short\n" +
-                    "keyword can encrypt a very long message. This makes frequency analysis\n" +
-                    "far more difficult than against a Caesar Cipher."
-            },
-            {
-                title: "THE KEYWORD IN ACTION",
-                content:
-                    "Keyword: K E Y  ->  shift values: 10, 4, 24\n" +
-                    "Message: H E L L O\n" +
-                    "\n" +
-                    "  H + K(10) = R\n" +
-                    "  E + E(4)  = I\n" +
-                    "  L + Y(24) = J\n" +
-                    "  L + K(10) = V   <- keyword wraps back to start\n" +
-                    "  O + E(4)  = S\n" +
-                    "\n" +
-                    "Ciphertext: R I J V S\n" +
-                    "\n" +
-                    "DECRYPTION\n" +
-                    "Use the same keyword and shift each ciphertext letter BACKWARD by the\n" +
-                    "matching keyword letter's value. This perfectly recovers the plaintext."
-            },
-            {
-                title: "STRENGTH & THE KASISKI TEST",
-                content:
-                    "STRENGTH\n" +
-                    "Because each plaintext letter is shifted by a different amount, the\n" +
-                    "simple frequency analysis that breaks Caesar Cipher fails here. The\n" +
-                    "same plaintext letter can produce many different ciphertext letters\n" +
-                    "depending on its position relative to the keyword.\n" +
-                    "\n" +
-                    "WEAKNESS: THE KASISKI TEST\n" +
-                    "If the same sequence of plaintext letters coincides with the same\n" +
-                    "part of the keyword, it produces identical ciphertext. By finding\n" +
-                    "repeated ciphertext sequences and measuring the distances between\n" +
-                    "them, an analyst can deduce the keyword length.\n" +
-                    "\n" +
-                    "Once the key length is known, the cipher splits into several\n" +
-                    "independent Caesar Ciphers -- each solvable by frequency analysis."
+                    "different shift values using a repeating keyword."
             }
         ]
     }
 ];
+
+review_refresh_layout();

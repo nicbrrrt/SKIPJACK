@@ -32,7 +32,8 @@ if (variable_global_exists("last_battle_id") && global.last_battle_id == "greg_b
 }
 
 // Background for David's JRPG fight — spr_battle_hallway_background (optimised, now drawn 1:1)
-if (variable_global_exists("last_battle_id") && global.last_battle_id == "david_quiz") {
+if (variable_global_exists("last_battle_id")
+    && (global.last_battle_id == "david_quiz" || global.last_battle_id == "scramble_tutorial")) {
     var _bg_layer = layer_get_id("Background");
     if (layer_exists(_bg_layer)) layer_set_visible(_bg_layer, false);
 

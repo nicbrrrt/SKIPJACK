@@ -37,8 +37,8 @@
   "resourceVersion":"2.0",
   "solid":false,
   "spriteId":{
-    "name":"spr_npc2_idle",
-    "path":"sprites/spr_npc2_idle/spr_npc2_idle.yy",
+    "name":"spr_kyle_idle",
+    "path":"sprites/spr_kyle_idle/spr_kyle_idle.yy",
   },
   "spriteMaskId":null,
   "visible":true,

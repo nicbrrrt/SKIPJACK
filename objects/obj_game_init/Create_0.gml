@@ -61,6 +61,7 @@ if (!variable_global_exists("all_objects_inspected")) global.all_objects_inspect
 if (!variable_global_exists("seen_path_tutorial"))    global.seen_path_tutorial    = false;
 if (!variable_global_exists("seen_cipher_tutorial"))  global.seen_cipher_tutorial  = false;
 if (!variable_global_exists("seen_qte_tutorial"))     global.seen_qte_tutorial     = false;
+if (!variable_global_exists("scramble_tutorial_done")) global.scramble_tutorial_done = false;
 
 // --- NPC TARGETS ---
 if (!variable_global_exists("greg_target_x"))  global.greg_target_x  = -1;
@@ -94,6 +95,9 @@ if (!variable_global_exists("is_paused"))    global.is_paused   = false;
 // --- CONTROLS REMINDER (TAB panel, unlocked after intro tutorial) ---
 if (!variable_global_exists("controls_hint_unlocked")) global.controls_hint_unlocked = false;
 if (!variable_global_exists("controls_hint_visible"))  global.controls_hint_visible  = true;
+
+// --- DIALOGUE TUTORIAL ---
+if (!variable_global_exists("e_dialogue_intro_shown")) global.e_dialogue_intro_shown = false;
 
 // Lock GUI to 640x360 (2x visual scale, matching the main menu) from the first room onward
 display_set_gui_size(640, 360);

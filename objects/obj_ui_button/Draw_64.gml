@@ -1,6 +1,6 @@
 // --- Draw GUI Event of obj_ui_button ---
 
-if (room == rm_menu || room == rm_combat || room == rm_battle_scramble) exit;
+if (room == rm_menu || room == rm_cipher_select || room == rm_settings) exit;
 
 var _gui_w = display_get_gui_width();
 var _gui_h = display_get_gui_height();
@@ -21,6 +21,7 @@ if (variable_global_exists("controls_hint_unlocked") && global.controls_hint_unl
             "CONTROLS",
             "WASD — Move",
             "E — Talk / Continue",
+            "ESC — Pause",
             "",
             "[TAB] Hide"
         ];
@@ -46,7 +47,6 @@ if (variable_global_exists("controls_hint_unlocked") && global.controls_hint_unl
             draw_text_transformed(_panel_x, _panel_y + _j * _line_h, _lines[_j], _scale, _scale, 0);
         }
     } else {
-        // Collapsed tab — minimal reminder that TAB brings the panel back
         var _tab_x = _gui_w - 52;
         var _tab_y = _panel_y;
         draw_set_color(c_black);
@@ -65,6 +65,7 @@ if (variable_global_exists("controls_hint_unlocked") && global.controls_hint_unl
 }
 
 // --- CODEX BUTTON (top-right, after full tutorial) ---
+if (room == rm_combat || room == rm_battle_scramble) exit;
 if (!global.tutorial_complete) exit;
 
 draw_set_alpha(1);

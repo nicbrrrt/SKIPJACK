@@ -4,12 +4,17 @@
 
 depth = -y;
 
-// Hide Jack in combat room
-if (room == rm_combat) {
+// Hide Jack in combat rooms
+if (room == rm_combat || room == rm_battle_scramble) {
     visible = false;
     exit; 
 } else {
     visible = true;
+}
+
+if (variable_global_exists("is_paused") && global.is_paused) {
+    image_speed = 0;
+    exit;
 }
 
 // Freeze during cutscenes, transitions, or active minigames

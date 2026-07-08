@@ -1,7 +1,9 @@
 // ---------------------------------------------------------
 // 1. CHOICE MODE (Navigation)
 // ---------------------------------------------------------
-if (choice_active) 
+if (variable_global_exists("is_paused") && global.is_paused) exit;
+
+if (choice_active)
 {
     // Move Up
     if (keyboard_check_pressed(vk_up) || keyboard_check_pressed(ord("W"))) {

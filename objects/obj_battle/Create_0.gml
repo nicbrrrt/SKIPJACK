@@ -30,6 +30,10 @@ if (room != rm_combat) {
     exit;
 }
 
+if (!instance_exists(obj_game_controller)) {
+    instance_create_depth(0, 0, 0, obj_game_controller);
+}
+
 // 3.5. BATTLE MUSIC — boss track for ANOMALY, random for everyone else
 audio_stop_all();
 if (battle_id == "final_boss_phase1") {
@@ -61,10 +65,27 @@ if (_bg_spr != -1) {
 // 4. BATTLE STATS
 global.battle_active = true;
 state = "PATH"; 
-cipher_key = 0;
+cipher_key = scr_roll_cipher_key();
 player_hp = 10;
 enemy_hp = 10;
 cipher_mode = "first";
+
+// Packet-battle draw / animation state
+fight_anim         = "idle";
+fight_timer        = 0;
+fight_pending      = "";
+player_draw_spr    = spr_jack_idle;
+player_draw_sub    = scr_dir_idle_start(spr_jack_idle, "right");
+enemy_draw_sub     = scr_dir_idle_start(enemy_sprite, "left");
+player_idle_acc    = 0;
+enemy_idle_acc     = 0;
+player_lunge       = 0;
+enemy_lunge        = 0;
+enemy_flash_timer  = 0;
+player_hurt_timer  = 0;
+enemy_attack_spr   = (variable_global_exists("battle_enemy_attack_sprite")
+                      && sprite_exists(global.battle_enemy_attack_sprite))
+                     ? global.battle_enemy_attack_sprite : spr_normalvirus_attack;
 
 // 5. START FIRST PHASE
 if (!instance_exists(obj_path)) {

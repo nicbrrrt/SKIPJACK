@@ -1,9 +1,14 @@
-myName    = "Kyle";
-myPortrait = spr_portrait_examplechar;
-myVoice   = snd_voice2;
-myFont    = fnt_dialogue;
-myTextCol = c_white;
+myName     = "Kyle";
+myPortrait = spr_kyle_portrait;
+myPortraitTalk = spr_kyle_portrait;
+myVoice    = snd_voice2;
+myFont     = fnt_dialogue;
+myTextCol  = c_white;
 isInCutscene = false;
+idle_facing  = "down";   // front-facing (toward camera)
+idle_anim_acc = 0;
+image_speed  = 0;
+image_index  = 0;
 depth = -y;
 
 showed_intro    = false;

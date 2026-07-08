@@ -1,4 +1,5 @@
-// DEBUG: F3 skips JRPG combat (win)
+if (variable_global_exists("is_paused") && global.is_paused) exit;
+
 if (variable_global_exists("DEBUG_MODE") && global.DEBUG_MODE && keyboard_check_pressed(vk_f3)) {
     show_debug_message("[DEBUG] F3 pressed — skipping JRPG combat as WIN (battle_id: " + string(global.last_battle_id) + ")");
     current_hp_enemy = 0;
@@ -26,11 +27,81 @@ if (variable_global_exists("DEBUG_MODE") && global.DEBUG_MODE && keyboard_check_
 }
 
 // ====================================================
+// TUTORIAL SIMULATION (scramble_tutorial)
+// ====================================================
+if (scramble_tutorial) {
+    // TAB / X — speedrun skip (dialogue, demos, parry lesson → practice or finish)
+    if (keyboard_check_pressed(vk_tab) || keyboard_check_pressed(ord("X"))) {
+        tutorial_skip_showcase();
+        exit;
+    }
+
+    // Pause all battle logic while dialogue is on screen
+    if (instance_exists(obj_textevent)) exit;
+
+    if (tutorial_dialogue_pending && !instance_exists(obj_textevent)) {
+        tutorial_dialogue_pending = false;
+        tutorial_dialogue_finished();
+    }
+
+    if (battle_state == "tutorial") {
+        tutorial_timer++;
+
+        // --- AUTO-TYPE DEMOS (slower pacing) ---
+        if (tutorial_sub == "auto_type") {
+            if (tutorial_timer mod tutorial_auto_interval == 0 && tutorial_auto_idx < string_length(target_word)) {
+                var _ch = string_char_at(target_word, tutorial_auto_idx + 1);
+                with (obj_battle_button) {
+                    if (!revealed && my_char == _ch) {
+                        revealed = true;
+                        obj_battle_scramble.player_guess += my_char;
+                        obj_battle_scramble.tutorial_auto_idx++;
+                        audio_play_sound(snd_button_click, 10, false);
+                        break;
+                    }
+                }
+            }
+            if (tutorial_auto_idx >= string_length(target_word)) {
+                battle_state = "player_attack";
+                timer = 0;
+                tutorial_sub = "";
+                with (obj_battle_button) instance_destroy();
+            }
+        }
+        exit;
+    }
+}
+
+// Block attack slow-motion timer
+if (block_slowmo_timer > 0) block_slowmo_timer--;
+
+// --- IDLE ANIMATION (directional, no spinning) ---
+if (battle_state == "player_input" || battle_state == "setup"
+ || battle_state == "block_attack" || battle_state == "tutorial"
+ || battle_state == "player_attack"
+ || (battle_state == "enemy_turn" && timer > 60)) {
+    if (sprite_exists(enemy_sprite)) {
+        var _er = scr_dir_idle_anim(enemy_sprite, enemy_idle_facing, enemy_idle_acc, 0.15);
+        image_index = _er[0];
+        enemy_idle_acc = _er[1];
+    }
+    if (sprite_exists(player_sprite) && player_sprite != spr_jack_hit && player_sprite != spr_jack_hurt) {
+        var _pr = scr_dir_idle_anim(player_sprite, player_idle_facing, player_idle_acc, 0.15);
+        // player drawn via player_sprite in Draw_64 — store on instance for draw
+        player_idle_subimg = _pr[0];
+        player_idle_acc = _pr[1];
+    }
+}
+
+// ====================================================
 // ORBIT LOGIC
 // ====================================================
-if (battle_state == "player_input" && instance_exists(obj_battle_button)) {
-    var _center_x = (640 * 0.25) + enemy_x_offset; 
-    var _center_y = base_y_level + orbit_y_nudge; 
+if ((battle_state == "player_input" || battle_state == "block_attack" || battle_state == "tutorial") && instance_exists(obj_battle_button)) {
+    var _ex = (640 * enemy_x_pct) + enemy_x_offset;
+    var _ey = scr_battle_sprite_feet_y(enemy_sprite, enemy_draw_yscale, base_y_level);
+    var _ec = scr_battle_sprite_chest_xy(enemy_sprite, enemy_draw_yscale, _ex, _ey);
+    var _center_x = _ec[0];
+    var _center_y = _ec[1];
     var _radius = 70; 
     var _speed = current_time * 0.05; 
     
@@ -47,6 +118,18 @@ if (battle_state == "player_input" && instance_exists(obj_battle_button)) {
 // ====================================================
 if (battle_state == "player_input") 
 {
+    // --- ORBIT COUNTDOWN: every 10s, enemy throws a block ---
+    if (!scramble_tutorial || tutorial_phase >= 5) {
+        orbit_countdown--;
+        if (orbit_countdown <= 0) {
+            if (scramble_tutorial && tutorial_phase == 5) {
+                launch_block_attack("E", true);
+            } else {
+                launch_block_attack();
+            }
+        }
+    }
+
     // --- BACKSPACE LOGIC ---
     if (keyboard_check_pressed(vk_backspace)) {
         var _len = string_length(player_guess);
@@ -118,6 +201,29 @@ if (battle_state == "player_attack")
     }
     if (timer > 80) { 
         if (current_hp_enemy <= 0) { battle_state = "win"; timer = 0; } 
+        else if (scramble_tutorial && tutorial_phase == 1) {
+            battle_state = "tutorial";
+            tutorial_phase = 2;
+            tutorial_start_dialogue([
+                "Nice! A correct answer damages the enemy.",
+                "Here's another example — press E to continue."
+            ]);
+        }
+        else if (scramble_tutorial && tutorial_phase == 3) {
+            battle_state = "tutorial";
+            tutorial_phase = 4;
+            tutorial_start_dialogue([
+                "Key rules before you try it yourself:",
+                "Always read the CODEX or find hints to answer quickly.",
+                "The enemy attacks when the timer runs out — you have 10 seconds!",
+                "When a block flies at you, press the letter SHOWN on that block to parry.",
+                "Press E when you're ready to practice blocking!"
+            ]);
+        }
+        else if (scramble_tutorial && tutorial_phase < 7) {
+            battle_state = "tutorial";
+            tutorial_timer = 0;
+        }
         else { battle_state = "enemy_turn"; timer = 0; }
     }
 }
@@ -131,19 +237,23 @@ else if (battle_state == "enemy_turn")
     if (timer < 30) enemy_x_offset = lerp(enemy_x_offset, 200, 0.1);
     if (timer == 30) {
         enemy_sprite = enemy_attack_sprite;
-        image_index = 0;
+        image_index = scr_dir_idle_start(enemy_attack_sprite, enemy_idle_facing);
         audio_play_sound(snd_hurt, 10, false);
         player_sprite = spr_jack_hurt;
         player_flash_timer = 10;
         shake_magnitude = 5;
         current_hp_player -= 15;
+        reveal_random_hint_letter();
         var _txt = instance_create_depth(display_get_gui_width()*0.8, display_get_gui_height()*0.6 - 50, -16000, obj_damage_text);
         _txt.damage_amount = "-15"; 
         _txt.color = c_red;
     }
     if (timer > 60) {
         enemy_sprite = global.battle_enemy_sprite;
+        enemy_idle_acc = 0;
+        image_index = scr_dir_idle_start(enemy_sprite, enemy_idle_facing);
         player_sprite = spr_jack_battle;
+        player_idle_acc = 0;
         enemy_x_offset = lerp(enemy_x_offset, 0, 0.1);
     }
     if (timer > 100) {
@@ -185,14 +295,26 @@ else if (battle_state == "win") {
         var _gui_w = 640; 
         var _gui_h = 360;
         // Spawn glitchy text over the enemy's position
-        var _glitch = instance_create_depth((_gui_w * 0.25) + enemy_x_offset + irandom_range(-30, 30), base_y_level + irandom_range(-50, 50), -16000, obj_damage_text);
+        var _glitch = instance_create_depth((_gui_w * enemy_x_pct) + enemy_x_offset + irandom_range(-30, 30), base_y_level + irandom_range(-50, 50), -16000, obj_damage_text);
         _glitch.damage_amount = choose("NULL", "000", "ERR", "VOID");
         _glitch.color = c_red;
     }
 
     // 3. THE TRANSITION
     // After 2.5 seconds (150 frames) of exploding, finally leave
-	if (timer > 150) {
+	var _win_delay = (global.last_battle_id == "scramble_tutorial") ? 90 : 150;
+	if (timer > _win_delay) {
+    if (global.last_battle_id == "scramble_tutorial") {
+        global.scramble_tutorial_done = true;
+        global.battle_result = "win";
+        global.last_battle_id = "scramble_tutorial_done";
+        global.is_jrpg = false;
+        audio_stop_sound(quiz_lose_snd);
+        instance_activate_all();
+        room_goto(global.return_room);
+        instance_destroy();
+        exit;
+    }
     // 1. Tell the NPCs they lost
     if (global.last_battle_id == "clipper_review") global.clipper_defeated = true;
     if (global.last_battle_id == "lea_review")     global.lea_defeated     = true;
@@ -232,6 +354,15 @@ else if (battle_state == "lose") {
 
     // After ~2 seconds, return to level with lose result
     if (timer > 120) {
+        if (global.last_battle_id == "scramble_tutorial") {
+            global.battle_result = "none";
+            global.last_battle_id = "scramble_tutorial";
+            global.is_jrpg = true;
+            instance_activate_all();
+            room_goto(rm_battle_scramble);
+            instance_destroy();
+            exit;
+        }
         // Mark attempted flag before clearing ID (lose clears ID to "none")
         if (global.last_battle_id == "david_quiz") global.david_quiz_attempted = true;
 

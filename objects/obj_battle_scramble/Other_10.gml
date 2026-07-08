@@ -1,4 +1,5 @@
 // --- CHECK WIN CONDITION ---
+if (variable_global_exists("is_paused") && global.is_paused) exit;
 
 // Only check if the guess is the same length as the target
 if (string_length(player_guess) >= string_length(target_word)) 

@@ -11,6 +11,10 @@ scr_init_npc_vars("Breado", _portrait, _voice, _font);
 
 interaction_range = 48;
 active_dialogue   = false;
+idle_facing       = "down";
+idle_anim_acc     = 0;
+image_speed       = 0;
+image_index       = scr_dir_idle_start(sprite_index, idle_facing);
 
 // battle_id is set in the Room Editor per-instance.
 // If it wasn't set, give it a safe default.

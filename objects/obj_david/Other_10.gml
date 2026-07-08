@@ -21,7 +21,24 @@ if (!showed_intro) {
     exit;
 }
 
-// STATE: Second interaction — set up and queue the battle
+// STATE: Second interaction — tutorial first, then real quiz battle
+if (!variable_global_exists("scramble_tutorial_done") || !global.scramble_tutorial_done) {
+    global.last_battle_id             = "scramble_tutorial";
+    global.jrpg_opponent              = "scramble_tutorial";
+    global.is_jrpg                    = true;
+    global.battle_enemy_sprite        = spr_david_idle;
+    global.battle_enemy_attack_sprite = spr_david_idle;
+    global.return_room                = room;
+    global.return_x                   = instance_exists(obj_jack) ? obj_jack.x : x;
+    global.return_y                   = instance_exists(obj_jack) ? obj_jack.y : y;
+    create_textevent([
+        "Before the real quiz, let me show you how quiz combat works.",
+        "Watch closely — then you'll try it yourself!"
+    ], [id, id]);
+    active_dialogue = true;
+    exit;
+}
+
 global.puzzle_word_list = ["CAESAR", "SHIFT", "ROTATE", "ALPHABET", "OFFSET", "CIPHER",
                            "PLAINTEXT", "SUBSTITUTION", "CIPHERTEXT"];
 global.puzzle_hint_list = [
@@ -38,8 +55,8 @@ global.puzzle_hint_list = [
 global.last_battle_id             = "david_quiz";
 global.jrpg_opponent              = "david_quiz";
 global.is_jrpg                    = true;
-global.battle_enemy_sprite        = spr_npc1_idle;
-global.battle_enemy_attack_sprite = spr_npc1_idle;
+global.battle_enemy_sprite        = spr_david_idle;
+global.battle_enemy_attack_sprite = spr_david_idle;
 global.return_room                = room;
 global.return_x                   = instance_exists(obj_jack) ? obj_jack.x : x;
 global.return_y                   = instance_exists(obj_jack) ? obj_jack.y : y;

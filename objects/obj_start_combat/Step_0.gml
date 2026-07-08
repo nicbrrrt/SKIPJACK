@@ -1,5 +1,15 @@
 // --- Step Event of obj_start_combat (Breado) ---
 
+if (!variable_instance_exists(id, "idle_facing")) idle_facing = "down";
+if (!variable_instance_exists(id, "idle_anim_acc")) idle_anim_acc = 0;
+
+if (!instance_exists(obj_textevent)) {
+    image_speed = 0;
+    var _r = scr_dir_idle_anim(sprite_index, idle_facing, idle_anim_acc, 0.12);
+    image_index = _r[0];
+    idle_anim_acc = _r[1];
+}
+
 // 1. CHECK FOR RETURN FROM BATTLE
 if (global.last_battle_id == battle_id && battle_id != "none") {
     
@@ -102,7 +112,8 @@ if (active_dialogue == true && !instance_exists(obj_textevent) && global.last_ba
     
     // --- THE FIX: Explicitly tell the game this IS NOT a JRPG fight ---
     global.is_jrpg = false;
-    global.battle_enemy_sprite = spr_npc2_idle; // Breado
+    global.battle_enemy_sprite = spr_npc2_idle;
+    global.battle_enemy_attack_sprite = spr_npc2_idle;
 
     room_goto(rm_combat);
 }

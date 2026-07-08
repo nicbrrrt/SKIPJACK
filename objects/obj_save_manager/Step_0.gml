@@ -6,6 +6,7 @@ if (keyboard_check_pressed(vk_f11)) {
     }
     // Reset persistent codex state and tutorial flag before restarting
     global.tutorial_complete = false;
+    global.e_dialogue_intro_shown = false;
     global.saved_codex_modules = [];
     if (instance_exists(obj_codex_manager)) {
         obj_codex_manager.modules = [];

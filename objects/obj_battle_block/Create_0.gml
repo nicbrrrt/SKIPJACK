@@ -1,0 +1,9 @@
+block_char = "A";
+gui_x = 0;
+gui_y = 0;
+target_gui_x = 0;
+target_gui_y = 0;
+life_timer = 0;
+life_max = 120;
+parried = false;
+tutorial_parry = false;

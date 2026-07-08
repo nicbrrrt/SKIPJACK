@@ -224,6 +224,11 @@ if (_tip_in_gameplay && tip_state != "idle" && tip_alpha > 0 && tip_current_text
 // Only draw pause menu when paused
 if (!global.is_paused) exit;
 
+if (pause_menu_state == "settings_ui") {
+    if (!instance_exists(obj_settings_ui)) pause_menu_state = "main";
+    else exit;
+}
+
 var _screen_w = display_get_gui_width();
 var _screen_h = display_get_gui_height();
 var _mx       = device_mouse_x_to_gui(0);
@@ -276,9 +281,7 @@ if (pause_menu_state == "main") {
     draw_text(_x, _y1, "CONTINUE");
     if (hover_continue && _clicked) {
         audio_play_sound(snd_button_click, 10, false);
-        instance_activate_all();
-        audio_resume_all();
-        global.is_paused          = false;
+        unpause_game();
         pause_menu_state          = "main";
         hovered_button            = noone;
         mouse_locked_until_release = true;
@@ -289,9 +292,8 @@ if (pause_menu_state == "main") {
     draw_text(_x, _y2, "SETTINGS");
     if (hover_settings && _clicked) {
         audio_play_sound(snd_button_click, 10, false);
-        pause_menu_state          = "settings";
+        open_pause_settings();
         hovered_button            = noone;
-        mouse_locked_until_release = true;
     }
 
     // EXIT
@@ -311,40 +313,6 @@ if (pause_menu_state == "main") {
         hovered_button            = noone;
         mouse_locked_until_release = true;
         room_goto(rm_menu);
-    }
-}
-
-// ============================================================
-// STATE: SETTINGS MENU
-// FIXED: This block is now self-contained. No longer references
-//        hover_exit or _y3 from the main state block.
-// ============================================================
-else if (pause_menu_state == "settings") {
-
-    draw_set_font(fnt_title);
-    draw_text(_screen_w / 2, _screen_h * 0.25, "SETTINGS");
-
-    draw_set_font(fnt_button);
-    draw_text(_screen_w / 2, _screen_h * 0.5, "Volume, Fullscreen, etc...");
-
-    // BACK button — defined locally in this state
-    var _y_back     = _screen_h * 0.8;
-    var hover_back  = point_in_rectangle(_mx, _my, _x - 100, _y_back - 20, _x + 100, _y_back + 20);
-
-    if (hover_back && hovered_button != "back") {
-        audio_play_sound(snd_button_hover, 10, false);
-        hovered_button = "back";
-    } else if (!hover_back) {
-        hovered_button = noone;
-    }
-
-    draw_set_color(hover_back ? c_yellow : c_white);
-    draw_text(_x, _y_back, "< BACK");
-    if (hover_back && _clicked) {
-        audio_play_sound(snd_button_click, 10, false);
-        pause_menu_state          = "main";
-        hovered_button            = noone;
-        mouse_locked_until_release = true;
     }
 }
 

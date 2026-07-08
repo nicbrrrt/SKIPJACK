@@ -1,4 +1,5 @@
 // --- ALARM 0 (QTE SPAWN) ---
+if (variable_global_exists("is_paused") && global.is_paused) exit;
 
 show_debug_message("BATTLE: Spawning QTE...");
 

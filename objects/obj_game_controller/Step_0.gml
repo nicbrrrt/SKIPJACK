@@ -1,5 +1,21 @@
 /// Step Event - obj_game_controller
 
+// While paused, handle pause-menu input only — skip world logic
+if (global.is_paused) {
+    if (mouse_locked_until_release) {
+        if (!mouse_check_button(mb_left)) mouse_locked_until_release = false;
+    }
+    if (keyboard_check_pressed(vk_escape)) {
+        if (pause_menu_state == "settings_ui" && instance_exists(obj_settings_ui)) {
+            instance_destroy(obj_settings_ui);
+            pause_menu_state = "main";
+        } else {
+            unpause_game();
+        }
+    }
+    exit;
+}
+
 // --- JRPG ROOM TRANSITION HANDLER ---
 if (room == rm_level_1 && global.last_battle_id == "greg_boss") {
     if (!instance_exists(obj_textevent)) {
@@ -142,31 +158,15 @@ if (keyboard_check_pressed(vk_escape))
 {
     if (global.is_paused)
     {
-        // --- UNPAUSE ---
-        global.is_paused = false;
-        instance_activate_all();
-        audio_resume_all();
+        unpause_game();
     }
     else
     {
-        // --- PAUSE CONDITION FIX ---
-        // Allow pause if Jack exists OR if we are in a battle (even if Jack is hidden).
-        // Do NOT pause while the Caesar cipher info panel or any in-game popup is open.
         var _popup_open = (instance_exists(obj_kyle) && obj_kyle.gui_open)
                        || (instance_exists(obj_hallway_poster) && obj_hallway_poster.is_open);
-        if (!_popup_open && (instance_exists(obj_jack) || instance_exists(obj_battle_scramble)))
+        if (!_popup_open && (instance_exists(obj_jack) || is_special_event_active()))
         {
-            global.is_paused = true;
-            
-            // 1. Freeze everyone
-            instance_deactivate_all(true); 
-            
-            // 2. Wake controller up
-            instance_activate_object(id); 
-
-            audio_pause_all();
-            pause_menu_state = "main";
-            mouse_locked_until_release = true;
+            pause_game();
         }
     }
 }

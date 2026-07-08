@@ -38,10 +38,17 @@ if (_click && hover_fs) {
 if (_click && hover_back) {
     audio_stop_sound(snd_button_hover);
     audio_play_sound(snd_button_click, 10, false);
-    room_goto(global.return_room);
-    if (global.return_room == rm_level_1) {
-        global.is_paused = true;
-        instance_deactivate_all(true);
-        audio_pause_all();
+    if (settings_pause_mode) {
+        if (instance_exists(obj_game_controller)) {
+            obj_game_controller.pause_menu_state = "main";
+        }
+        instance_destroy();
+    } else {
+        room_goto(global.return_room);
+        if (global.return_room == rm_level_1) {
+            global.is_paused = true;
+            instance_deactivate_all(true);
+            audio_pause_all();
+        }
     }
 }

@@ -36,8 +36,8 @@
   "resourceVersion":"2.0",
   "solid":false,
   "spriteId":{
-    "name":"spr_npc1_idle",
-    "path":"sprites/spr_npc1_idle/spr_npc1_idle.yy",
+    "name":"spr_david_idle",
+    "path":"sprites/spr_david_idle/spr_david_idle.yy",
   },
   "spriteMaskId":null,
   "visible":true,

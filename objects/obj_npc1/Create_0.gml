@@ -3,8 +3,10 @@ myName = "Greg";
 isChallenger = false;  
 challenge_won = false; 
 isInCutscene = false;
+idle_facing  = "down";
+idle_anim_acc = 0;
 image_speed  = 0;
-image_index  = 0;
+image_index  = scr_dir_idle_start(sprite_index, idle_facing);
 
 myPortrait = spr_greg_portrait;
 myPortraitTalk = spr_greg_portrait;

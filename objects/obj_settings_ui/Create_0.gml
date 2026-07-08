@@ -33,3 +33,4 @@ dragging_volume = false;
 hover_back = false;
 hover_fs   = false;
 hover_vol  = false;
+settings_pause_mode = false;

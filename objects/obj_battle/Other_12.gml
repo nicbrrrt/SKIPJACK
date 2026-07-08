@@ -1,4 +1,6 @@
 // --- User Event 2 - QTE Failed (Damage/Loss Check) ---
+if (variable_global_exists("is_paused") && global.is_paused) exit;
+
 show_debug_message("BATTLE: QTE FAILED - Player hit by corrupted packet!");
 player_hp -= 2;
 show_debug_message("BATTLE: Player HP: " + string(player_hp));

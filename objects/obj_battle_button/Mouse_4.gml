@@ -1,5 +1,7 @@
 // --- LEFT PRESSED EVENT ---
 
+if (variable_global_exists("is_paused") && global.is_paused) exit;
+
 // Only accept if not yet revealed and the game is ready for input
 if (!revealed && instance_exists(obj_battle_scramble) && obj_battle_scramble.battle_state == "player_input")
 {
