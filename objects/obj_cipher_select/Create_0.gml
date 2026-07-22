@@ -13,3 +13,4 @@ btn2_y = btn1_y + btn_h + btn_gap;           // Atbash Cipher
 btn3_y = btn2_y + btn_h + btn_gap;           // Vigenère Cipher
 
 caesar_hover = false;
+atbash_hover = false;

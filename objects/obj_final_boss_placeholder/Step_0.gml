@@ -3,6 +3,11 @@ event_inherited(); // par_npc: depth = -y
 
 // --- FINAL BOSS DEFEATED STATE ---
 if (global.final_boss_defeated) {
+    // Don't show the boss corpse while congratulations screen is active
+    if (instance_exists(obj_caesar_complete)) {
+        visible = false;
+        exit;
+    }
     visible = true;
     image_alpha = 1;
     image_xscale = 1;

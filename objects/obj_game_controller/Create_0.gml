@@ -1,5 +1,9 @@
 // obj_game_controller — Create Event
 // Instance-level variables only. ALL globals come from obj_game_init.
+if (instance_number(object_index) > 1) {
+    instance_destroy();
+    exit;
+}
 
 display_set_gui_size(640, 360);
 randomize();
@@ -10,6 +14,7 @@ pause_event_soft          = false;
 hovered_button            = noone;
 mouse_locked_until_release = false;
 boss_pending_jrpg         = false;
+boss_pending_menu_return  = false;
 
 function ensure_game_controller() {
     if (!instance_exists(obj_game_controller)) {

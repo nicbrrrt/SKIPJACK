@@ -31,19 +31,35 @@ draw_set_font(fnt_button);
 draw_set_color(col_border);
 draw_text(cx, btn1_y + btn_h / 2, "Caesar Cipher");
 
-// --- Atbash Cipher button (disabled) ---
+// --- Atbash Cipher button (conditionally unlocked) ---
+if (variable_global_exists("final_boss_defeated") && global.final_boss_defeated) {
+    // UNLOCKED — draw like Caesar button with hover support
+    var col_atbash_border = atbash_hover ? c_yellow : c_white;
+    draw_set_color(atbash_hover ? make_color_rgb(40, 40, 80) : make_color_rgb(20, 20, 50));
+    draw_rectangle(btn_x1, btn2_y, btn_x2, btn2_y + btn_h, false);
+    draw_set_color(col_atbash_border);
+    draw_rectangle(btn_x1, btn2_y, btn_x2, btn2_y + btn_h, true);
+    draw_set_font(fnt_button);
+    draw_set_color(col_atbash_border);
+    draw_text(cx, btn2_y + btn_h / 2, "Atbash Cipher");
+} else {
+    // LOCKED — original disabled appearance
+    var col_disabled_fill   = make_color_rgb(40, 40, 40);
+    var col_disabled_border = make_color_rgb(60, 60, 60);
+    var col_disabled_text   = make_color_rgb(90, 90, 90);
+    draw_set_color(col_disabled_fill);
+    draw_rectangle(btn_x1, btn2_y, btn_x2, btn2_y + btn_h, false);
+    draw_set_color(col_disabled_border);
+    draw_rectangle(btn_x1, btn2_y, btn_x2, btn2_y + btn_h, true);
+    draw_set_font(fnt_button);
+    draw_set_color(col_disabled_text);
+    draw_text(cx, btn2_y + btn_h / 2, "Atbash Cipher  [LOCKED]");
+}
+
+// --- Vigenère Cipher button (disabled) ---
 var col_disabled_fill   = make_color_rgb(40, 40, 40);
 var col_disabled_border = make_color_rgb(60, 60, 60);
 var col_disabled_text   = make_color_rgb(90, 90, 90);
-draw_set_color(col_disabled_fill);
-draw_rectangle(btn_x1, btn2_y, btn_x2, btn2_y + btn_h, false);
-draw_set_color(col_disabled_border);
-draw_rectangle(btn_x1, btn2_y, btn_x2, btn2_y + btn_h, true);
-draw_set_font(fnt_button);
-draw_set_color(col_disabled_text);
-draw_text(cx, btn2_y + btn_h / 2, "Atbash Cipher  [LOCKED]");
-
-// --- Vigenère Cipher button (disabled) ---
 draw_set_color(col_disabled_fill);
 draw_rectangle(btn_x1, btn3_y, btn_x2, btn3_y + btn_h, false);
 draw_set_color(col_disabled_border);

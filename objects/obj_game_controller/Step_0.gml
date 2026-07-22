@@ -102,24 +102,27 @@ if (room == rm_level_1 && boss_pending_jrpg && !instance_exists(obj_textevent)) 
     show_debug_message("CONTROLLER: Transitioning to final boss JRPG phase.");
 }
 
-// --- FINAL BOSS JRPG DEFEATED (victory) ---
+// --- FINAL BOSS JRPG DEFEATED (victory) → go straight to congratulations screen ---
 if (room == rm_level_1 && global.last_battle_id == "final_boss_jrpg_defeated") {
     global.last_battle_id      = "none";
     global.final_boss_defeated = true;
     if (instance_exists(obj_save_manager)) obj_save_manager.save_game();
+
+    // Hide the boss
     var _boss = instance_find(obj_final_boss_placeholder, 0);
     if (_boss != noone) {
-        with (_boss) {
-            if (!instance_exists(obj_textevent)) {
-                create_textevent([
-                    "Impossible... I am... the SKIPJACK protocol...",
-                    "You have... corrupted... my core...",
-                    "...SYSTEM TERMINATED."
-                ], [id, id, id]);
-            }
-            visible = false;
-        }
+        with (_boss) { visible = false; }
     }
+
+    // Clear any lingering dialogue/textevents so they don't overlap
+    if (instance_exists(obj_textevent)) { with (obj_textevent) instance_destroy(); }
+    if (instance_exists(obj_textbox))   { with (obj_textbox)   instance_destroy(); }
+
+    // Launch congratulations screen immediately
+    if (!instance_exists(obj_caesar_complete)) {
+        instance_create_depth(0, 0, -15000, obj_caesar_complete);
+    }
+    show_debug_message("CONTROLLER: Caesar module complete — showing congratulations screen.");
 }
 
 // --- GREG POST-BATTLE TRIGGER ---

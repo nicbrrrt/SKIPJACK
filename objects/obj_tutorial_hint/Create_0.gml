@@ -1,4 +1,4 @@
-depth = -99999;
+depth = -15999;
 
 // --- THIS IS THE LINE THAT FIXES YOUR CRASH ---
 current_hint = 0; // Default to showing the 'Press E' hint
