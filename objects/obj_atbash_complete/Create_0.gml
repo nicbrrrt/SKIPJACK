@@ -1,6 +1,6 @@
-// --- Create Event for obj_caesar_complete ---
-// Congratulations / credits screen shown after defeating the Caesar Cipher final boss.
-// Displays a victory message, credits the NPCs met, and announces the Atbash unlock.
+// --- Create Event for obj_atbash_complete ---
+// Congratulations / credits screen shown after completing the Atbash Cipher module.
+// Displays a victory message, credits the NPCs met, and announces the Vigenere unlock.
 
 depth = -15000;
 

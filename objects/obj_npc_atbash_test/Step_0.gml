@@ -3,6 +3,7 @@ event_inherited();
 if (variable_global_exists("is_paused") && global.is_paused) exit;
 if (!instance_exists(obj_jack)) exit;
 if (instance_exists(obj_textevent)) exit;
+if (obj_jack.isInCutscene) exit;
 
 if (point_distance(x, y, obj_jack.x, obj_jack.y) < interaction_range) {
     if (keyboard_check_pressed(ord("E"))) {

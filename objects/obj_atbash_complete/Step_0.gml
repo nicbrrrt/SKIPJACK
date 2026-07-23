@@ -1,47 +1,10 @@
-// --- Step Event for obj_caesar_complete ---
+// --- Step Event for obj_atbash_complete ---
 if (variable_global_exists("is_paused") && global.is_paused) exit;
 
 anim_timer++;
 phase_timer++;
 
 switch (phase) {
-    // --- BOSS DEATH LINES (replaces in-world dialogue) ---
-    case "boss_death":
-        // Fade in the background
-        screen_alpha = min(1, phase_timer / 40);
-
-        // Each boss line: 15 frames fade in, 50 frames hold, 15 frames fade out = 80 total
-        boss_line_alpha = 0;
-        var _line_time = phase_timer mod 80;
-        if (_line_time <= 15) {
-            boss_line_alpha = _line_time / 15;
-        } else if (_line_time <= 65) {
-            boss_line_alpha = 1;
-        } else {
-            boss_line_alpha = 1 - ((_line_time - 65) / 15);
-        }
-
-        // Advance to next line
-        if (phase_timer > 0 && (phase_timer mod 80) == 0) {
-            boss_line_index++;
-        }
-
-        // All lines shown — move to fade_in
-        if (boss_line_index >= array_length(boss_lines)) {
-            phase = "fade_in";
-            phase_timer = 0;
-            screen_alpha = 1;
-        }
-
-        // Allow skipping with E
-        if (phase_timer > 20 && keyboard_check_pressed(ord("E"))) {
-            boss_line_index = array_length(boss_lines);
-            phase = "fade_in";
-            phase_timer = 0;
-            screen_alpha = 1;
-        }
-        break;
-
     // --- FADE IN (transition to congrats) ---
     case "fade_in":
         screen_alpha = 1;

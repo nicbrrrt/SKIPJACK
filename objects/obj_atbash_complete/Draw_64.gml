@@ -1,4 +1,4 @@
-// --- Draw GUI Event for obj_caesar_complete ---
+// --- Draw GUI Event for obj_atbash_complete ---
 if (variable_global_exists("is_paused") && global.is_paused) exit;
 
 var _gw = 640;
@@ -34,37 +34,6 @@ draw_set_halign(fa_center);
 draw_set_valign(fa_middle);
 
 switch (phase) {
-    case "boss_death":
-        // --- BOSS DEATH LINES (red text on dark background) ---
-        if (boss_line_index < array_length(boss_lines)) {
-            // Glitch effect — random red scan lines
-            if (anim_timer mod 8 < 2) {
-                draw_set_alpha(screen_alpha * 0.15);
-                draw_set_color(c_red);
-                for (var i = 0; i < 5; i++) {
-                    var _ly = irandom(_gh);
-                    draw_rectangle(0, _ly, _gw, _ly + 2, false);
-                }
-            }
-
-            draw_set_alpha(screen_alpha * boss_line_alpha);
-            draw_set_color(c_red);
-            draw_text(cx, _gh / 2, boss_lines[boss_line_index]);
-
-            // Speaker label
-            draw_set_alpha(screen_alpha * boss_line_alpha * 0.5);
-            draw_set_color(c_maroon);
-            draw_text(cx, _gh / 2 - 30, "[ ANOMALY ]");
-        }
-
-        // Skip hint
-        if (phase_timer > 60) {
-            draw_set_alpha(screen_alpha * 0.5);
-            draw_set_color(c_gray);
-            draw_text(cx, _gh - 30, "[ E ] to skip");
-        }
-        break;
-
     case "fade_in":
     case "title":
         // --- CONGRATULATIONS ---
@@ -83,15 +52,15 @@ switch (phase) {
         draw_text(cx, 80 + _bob, "MISSION COMPLETE");
 
         draw_set_color(c_white);
-        draw_text(cx, 130, "Caesar Cipher Module Cleared!");
+        draw_text(cx, 130, "Atbash Cipher Module Cleared!");
 
         // Divider
         draw_set_color(c_lime);
         draw_line_width(cx - 100, 155, cx + 100, 155, 2);
 
         draw_set_color(make_color_rgb(150, 180, 220));
-        draw_text(cx, 180, "You defeated the Anomaly and secured the network.");
-        draw_text(cx, 200, "The first cipher protocol has been fully breached.");
+        draw_text(cx, 180, "You reversed the flow and secured the network.");
+        draw_text(cx, 200, "The mirror cipher protocol has been fully breached.");
 
         // Flashing prompt
         if (phase == "title" && phase_timer > 120) {
@@ -161,12 +130,12 @@ switch (phase) {
 
         // Module name
         draw_set_color(c_yellow);
-        draw_text_transformed(cx, 150, "ATBASH CIPHER", unlock_scale, unlock_scale, 0);
+        draw_text_transformed(cx, 150, "VIGENERE CIPHER", unlock_scale, unlock_scale, 0);
 
         // Description
         if (phase_timer > 30) {
             draw_set_color(make_color_rgb(180, 200, 220));
-            draw_text(cx, 195, "The mirror cipher — where the alphabet folds in half.");
+            draw_text(cx, 195, "A polyalphabetic cipher using a shifting keyword.");
             draw_text(cx, 215, "A new challenge awaits you, Agent.");
         }
 
