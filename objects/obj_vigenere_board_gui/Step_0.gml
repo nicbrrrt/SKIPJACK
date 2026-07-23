@@ -1,10 +1,82 @@
-﻿if (variable_global_exists("is_paused") && global.is_paused) exit;
+if (variable_global_exists("is_paused") && global.is_paused) exit;
 
 if (variable_global_exists("DEBUG_MODE") && global.DEBUG_MODE && keyboard_check_pressed(vk_f5)) {
     global.vigenere_progress = max(global.vigenere_progress, 2);
     if (instance_exists(obj_jack)) obj_jack.isInCutscene = false;
     audio_play_sound(snd_correct_ping, 10, false);
-    instance_destroy();
+    if (!instance_exists(obj_jack)) instance_activate_object(obj_jack); instance_destroy();
+    exit;
+}
+if (tutorial_active) {
+    if (keyboard_check_pressed(vk_tab) || keyboard_check_pressed(ord("X"))) {
+        if (instance_exists(obj_textevent)) with (obj_textevent) instance_destroy();
+        tutorial_active = false;
+        global.vigenere_tutorial_done = true;
+        current_word = 1;
+        player_input = array_create(string_length(words[1]), "");
+        current_slot = 0;
+        status_msg = "";
+        text_color = c_white;
+        exit;
+    }
+    
+    if (instance_exists(obj_textevent)) exit;
+    
+    if (tutorial_dialogue_pending) {
+        tutorial_dialogue_pending = false;
+        tutorial_timer = 0;
+        
+        if (tutorial_phase == 0) {
+            tutorial_phase = 1;
+            tutorial_auto_idx = 0;
+            current_slot = 0;
+        } else if (tutorial_phase == 2) {
+            tutorial_active = false;
+            global.vigenere_tutorial_done = true;
+            current_word = 1;
+            player_input = array_create(string_length(words[1]), "");
+            current_slot = 0;
+            status_msg = "";
+            text_color = c_white;
+            exit;
+        }
+    }
+    
+    if (tutorial_phase == 0) {
+        tutorial_dialogue_pending = true;
+        create_textevent(
+            ["The Vigenere cipher uses a keyword to shift letters.",
+             "Line up the keyword with the cipher to shift backward to the plaintext.",
+             "Let's decode the word 'MAP' together using the keyword 'KEY'."],
+            id
+        );
+        exit;
+    }
+    
+    if (tutorial_phase == 1) {
+        tutorial_timer++;
+        if (tutorial_timer mod 30 == 0 && tutorial_auto_idx < string_length(words[0])) {
+            var _target_char = string_char_at(words[0], tutorial_auto_idx + 1);
+            player_input[tutorial_auto_idx] = _target_char;
+            audio_play_sound(snd_select, 10, false);
+            tutorial_auto_idx++;
+            if (tutorial_auto_idx < string_length(words[0])) {
+                current_slot = tutorial_auto_idx;
+            } else {
+                text_color = c_lime;
+                status_msg = "CORRECT!";
+                audio_play_sound(snd_player_packet_win, 10, false);
+                tutorial_phase = 2;
+                tutorial_dialogue_pending = true;
+                create_textevent(
+                    ["That's how it's done!",
+                     "Now try the next one yourself."],
+                    id
+                );
+            }
+        }
+        exit;
+    }
     exit;
 }
 
@@ -35,7 +107,7 @@ if (success_timer > 0) {
                 }
             }
             if (instance_exists(obj_jack)) obj_jack.isInCutscene = false;
-            instance_destroy();
+            if (!instance_exists(obj_jack)) instance_activate_object(obj_jack); instance_destroy();
         }
     }
     exit;
@@ -43,7 +115,7 @@ if (success_timer > 0) {
 
 if (keyboard_check_pressed(vk_escape)) {
     if (instance_exists(obj_jack)) obj_jack.isInCutscene = false;
-    instance_destroy();
+    if (!instance_exists(obj_jack)) instance_activate_object(obj_jack); instance_destroy();
     exit;
 }
 

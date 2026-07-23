@@ -1,5 +1,5 @@
 // Existing variables... (myText, mySpeaker, etc.)
-
+depth = -15500;
 // --- CHOICE SYSTEM ADDITIONS ---
 options = [];           // Array to hold choices like ["Answer A", "Answer B"]
 current_option = 0;     // Which option is highlighted (0 = top, 1 = bottom)

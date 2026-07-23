@@ -6,7 +6,7 @@ if (variable_global_exists("DEBUG_MODE") && global.DEBUG_MODE && keyboard_check_
     global.atbash_progress = max(global.atbash_progress, 3);
     if (instance_exists(obj_jack)) obj_jack.isInCutscene = false;
     audio_play_sound(snd_correct_ping, 10, false);
-    instance_destroy();
+    if (!instance_exists(obj_jack)) instance_activate_object(obj_jack); instance_destroy();
     exit;
 }
 if (success_timer > 0) {
@@ -32,7 +32,7 @@ if (success_timer > 0) {
                     }
                 }
                 if (instance_exists(obj_jack)) obj_jack.isInCutscene = false;
-                instance_destroy();
+                if (!instance_exists(obj_jack)) instance_activate_object(obj_jack); instance_destroy();
                 exit;
             } else {
                 generate_round();
@@ -42,7 +42,7 @@ if (success_timer > 0) {
         } else if (result_pending == "player_hit") {
             if (player_hp <= 0) {
                 if (instance_exists(obj_jack)) obj_jack.isInCutscene = false;
-                instance_destroy();
+                if (!instance_exists(obj_jack)) instance_activate_object(obj_jack); instance_destroy();
                 exit;
             } else {
                 generate_round();
@@ -89,6 +89,79 @@ enemy_lunge = lerp(enemy_lunge, 0, 0.2);
 
 if (enemy_flash_timer > 0) enemy_flash_timer--;
 if (player_hurt_timer > 0) player_hurt_timer--;
+
+// Tutorial overrides input
+if (tutorial_active) {
+    if (keyboard_check_pressed(vk_tab) || keyboard_check_pressed(ord("X"))) {
+        if (instance_exists(obj_textevent)) with (obj_textevent) instance_destroy();
+        tutorial_active = false;
+        global.atbash_combat_tutorial_done = true;
+        generate_round();
+        status_msg = "";
+        text_color = c_white;
+        exit;
+    }
+    
+    if (instance_exists(obj_textevent)) exit;
+    
+    if (tutorial_dialogue_pending) {
+        tutorial_dialogue_pending = false;
+        tutorial_timer = 0;
+        
+        if (tutorial_phase == 0) {
+            tutorial_phase = 1;
+            tutorial_auto_idx = 0;
+            current_slot = 0;
+        } else if (tutorial_phase == 2) {
+            tutorial_active = false;
+            global.atbash_combat_tutorial_done = true;
+            generate_round();
+            status_msg = "";
+            text_color = c_white;
+            exit;
+        }
+    }
+    
+    if (tutorial_phase == 0) {
+        tutorial_dialogue_pending = true;
+        create_textevent(
+            ["Watch out! Enemies will attack if you're too slow.",
+             "Decode the Atbash cipher quickly to deal damage.",
+             "Let's see it in action."],
+            id
+        );
+        exit;
+    }
+    
+    if (tutorial_phase == 1) {
+        tutorial_timer++;
+        if (tutorial_timer mod 30 == 0 && tutorial_auto_idx < letters_len) {
+            var _target_char = string_char_at(plaintext, tutorial_auto_idx + 1);
+            player_input[tutorial_auto_idx] = _target_char;
+            audio_play_sound(snd_select, 10, false);
+            tutorial_auto_idx++;
+            if (tutorial_auto_idx < letters_len) {
+                current_slot = tutorial_auto_idx;
+            } else {
+                text_color = c_lime;
+                status_msg = "DECRYPTED!";
+                audio_play_sound(snd_player_packet_win, 10, false);
+                result_pending = "enemy_hit";
+                fight_anim = "player_attack";
+                fight_timer = 0;
+                tutorial_phase = 2;
+                tutorial_dialogue_pending = true;
+                create_textevent(
+                    ["Great job!",
+                     "Now try it for real. Good luck!"],
+                    id
+                );
+            }
+        }
+        exit;
+    }
+    exit;
+}
 
 // Input
 var _left = keyboard_check_pressed(vk_left);

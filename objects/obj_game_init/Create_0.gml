@@ -64,6 +64,9 @@ if (!variable_global_exists("seen_path_tutorial"))    global.seen_path_tutorial 
 if (!variable_global_exists("seen_cipher_tutorial"))  global.seen_cipher_tutorial  = false;
 if (!variable_global_exists("seen_qte_tutorial"))     global.seen_qte_tutorial     = false;
 if (!variable_global_exists("scramble_tutorial_done")) global.scramble_tutorial_done = false;
+if (!variable_global_exists("atbash_tutorial_done"))  global.atbash_tutorial_done  = false;
+if (!variable_global_exists("atbash_combat_tutorial_done")) global.atbash_combat_tutorial_done = false;
+if (!variable_global_exists("vigenere_tutorial_done")) global.vigenere_tutorial_done = false;
 
 // --- NPC TARGETS ---
 if (!variable_global_exists("greg_target_x"))  global.greg_target_x  = -1;

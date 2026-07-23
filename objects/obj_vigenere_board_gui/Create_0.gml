@@ -1,5 +1,5 @@
-﻿depth = -15000;
-if (instance_exists(obj_jack)) obj_jack.isInCutscene = true;
+depth = -10000;
+if (instance_exists(obj_jack)) instance_deactivate_object(obj_jack);
 
 keyword_bank = ["KEY", "BAT", "SUN", "DOG", "MAP", "CODE"];
 word_bank = ["CAT", "DOG", "FLY", "RED", "BOX", "HAT", "RUN", "JUMP"];
@@ -28,4 +28,25 @@ status_msg  = "";
 text_color  = c_white;
 success_timer = 0;
 anim_timer = 0;
+
+// Tutorial state
+tutorial_active = false;
+tutorial_phase = 0;
+tutorial_timer = 0;
+tutorial_auto_idx = 0;
+tutorial_dialogue_pending = false;
+
+if (variable_global_exists("vigenere_tutorial_done") && !global.vigenere_tutorial_done) {
+    tutorial_active = true;
+    myName = "David";
+    myPortrait = spr_david_portrait;
+    myVoice = snd_voice2;
+    myFont = fnt_dialogue;
+    
+    // Auto-setup first word for tutorial
+    keyword = "KEY";
+    words[0] = "MAP";
+    encrypted[0] = scr_vigenere_encode("MAP", "KEY");
+}
+
 audio_play_sound(ms_start, 10, false);

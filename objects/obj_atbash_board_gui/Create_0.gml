@@ -1,10 +1,10 @@
 // --- Create Event for obj_atbash_board_gui ---
 // Interactive Atbash practice board with guided hints
 
-depth = -15000;
+depth = -10000;
 
 if (instance_exists(obj_jack)) {
-    obj_jack.isInCutscene = true;
+    instance_deactivate_object(obj_jack);
 }
 
 // Word bank for practice (plaintext words)
@@ -41,5 +41,24 @@ alpha_top    = ["A","B","C","D","E","F","G","H","I","J","K","L","M"];
 alpha_bottom = ["Z","Y","X","W","V","U","T","S","R","Q","P","O","N"];
 
 anim_timer = 0;
+
+// Tutorial state
+tutorial_active = false;
+tutorial_phase = 0;
+tutorial_timer = 0;
+tutorial_auto_idx = 0;
+tutorial_dialogue_pending = false;
+
+if (variable_global_exists("atbash_tutorial_done") && !global.atbash_tutorial_done) {
+    tutorial_active = true;
+    myName = "Lea";
+    myPortrait = spr_lea_portrait;
+    myVoice = snd_voice1;
+    myFont = fnt_dialogue;
+    
+    // Auto-setup first word for tutorial
+    words[0] = "MAP";
+    encrypted[0] = scr_atbash_decode("MAP");
+}
 
 audio_play_sound(ms_start, 10, false);
