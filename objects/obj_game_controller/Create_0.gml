@@ -106,3 +106,10 @@ tip_ctxl_cooldown   = 0;     // frames before another contextual tip can fire
 tip_shown_wasd      = false; // shown once per room visit
 tip_shown_press_e   = false;
 tip_shown_nearby    = false;
+
+// --- Intro Overlay System ---
+room_intro_active = false;
+room_intro_cipher = "";
+room_intro_desc = "";
+room_intro_fade = 0;
+room_intro_timer = 0;

@@ -48,7 +48,7 @@ if (back_hover && mouse_check_button_pressed(mb_left))
 
 // --- Atbash Cipher button hover (only if unlocked) ---
 atbash_hover = false;
-if (variable_global_exists("final_boss_defeated") && global.final_boss_defeated) {
+if ((variable_global_exists("final_boss_defeated") && global.final_boss_defeated) || (variable_global_exists("unlock_all_ciphers") && global.unlock_all_ciphers)) {
     atbash_hover = (mx >= btn_x1 && mx <= btn_x2
                  && my >= btn2_y  && my <= btn2_y + btn_h);
 
@@ -57,11 +57,45 @@ if (variable_global_exists("final_boss_defeated") && global.final_boss_defeated)
         audio_stop_sound(snd_button_hover);
         audio_play_sound(snd_button_click, 10, false);
 
-        if (instance_exists(obj_jack))            instance_destroy(obj_jack);
-        if (instance_exists(obj_game_controller)) instance_destroy(obj_game_controller);
+        if (instance_exists(obj_jack)) instance_destroy(obj_jack);
+        
+        global.pending_intro = "Atbash";
+        global.pending_intro_desc = "Here you'll learn the ancient mirror cipher.";
+        global.pending_intro_room = rm_level_2;
+        
+        // Ensure persistent singletons exist for the target room
+        if (!instance_exists(obj_game_controller)) instance_create_depth(0, 0, -9999, obj_game_controller);
+        if (!instance_exists(obj_camera)) instance_create_depth(0, 0, 0, obj_camera);
 
         var _t        = instance_create_depth(0, 0, -9999, obj_transition);
         _t.target_room = rm_level_2;
+        _t.fade_mode   = "fading_out";
+        _t.fade_alpha  = 0;
+    }
+}
+
+// --- Vigenere Cipher button hover (only if unlocked) ---
+vigenere_hover = false;
+if ((variable_global_exists("atbash_boss_defeated") && global.atbash_boss_defeated) || (variable_global_exists("unlock_all_ciphers") && global.unlock_all_ciphers)) {
+    vigenere_hover = (mx >= btn_x1 && mx <= btn_x2
+                  && my >= btn3_y  && my <= btn3_y + btn_h);
+                  
+    if (vigenere_hover && mouse_check_button_pressed(mb_left) && !instance_exists(obj_transition))
+    {
+        audio_stop_sound(snd_button_hover);
+        audio_play_sound(snd_button_click, 10, false);
+        if (instance_exists(obj_jack)) instance_destroy(obj_jack);
+        
+        global.pending_intro = "Vigenere";
+        global.pending_intro_desc = "Here you'll learn the polyalphabetic shift cipher.";
+        global.pending_intro_room = TESTING_MAP;
+        
+        // Ensure persistent singletons exist for the target room
+        if (!instance_exists(obj_game_controller)) instance_create_depth(0, 0, -9999, obj_game_controller);
+        if (!instance_exists(obj_camera)) instance_create_depth(0, 0, 0, obj_camera);
+
+        var _t        = instance_create_depth(0, 0, -9999, obj_transition);
+        _t.target_room = TESTING_MAP;
         _t.fade_mode   = "fading_out";
         _t.fade_alpha  = 0;
     }

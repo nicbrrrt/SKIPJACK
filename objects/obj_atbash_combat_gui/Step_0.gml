@@ -2,6 +2,13 @@
 
 if (variable_global_exists("is_paused") && global.is_paused) exit;
 
+if (variable_global_exists("DEBUG_MODE") && global.DEBUG_MODE && keyboard_check_pressed(vk_f5)) {
+    global.atbash_progress = max(global.atbash_progress, 3);
+    if (instance_exists(obj_jack)) obj_jack.isInCutscene = false;
+    audio_play_sound(snd_correct_ping, 10, false);
+    instance_destroy();
+    exit;
+}
 if (success_timer > 0) {
     success_timer--;
     if (success_timer <= 0) {

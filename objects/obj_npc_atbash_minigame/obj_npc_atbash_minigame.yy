@@ -34,7 +34,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"spr_clipper_idle",
+    "path":"sprites/spr_clipper_idle/spr_clipper_idle.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

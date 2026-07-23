@@ -34,7 +34,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"spr_lea_idle",
+    "path":"sprites/spr_lea_idle/spr_lea_idle.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

@@ -41,6 +41,7 @@ if (!variable_global_exists("lea_defeated"))          global.lea_defeated       
 if (!variable_global_exists("boss_spawned"))          global.boss_spawned          = false;
 if (!variable_global_exists("final_boss_defeated"))   global.final_boss_defeated   = false;
 if (!variable_global_exists("atbash_progress"))       global.atbash_progress       = 0;
+if (!variable_global_exists("unlock_all_ciphers"))    global.unlock_all_ciphers    = false;
 
 // --- HALLWAY NPC FLAGS (Kyle / David) ---
 if (!variable_global_exists("quest_talk_to_kyle"))    global.quest_talk_to_kyle    = false;

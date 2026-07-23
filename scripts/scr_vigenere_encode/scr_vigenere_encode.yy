@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scr_vigenere_encode",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_vigenere_encode",
+  "parent":{
+    "name":"Vigenere",
+    "path":"folders/Scripts/Vigenere.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

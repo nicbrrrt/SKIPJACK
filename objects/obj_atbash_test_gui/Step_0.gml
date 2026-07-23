@@ -1,5 +1,15 @@
-// --- Step Event for obj_atbash_test_gui ---
 if (variable_global_exists("is_paused") && global.is_paused) exit;
+
+if (variable_global_exists("DEBUG_MODE") && global.DEBUG_MODE && keyboard_check_pressed(vk_f5)) {
+    if (!variable_global_exists("atbash_boss_defeated")) global.atbash_boss_defeated = false;
+    global.atbash_boss_defeated = true;
+    
+    if (instance_exists(obj_jack)) obj_jack.isInCutscene = false;
+    audio_play_sound(snd_correct_ping, 10, false);
+    instance_create_depth(0, 0, -15000, obj_atbash_complete);
+    instance_destroy();
+    exit;
+}
 
 if (success_timer > 0) {
     success_timer--;
@@ -7,24 +17,11 @@ if (success_timer > 0) {
         correct_count++;
         current_question++;
         if (current_question >= total_questions) {
-            // All questions done
-            global.atbash_progress = max(global.atbash_progress, 4);
-            if (instance_exists(obj_codex_manager)) {
-                with(obj_codex_manager) {
-                    var _mods = tab_modules[2];
-                    var _found = false;
-                    for (var i = 0; i < array_length(_mods); i++) {
-                        if (_mods[i].title == "ATBASH MASTERY") {
-                            _found = true;
-                            break;
-                        }
-                    }
-                    if (!_found) {
-                        array_push(tab_modules[2], { title: "ATBASH MASTERY", content: "You passed the final Atbash evaluation!\nYou can decode Atbash without any hints.\nThe mirror cipher has been fully mastered." });
-                    }
-                }
-            }
+            if (!variable_global_exists("atbash_boss_defeated")) global.atbash_boss_defeated = false;
+            global.atbash_boss_defeated = true;
+            
             if (instance_exists(obj_jack)) obj_jack.isInCutscene = false;
+            instance_create_depth(0, 0, -15000, obj_atbash_complete);
             instance_destroy();
             exit;
         } else {

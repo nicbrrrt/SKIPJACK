@@ -34,7 +34,10 @@
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
   "solid":false,
-  "spriteId":null,
+  "spriteId":{
+    "name":"spr_david_idle",
+    "path":"sprites/spr_david_idle/spr_david_idle.yy",
+  },
   "spriteMaskId":null,
   "visible":true,
 }

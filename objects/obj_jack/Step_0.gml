@@ -23,7 +23,11 @@ if (isInCutscene
     || instance_exists(obj_path)
     || instance_exists(obj_cipher)
     || instance_exists(obj_qte)
-    || instance_exists(obj_textevent))
+    || instance_exists(obj_textevent)
+    || instance_exists(obj_atbash_mirror_gui)
+    || instance_exists(obj_atbash_board_gui)
+    || instance_exists(obj_atbash_combat_gui)
+    || instance_exists(obj_atbash_test_gui))
 {
     image_speed = 0;
     image_index = 0;

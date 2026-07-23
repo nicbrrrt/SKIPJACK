@@ -1,7 +1,7 @@
 // --- Create Event for obj_npc_atbash_test ---
 // NPC 4: Final unassisted Atbash evaluation
 
-scr_init_npc_vars("Examiner", spr_npc2_idle, snd_voice2, fnt_dialogue);
+scr_init_npc_vars("Examiner", spr_kyle_idle, snd_voice2, fnt_dialogue);
 
 interaction_range = 48;
 idle_facing       = "down";

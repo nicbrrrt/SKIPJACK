@@ -27,5 +27,25 @@ function scr_get_objective_target() {
 		}
 	}
 
+	if (room == rm_level_2) {
+		if (global.atbash_progress == 0 && instance_exists(obj_npc_atbash_theory))
+			return instance_find(obj_npc_atbash_theory, 0);
+		if (global.atbash_progress == 1 && instance_exists(obj_npc_atbash_minigame))
+			return instance_find(obj_npc_atbash_minigame, 0);
+		if (global.atbash_progress == 2 && instance_exists(obj_npc_atbash_combat))
+			return instance_find(obj_npc_atbash_combat, 0);
+		if (global.atbash_progress == 3 && instance_exists(obj_npc_atbash_test))
+			return instance_find(obj_npc_atbash_test, 0);
+	}
+
+	if (room == TESTING_MAP) {
+		if (global.vigenere_progress == 0 && instance_exists(obj_npc_vigenere_theory))
+			return instance_find(obj_npc_vigenere_theory, 0);
+		if (global.vigenere_progress == 1 && instance_exists(obj_npc_vigenere_minigame))
+			return instance_find(obj_npc_vigenere_minigame, 0);
+		if (global.vigenere_progress == 2 && instance_exists(obj_npc_vigenere_test))
+			return instance_find(obj_npc_vigenere_test, 0);
+	}
+
 	return noone;
 }

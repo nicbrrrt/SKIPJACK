@@ -1,5 +1,34 @@
 /// Step Event - obj_game_controller
 
+// --- Room Intro Check ---
+if (variable_global_exists("pending_intro") && global.pending_intro != "") {
+    if (room == global.pending_intro_room) {
+        if (!instance_exists(obj_transition) || obj_transition.fade_alpha <= 0) {
+            room_intro_active = true;
+            room_intro_cipher = global.pending_intro;
+            room_intro_desc = global.pending_intro_desc;
+            room_intro_fade = 0;
+            room_intro_timer = 0;
+            global.pending_intro = "";
+            pause_game();
+            pause_menu_state = "intro";
+        }
+    }
+}
+
+if (room_intro_active) {
+    if (room_intro_fade < 1 && room_intro_timer == 0) {
+        room_intro_fade += 0.05;
+        if (room_intro_fade >= 1) room_intro_fade = 1;
+    } else if (room_intro_fade >= 1) {
+        room_intro_timer++;
+        if (room_intro_timer > 30 && (mouse_check_button_pressed(mb_left) || keyboard_check_pressed(vk_anykey))) {
+            room_intro_active = false;
+            unpause_game();
+        }
+    }
+}
+
 // While paused, handle pause-menu input only — skip world logic
 if (global.is_paused) {
     if (mouse_locked_until_release) {
@@ -184,11 +213,7 @@ if (global.DEBUG_MODE && keyboard_check_pressed(vk_f1)) {
     show_debug_message("!!! QUESTS MANUALLY STARTED & SAVED !!!");
 }
 
-// F2: toggle debug mode (always available)
-if (keyboard_check_pressed(vk_f2)) {
-    global.DEBUG_MODE = !global.DEBUG_MODE;
-    show_debug_message("[DEBUG] Debug mode " + (global.DEBUG_MODE ? "ENABLED" : "DISABLED"));
-}
+// F2 logic moved to obj_music_controller
 
 // --- SECONDARY OBJECTIVE: inspect all hallway objects ---
 if (room == rm_hallway && !global.all_objects_inspected

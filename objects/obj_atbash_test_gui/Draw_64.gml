@@ -95,6 +95,9 @@ draw_text(px + pw / 2, py + 170, status_msg);
 draw_set_color(c_lime);
 draw_text(px + pw / 2, py + 200, "Solved: " + string(correct_count) + " / " + string(total_questions));
 
+// ATBASH REFERENCE
+scr_draw_atbash_reference(py + 240);
+
 // INSTRUCTIONS
 var bob = sin(anim_timer * 0.1) * 3;
 draw_set_color(c_ltgray);

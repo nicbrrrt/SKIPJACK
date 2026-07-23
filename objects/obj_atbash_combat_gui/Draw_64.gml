@@ -14,7 +14,7 @@ if (shake_timer > 0) {
 
 // PLAYER SPRITE
 var px = 640 * 0.18 + player_lunge + shake_x;
-var py = 360 * 0.55 + shake_y;
+var py = 360 * 0.35 + shake_y;
 var _pcol = c_white;
 if (player_hurt_timer > 0 && (player_hurt_timer mod 4 < 2)) {
     _pcol = c_red;
@@ -28,7 +28,7 @@ if (sprite_exists(asset_get_index("spr_jack_idle"))) {
 
 // ENEMY SPRITE
 var ex = 640 * 0.82 + enemy_lunge + shake_x;
-var ey = 360 * 0.55 + shake_y;
+var ey = 360 * 0.35 + shake_y;
 var _ecol = c_white;
 if (enemy_flash_timer > 0 && (enemy_flash_timer mod 3 == 0)) {
     _ecol = c_red;
@@ -63,7 +63,7 @@ draw_rectangle(620 - (enemy_hp / 10) * 100, 35, 620, 45, false);
 // BATTLE PROMPT
 draw_set_halign(fa_center);
 draw_set_valign(fa_middle);
-var prompt_y = 360 * 0.72;
+var prompt_y = 360 * 0.70;
 if (phase == "shield") {
     draw_set_color(c_yellow);
     draw_text(320, prompt_y, "DECRYPT TO BREAK SHIELD");
@@ -74,14 +74,17 @@ if (phase == "shield") {
 
 // ENCRYPTED DISPLAY
 draw_set_color(c_yellow);
-draw_text(320, prompt_y + 25, "Code: " + encrypted);
+draw_text(320, prompt_y + 20, "Code: " + encrypted);
+
+// ATBASH REFERENCE
+scr_draw_atbash_reference(360 * 0.53);
 
 // INPUT SLOTS
-var slot_width = 48;
-var gap = 20;
+var slot_width = 36;
+var gap = 12;
 var total_width = (letters_len * slot_width) + ((letters_len - 1) * gap);
 var start_x = 320 - (total_width / 2) + (slot_width / 2) + shake_x;
-var slot_y = 360 * 0.82 + shake_y;
+var slot_y = 360 * 0.85 + shake_y;
 
 for (var i = 0; i < letters_len; i++) {
     var _x = start_x + i * (slot_width + gap);
@@ -104,11 +107,11 @@ for (var i = 0; i < letters_len; i++) {
 
 // STATUS MESSAGE
 draw_set_color(text_color);
-draw_text(320, slot_y + 45, status_msg);
+draw_text(320, slot_y + 30, status_msg);
 
 // INSTRUCTIONS
 draw_set_color(c_ltgray);
-draw_text(320, 345, "ARROWS: Change | ENTER: Submit");
+draw_text_transformed(320, 350, "ARROWS: Change | ENTER: Submit", 0.8, 0.8, 0);
 
 // Reset draw state
 draw_set_halign(fa_left);

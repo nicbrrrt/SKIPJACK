@@ -159,6 +159,69 @@ if (room == rm_level_1 && global.greg_quest_started) {
     draw_text_transformed(_qx + 5, _qy + (_spacing * 2), _item2, _scale, _scale, 0);
 }
 
+// --- QUEST TRACKER: LEVEL 2 (Atbash) ---
+if (room == rm_level_2) {
+    draw_set_font(fnt_dialogue);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+
+    var _qx      = 16;
+    var _qy      = 16;
+    var _scale   = 1.2;
+    var _spacing = 22;
+
+    var _item = "";
+    if (global.atbash_progress == 0) _item = "> Learn Atbash Theory";
+    else if (global.atbash_progress == 1) _item = "> Practice Atbash";
+    else if (global.atbash_progress == 2) _item = "> Pass Sentry Combat";
+    else if (global.atbash_progress == 3) _item = "> Pass the Final Test";
+
+    var _box_w  = max(string_width("OBJECTIVES:"), string_width(_item) + 5) * _scale + 20;
+    var _box_h  = _spacing * 2 + 8;
+
+    draw_set_color(c_black);
+    draw_set_alpha(0.6);
+    draw_rectangle(_qx - 5, _qy - 5, _qx + _box_w, _qy + _box_h, false);
+    draw_set_alpha(1.0);
+
+    draw_set_color(c_yellow);
+    draw_text_transformed(_qx, _qy, "OBJECTIVES:", _scale, _scale, 0);
+    draw_set_color(c_white);
+    draw_text_transformed(_qx + 5, _qy + _spacing, _item, _scale, _scale, 0);
+}
+
+// --- QUEST TRACKER: TESTING MAP (Vigenere) ---
+if (room == TESTING_MAP) {
+    draw_set_font(fnt_dialogue);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+
+    var _qx      = 16;
+    var _qy      = 16;
+    var _scale   = 1.2;
+    var _spacing = 22;
+
+    var _item = "";
+    if (global.vigenere_progress == 0) _item = "> Learn Vigenere Theory";
+    else if (global.vigenere_progress == 1) _item = "> Practice Vigenere";
+    else if (global.vigenere_progress == 2) _item = "> Pass the Final Test";
+
+    if (_item != "") {
+        var _box_w  = max(string_width("OBJECTIVES:"), string_width(_item) + 5) * _scale + 20;
+        var _box_h  = _spacing * 2 + 8;
+
+        draw_set_color(c_black);
+        draw_set_alpha(0.6);
+        draw_rectangle(_qx - 5, _qy - 5, _qx + _box_w, _qy + _box_h, false);
+        draw_set_alpha(1.0);
+
+        draw_set_color(c_yellow);
+        draw_text_transformed(_qx, _qy, "OBJECTIVES:", _scale, _scale, 0);
+        draw_set_color(c_white);
+        draw_text_transformed(_qx + 5, _qy + _spacing, _item, _scale, _scale, 0);
+    }
+}
+
 // --- QUEST TRACKER: TUTORIAL VOID (Phase 2) ---
 if (room == rm_tutorial_void && instance_exists(obj_tutorial_controller)
     && obj_tutorial_controller.tutorial_phase == 2) {
@@ -189,7 +252,7 @@ if (room == rm_tutorial_void && instance_exists(obj_tutorial_controller)
 
 // --- TOOLTIP (all gameplay rooms) ───────────────────────────────────────────
 var _tip_in_gameplay = (room == rm_hallway   || room == rm_level_1
-                     || room == rm_level_2   || room == rm_cutscene_lab);
+                     || room == rm_level_2   || room == rm_cutscene_lab || room == TESTING_MAP);
 if (_tip_in_gameplay && tip_state != "idle" && tip_alpha > 0 && tip_current_text != "") {
 
     var _tip    = tip_current_text;
@@ -223,6 +286,38 @@ if (_tip_in_gameplay && tip_state != "idle" && tip_alpha > 0 && tip_current_text
 
 // Only draw pause menu when paused
 if (!global.is_paused) exit;
+
+// --- Intro Screen Overlay ---
+if (pause_menu_state == "intro") {
+    var _screen_w = display_get_gui_width();
+    var _screen_h = display_get_gui_height();
+    
+    draw_set_color(c_black);
+    draw_set_alpha(room_intro_fade);
+    draw_rectangle(0, 0, _screen_w, _screen_h, false);
+    
+    draw_set_halign(fa_center);
+    draw_set_valign(fa_middle);
+    
+    draw_set_font(fnt_title);
+    draw_set_color(c_white);
+    draw_text(_screen_w / 2, _screen_h / 2 - 30, "Welcome to the " + string(room_intro_cipher) + " section!");
+    
+    draw_set_font(fnt_dialogue);
+    draw_text(_screen_w / 2, _screen_h / 2 + 20, string(room_intro_desc));
+    
+    if (room_intro_timer > 30) {
+        if (floor(room_intro_timer / 30) % 2 == 0) {
+            draw_set_color(c_yellow);
+            draw_text(_screen_w / 2, _screen_h - 50, "Press any key to continue");
+        }
+    }
+    
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+    draw_set_alpha(1);
+    exit;
+}
 
 if (pause_menu_state == "settings_ui") {
     if (!instance_exists(obj_settings_ui)) pause_menu_state = "main";
