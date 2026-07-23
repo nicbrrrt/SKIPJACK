@@ -116,9 +116,10 @@ switch (phase) {
         screen_alpha = max(0, 1 - (phase_timer / 60));
         if (phase_timer >= 70) {
             if (instance_exists(obj_jack)) obj_jack.isInCutscene = false;
-            // Transition to main menu
+            // Transition to cipher select menu
+            global.newly_unlocked = "atbash";
             var _t = instance_create_depth(0, 0, -9999, obj_transition);
-            _t.target_room = rm_menu;
+            _t.target_room = rm_cipher_select;
             _t.fade_mode   = "fading_out";
             _t.fade_alpha  = 0;
             instance_destroy();

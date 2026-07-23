@@ -1,4 +1,4 @@
-// --- Create Event for obj_atbash_combat_gui ---
+	// --- Create Event for obj_atbash_combat_gui ---
 // Self-contained JRPG mock battle with Atbash decryption
 
 depth = -10000;

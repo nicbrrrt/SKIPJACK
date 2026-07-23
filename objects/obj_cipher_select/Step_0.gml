@@ -11,6 +11,18 @@ btn1_y  = display_get_gui_height() / 2 + 10;
 btn2_y  = btn1_y + btn_h + btn_gap;
 btn3_y  = btn2_y + btn_h + btn_gap;
 
+if (unlock_anim_timer > 0) {
+    unlock_anim_timer--;
+    if (unlock_anim_timer == 60) {
+        audio_play_sound(snd_correct_ping, 10, false);
+    }
+    // Lock input
+    caesar_hover = false;
+    atbash_hover = false;
+    vigenere_hover = false;
+    exit;
+}
+
 // --- Caesar Cipher button hover ---
 caesar_hover = (mx >= btn_x1 && mx <= btn_x2
              && my >= btn1_y  && my <= btn1_y + btn_h);

@@ -5,6 +5,8 @@ if (instance_number(object_index) > 1) {
     exit;
 }
 
+depth = -9999;
+
 display_set_gui_size(640, 360);
 randomize();
 
@@ -18,7 +20,7 @@ boss_pending_menu_return  = false;
 
 function ensure_game_controller() {
     if (!instance_exists(obj_game_controller)) {
-        instance_create_depth(0, 0, 0, obj_game_controller);
+        instance_create_depth(0, 0, -9999, obj_game_controller);
     }
 }
 

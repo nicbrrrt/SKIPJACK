@@ -14,3 +14,12 @@ btn3_y = btn2_y + btn_h + btn_gap;           // Vigenère Cipher
 
 caesar_hover = false;
 atbash_hover = false;
+vigenere_hover = false;
+
+unlock_anim_timer = 0;
+unlocking_cipher = "";
+if (variable_global_exists("newly_unlocked") && global.newly_unlocked != "" && global.newly_unlocked != "none") {
+    unlocking_cipher = global.newly_unlocked;
+    global.newly_unlocked = "";
+    unlock_anim_timer = 120;
+}
