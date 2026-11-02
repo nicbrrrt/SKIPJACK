@@ -24,6 +24,7 @@ current_anim_frames = anim.frames_per_anim;
 
 // --- INITIAL SPRITE ---
 sprite_index = spr_jack_idle;
+mask_index   = spr_jack_walk; // Consistent foot-level hitbox whether walking or idle
 image_speed = anim_speed;
 
 // --- DYNAMIC COLLISION INIT ---

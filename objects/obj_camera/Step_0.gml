@@ -1,5 +1,6 @@
 // obj_camera — Step Event
 
+camera_set_view_target(view_camera[0], noone);
 camera_set_view_size(view_camera[0], global.cam_width, global.cam_height);
 
 var _cam_hw = global.cam_width  / 2;
@@ -30,8 +31,8 @@ if (global.cam_pan_phase != "off") {
         }
     }
     else if (global.cam_pan_phase == "pan_back") {
-        var _jack_x = instance_exists(obj_jack) ? clamp(obj_jack.x, _cam_hw, room_width  - _cam_hw) : global.cam_pan_from_x;
-        var _jack_y = instance_exists(obj_jack) ? clamp(obj_jack.y, _cam_hh, room_height - _cam_hh) : global.cam_pan_from_y;
+        var _jack_x = instance_exists(obj_jack) ? obj_jack.x : global.cam_pan_from_x;
+        var _jack_y = instance_exists(obj_jack) ? (obj_jack.y - 12) : global.cam_pan_from_y;
         var _t  = min(global.cam_pan_timer / 90, 1);
         var _cx = lerp(global.cam_pan_from_x, _jack_x, _t);
         var _cy = lerp(global.cam_pan_from_y, _jack_y, _t);
@@ -44,9 +45,9 @@ if (global.cam_pan_phase != "off") {
     exit;
 }
 
-// --- NORMAL FOLLOW ---
+// --- NORMAL FOLLOW (Always centered on Jack) ---
 if (instance_exists(obj_jack)) {
-    var _target_x = clamp(obj_jack.x, _cam_hw, room_width  - _cam_hw);
-    var _target_y = clamp(obj_jack.y, _cam_hh, room_height - _cam_hh);
+    var _target_x = obj_jack.x;
+    var _target_y = obj_jack.y - 12; // Center on Jack's body (sprite is 32px tall with bottom-center origin)
     camera_set_view_pos(view_camera[0], _target_x - _cam_hw, _target_y - _cam_hh);
 }

@@ -63,17 +63,45 @@ if (_is_moving) {
     var _hspd = lengthdir_x(move_speed, _dir);
     var _vspd = lengthdir_y(move_speed, _dir);
 
-    // Horizontal collision
-    if (place_meeting(x + _hspd, y, obj_barrier)) {
-        while (!place_meeting(x + sign(_hspd), y, obj_barrier)) x += sign(_hspd);
-        _hspd = 0;
+    // Horizontal collision (with corner-slide assist for smooth doorway traversal)
+    if (place_meeting(x + _hspd, y, obj_barrier) || place_meeting(x + _hspd, y, obj_dungeon_wall)) {
+        if (_vspd == 0) {
+            for (var _nudge = 1; _nudge <= 8; _nudge++) {
+                if (!place_meeting(x + _hspd, y - _nudge, obj_barrier) && !place_meeting(x + _hspd, y - _nudge, obj_dungeon_wall)) {
+                    y -= min(move_speed, _nudge);
+                    break;
+                }
+                if (!place_meeting(x + _hspd, y + _nudge, obj_barrier) && !place_meeting(x + _hspd, y + _nudge, obj_dungeon_wall)) {
+                    y += min(move_speed, _nudge);
+                    break;
+                }
+            }
+        }
+        if (place_meeting(x + _hspd, y, obj_barrier) || place_meeting(x + _hspd, y, obj_dungeon_wall)) {
+            while (!place_meeting(x + sign(_hspd), y, obj_barrier) && !place_meeting(x + sign(_hspd), y, obj_dungeon_wall)) x += sign(_hspd);
+            _hspd = 0;
+        }
     }
     x += _hspd;
 
-    // Vertical collision
-    if (place_meeting(x, y + _vspd, obj_barrier)) {
-        while (!place_meeting(x, y + sign(_vspd), obj_barrier)) y += sign(_vspd);
-        _vspd = 0;
+    // Vertical collision (with corner-slide assist for smooth doorway traversal)
+    if (place_meeting(x, y + _vspd, obj_barrier) || place_meeting(x, y + _vspd, obj_dungeon_wall)) {
+        if (_hspd == 0) {
+            for (var _nudge = 1; _nudge <= 8; _nudge++) {
+                if (!place_meeting(x - _nudge, y + _vspd, obj_barrier) && !place_meeting(x - _nudge, y + _vspd, obj_dungeon_wall)) {
+                    x -= min(move_speed, _nudge);
+                    break;
+                }
+                if (!place_meeting(x + _nudge, y + _vspd, obj_barrier) && !place_meeting(x + _nudge, y + _vspd, obj_dungeon_wall)) {
+                    x += min(move_speed, _nudge);
+                    break;
+                }
+            }
+        }
+        if (place_meeting(x, y + _vspd, obj_barrier) || place_meeting(x, y + _vspd, obj_dungeon_wall)) {
+            while (!place_meeting(x, y + sign(_vspd), obj_barrier) && !place_meeting(x, y + sign(_vspd), obj_dungeon_wall)) y += sign(_vspd);
+            _vspd = 0;
+        }
     }
     y += _vspd;
 

@@ -13,5 +13,13 @@ window_center();
 global.cam_width = 640;
 global.cam_height = 360;
 
+// Camera pan state safety guards (in case camera is initialized before or without obj_game_init)
+if (!variable_global_exists("cam_pan_phase"))   global.cam_pan_phase   = "off";
+if (!variable_global_exists("cam_pan_timer"))   global.cam_pan_timer   = 0;
+if (!variable_global_exists("cam_pan_from_x"))  global.cam_pan_from_x  = 0;
+if (!variable_global_exists("cam_pan_from_y"))  global.cam_pan_from_y  = 0;
+if (!variable_global_exists("cam_pan_to_x"))    global.cam_pan_to_x    = 0;
+if (!variable_global_exists("cam_pan_to_y"))    global.cam_pan_to_y    = 0;
+
 // GUI size is managed globally by obj_game_controller's Room Start event
 
