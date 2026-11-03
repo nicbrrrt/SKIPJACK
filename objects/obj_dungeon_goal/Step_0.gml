@@ -8,7 +8,7 @@ if (!triggered && instance_exists(obj_jack) && !instance_exists(obj_dungeon_vict
         triggered = true;
         global.dungeons_cleared++;
 
-        audio_play_sound(snd_button_click, 10, false);
+        audio_play_sound(snd_objective_complete, 10, false);
         instance_create_layer(0, 0, "Instances", obj_dungeon_victory);
     }
 }

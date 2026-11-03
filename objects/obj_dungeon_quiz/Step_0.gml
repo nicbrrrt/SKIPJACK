@@ -5,9 +5,12 @@ if (variable_global_exists("is_paused") && global.is_paused) exit;
 
 if (shake_timer > 0) shake_timer--;
 
-// Handle post-solve delay
+// Handle post-solve delay (allow Enter/Space to advance early)
 if (success_timer > 0) {
     success_timer--;
+    if (keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space)) {
+        success_timer = 0;
+    }
     if (success_timer <= 0) {
         var _tx = target_door_x;
         var _ty = target_door_y;
@@ -74,7 +77,7 @@ if (string_length(player_guess) == _len) {
     if (player_guess == target_word) {
         status_msg    = "CORRECT! KEY VAULT UNLOCKED";
         status_col    = c_lime;
-        success_timer = 45;
+        success_timer = 100;
         audio_play_sound(snd_correct_ping, 10, false);
     } else {
         shake_timer  = 12;

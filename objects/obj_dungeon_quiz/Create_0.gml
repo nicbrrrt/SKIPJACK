@@ -1,26 +1,23 @@
 /// @description obj_dungeon_quiz — Create Event
-/// Standalone Cybersecurity Word-Scramble Quiz UI (independent of JRPG combat).
-/// Used to unlock the Caesar Key Vault room (obj_door_quiz_lock).
+/// Standalone Cybersecurity Incident Case Quiz UI (independent of JRPG combat).
+/// Tests the player on the current floor's Cyber Incident Case (global.floor_case)
+/// using clues gathered from coworkers, terminals, and memos across the offices.
 
 depth = -15000;
 
 target_door_x = x;
 target_door_y = y;
 
-questions = [
-    { word: "TROJAN",   hint: "Malware disguised as real software." },
-    { word: "PHISHING", hint: "Fraudulent emails stealing sensitive data." },
-    { word: "FIREWALL", hint: "Network security traffic monitor." },
-    { word: "BOTNET",   hint: "Network of infected computers." },
-    { word: "SPYWARE",  hint: "Software that gathers info without consent." },
-    { word: "MALWARE",  hint: "Software designed to harm or exploit a system." },
-    { word: "CAESAR",   hint: "Cipher that shifts each letter by a fixed number." }
-];
+var _case = variable_global_exists("floor_case")
+    ? global.floor_case
+    : scr_get_floor_incident_case(0);
 
-var _idx     = irandom(array_length(questions) - 1);
-target_word  = questions[_idx].word;
-current_hint = questions[_idx].hint;
-player_guess = "";
+target_word      = _case.word;
+case_title       = _case.title;
+current_scenario = _case.scenario;
+current_hint     = _case.hint;
+current_takeaway = _case.takeaway;
+player_guess     = "";
 
 // Build scrambled letter pool
 letter_chars = [];
@@ -31,7 +28,7 @@ for (var _i = 1; _i <= _len; _i++) {
     array_push(letter_used, false);
 }
 
-// Fisher-Yates shuffle (ensure it's not identical to target_word)
+// Fisher-Yates shuffle
 for (var _i = _len - 1; _i > 0; _i--) {
     var _j   = irandom(_i);
     var _tmp = letter_chars[_i];
@@ -47,5 +44,5 @@ status_msg    = "";
 status_col    = c_white;
 success_timer = 0;
 
-audio_play_sound(ms_start, 10, false);
-show_debug_message("[obj_dungeon_quiz] Question started. Answer: " + target_word);
+audio_play_sound(snd_select, 10, false);
+show_debug_message("[obj_dungeon_quiz] Incident Case Quiz started. Answer: " + target_word);

@@ -17,27 +17,21 @@ if (keyboard_check_pressed(vk_left)) {
     audio_play_sound(select1, 10, false);
 }
 
-// Change letters with UP/DOWN arrows
+// Change letters with UP/DOWN arrows (starts from the slot's encrypted letter so each tap shifts ±1!)
 if (keyboard_check_pressed(vk_up)) {
-    if (player_input[current_slot] == "") {
-        player_input[current_slot] = "A";
-    } else {
-        var current_char = player_input[current_slot];
-        var new_index = (ord(current_char) - ord("A") + 1) mod 26;
-        player_input[current_slot] = chr(ord("A") + new_index);
-    }
+    var _enc_ch = string_char_at(encrypted, current_slot + 1);
+    var _base_ch = (player_input[current_slot] == "") ? _enc_ch : player_input[current_slot];
+    var new_index = (ord(_base_ch) - ord("A") + 1) mod 26;
+    player_input[current_slot] = chr(ord("A") + new_index);
     audio_play_sound(choose(select1, select2, select3, select4, select5), 10, false);
     show_debug_message("CIPHER: Slot " + string(current_slot) + " changed to: " + player_input[current_slot]);
 }
 
 if (keyboard_check_pressed(vk_down)) {
-    if (player_input[current_slot] == "") {
-        player_input[current_slot] = "A";
-    } else {
-        var current_char = player_input[current_slot];
-        var new_index = (ord(current_char) - ord("A") - 1 + 26) mod 26;
-        player_input[current_slot] = chr(ord("A") + new_index);
-    }
+    var _enc_ch = string_char_at(encrypted, current_slot + 1);
+    var _base_ch = (player_input[current_slot] == "") ? _enc_ch : player_input[current_slot];
+    var new_index = (ord(_base_ch) - ord("A") - 1 + 26) mod 26;
+    player_input[current_slot] = chr(ord("A") + new_index);
     audio_play_sound(choose(select1, select2, select3, select4, select5), 10, false);
     show_debug_message("CIPHER: Slot " + string(current_slot) + " changed to: " + player_input[current_slot]);
 }
@@ -65,10 +59,39 @@ if (keyboard_check_pressed(vk_enter)) {
             success_timer = 60; // Wait 1 second (60 frames) before closing
         }
     } else {
-        // --- FAILURE SEQUENCE ---
+        // --- SMART COACHING FAILURE SEQUENCE ---
         shake_timer = 10;
-        text_color = c_red;
-        status_msg = "ERROR: INVALID KEY";
+        text_color  = c_red;
+
+        var _wrong_dir_word = scr_caesar_encode(encrypted, -key);
+        var _correct_slots  = 0;
+        for (var _ci = 0; _ci < letters_len; _ci++) {
+            if (player_input[_ci] == string_char_at(plaintext, _ci + 1)) {
+                _correct_slots++;
+            }
+        }
+
+        if (is_holding_lock) {
+            if (_correct_slots > 0) {
+                status_msg = "ALMOST! " + string(_correct_slots) + "/4 letters match! Check the Math Equation in the Holding Cell!";
+                text_color = c_orange;
+            } else {
+                status_msg = "INCORRECT: Solve the Math Equation on the Cell Terminal/Note to find the Shift Key!";
+            }
+        } else if (!instance_exists(obj_battle) && !(variable_global_exists("has_dungeon_cipher_key") && global.has_dungeon_cipher_key)) {
+            status_msg = "NO KEY: Unlock the Gold Key Vault first to find the Shift Key!";
+        } else if (answer == _wrong_dir_word) {
+            var _k_dir = (key > 0) ? ("+" + string(key) + " (UP/RIGHT)") : (string(key) + " (DOWN/LEFT)");
+            status_msg = "WRONG DIRECTION! You shifted opposite — shift by " + _k_dir + "!";
+            text_color = c_orange;
+        } else if (_correct_slots > 0) {
+            status_msg = "ALMOST! " + string(_correct_slots) + "/" + string(letters_len) + " letters match! Check each slot's shift offset.";
+            text_color = c_orange;
+        } else {
+            var _k_hint = (key > 0) ? ("+" + string(key)) : string(key);
+            status_msg = "INCORRECT: Shift each Encrypted letter by " + _k_hint + " on the A-Z strip!";
+        }
+
         audio_play_sound(wrong1, 10, false);
         if (instance_exists(obj_battle) && obj_battle.fight_anim == "idle") {
             with (obj_battle) {
@@ -96,12 +119,25 @@ if (success_timer > 0) {
             // Standalone dungeon mode: unlock the Caesar-locked doorway that triggered this puzzle
             var _tx = target_door_x;
             var _ty = target_door_y;
+            var _unlocked_elevator = false;
             with (obj_door_caesar_lock) {
                 if (point_distance(draw_x, draw_y, _tx, _ty) <= 64) {
+                    if (is_elevator_door) {
+                        _unlocked_elevator = true;
+                    }
                     locked = false;
                     x = -10000;
                     y = -10000;
                 }
+            }
+            // Also check distance to extraction elevator goal as a fallback
+            if (!_unlocked_elevator && instance_exists(obj_dungeon_goal)) {
+                if (point_distance(_tx, _ty, obj_dungeon_goal.x, obj_dungeon_goal.y) <= 110) {
+                    _unlocked_elevator = true;
+                }
+            }
+            if (_unlocked_elevator) {
+                global.lockdown_lifted = true;
             }
         }
         instance_destroy();

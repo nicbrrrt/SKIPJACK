@@ -13,36 +13,78 @@
 // ---- Seed RNG so every generated dungeon floor is unique ----
 randomize();
 
-// ---- Roll a fresh Caesar shift key for this dungeon floor ----
+// Ensure music controller is active so dungeon BGM plays continuously across floors
+if (!instance_exists(obj_music_controller)) {
+    instance_create_depth(0, 0, 0, obj_music_controller);
+}
+
+// ---- Roll a fresh Caesar shift key & Cyber Incident Case for this dungeon floor ----
 global.dungeon_cipher_key     = scr_roll_cipher_key();
 global.has_dungeon_cipher_key = false;
+global.lockdown_lifted        = false;
+scr_roll_holding_key_and_equation();
 if (!variable_global_exists("dungeons_cleared")) {
     global.dungeons_cleared = 0;
 }
+if (!variable_global_exists("case_start_offset")) {
+    global.case_start_offset = irandom(6);
+}
+global.floor_case_index = (global.case_start_offset + global.dungeons_cleared) mod 7;
+global.floor_case       = scr_get_floor_incident_case(global.floor_case_index);
+global.clues_found      = 0;
+global.clues_needed     = 2;
+global.pc_screen_open   = false;
+global.pc_screen_title  = "";
+global.pc_screen_body   = "";
+global.pc_screen_radar  = "";
+global.pc_screen_badge  = "";
+global.player_in_locker = false;
+global.active_locker_id = noone;
+global.holding_room_x   = 0;
+global.holding_room_y   = 0;
+global.holding_room_col = 0;
+global.holding_room_row = 0;
 
 // Ensure generator draws the room fog overlay above tiles/goal (20..50) and below Jack (-y)
 visible = true;
 depth   = 10;
 
 // ---- Instance variables exposed for spawner & fog system ----
-logic_map      = [];    // 2D array [col][row] of ROOM_* constants
-room_fog_alpha = [];    // 2D array [col][row] of fog alpha (0 = lit, 0.90 = darkened)
-path_list      = [];    // All active chunks [col, row] (hallways + rooms)
-door_links     = [];    // Explicit doorway connections: [c1, r1, c2, r2, door_tile_type]
-gen_complete   = false;
-active_col     = 0;
-active_row     = 0;
+logic_map       = [];    // 2D array [col][row] of ROOM_* constants
+room_fog_alpha  = [];    // 2D array [col][row] of fog alpha (0 = lit, 0.90 = darkened)
+room_discovered = [];    // 2D array [col][row]: 0 = hidden, 1 = radar-detected, 2 = visited
+path_list       = [];    // All active chunks [col, row] (hallways + rooms)
+door_links      = [];    // Explicit doorway connections: [c1, r1, c2, r2, door_tile_type]
+ambient_sparks  = [];    // Floating digital dust / spark particles in active room
+siren_timer     = 0;
+gen_complete    = false;
+active_col      = 0;
+active_row      = 0;
 
 // ===========================================================================
 // Step 1 — Initialise the logic map & fog alpha grid
 // ===========================================================================
 for (var _c = 0; _c < LOGIC_GRID_W; _c++) {
-    logic_map[_c]      = [];
-    room_fog_alpha[_c] = [];
+    logic_map[_c]       = [];
+    room_fog_alpha[_c]  = [];
+    room_discovered[_c] = [];
     for (var _r = 0; _r < LOGIC_GRID_H; _r++) {
-        logic_map[_c][_r]      = ROOM_NONE;
-        room_fog_alpha[_c][_r] = 0.90;
+        logic_map[_c][_r]       = ROOM_NONE;
+        room_fog_alpha[_c][_r]  = 0.90;
+        room_discovered[_c][_r] = 0;
     }
+}
+
+// Initialise floating ambient particles (local offsets within a 144x144 chunk)
+for (var _p = 0; _p < 18; _p++) {
+    array_push(ambient_sparks, {
+        lx:  irandom_range(20, 124),
+        ly:  irandom_range(20, 124),
+        vx:  random_range(-0.25, 0.25),
+        vy:  random_range(-0.45, -0.15),
+        col: choose(c_aqua, make_color_rgb(255, 80, 95), make_color_rgb(255, 210, 60)),
+        sz:  choose(1, 1.5)
+    });
 }
 
 // ===========================================================================
@@ -51,8 +93,9 @@ for (var _c = 0; _c < LOGIC_GRID_W; _c++) {
 var _start_col = 0;
 var _start_row = floor(LOGIC_GRID_H / 2); // (0, 5)
 
-logic_map[_start_col][_start_row]      = ROOM_START;
-room_fog_alpha[_start_col][_start_row] = 0.0;
+logic_map[_start_col][_start_row]       = ROOM_START;
+room_fog_alpha[_start_col][_start_row]  = 0.0;
+room_discovered[_start_col][_start_row] = 2;
 active_col = _start_col;
 active_row = _start_row;
 array_push(path_list, [_start_col, _start_row]);
@@ -147,9 +190,15 @@ var _all_4_dirs = [
 ];
 
 var _hall_len = array_length(_hallway_spine);
+hallway_waypoints = [];
 for (var _hi = 0; _hi < _hall_len; _hi++) {
     var _sc = _hallway_spine[_hi][0];
     var _sr = _hallway_spine[_hi][1];
+    // Store exact center-tile top-left (tile 4,4 = +64,+64 so +8,+8 is exact chunk center 72,72)
+    array_push(hallway_waypoints, [
+        _sc * CHUNK_SIZE * TILE_SIZE + 4 * TILE_SIZE,
+        _sr * CHUNK_SIZE * TILE_SIZE + 4 * TILE_SIZE
+    ]);
 
     for (var _d = 0; _d < 4; _d++) {
         var _rc = _sc + _all_4_dirs[_d][0];
@@ -194,7 +243,11 @@ for (var _i = 0; _i < _max_side_rooms; _i++) {
         _rtype = ROOM_CAESAR_KEY;
         _dtype = TILE_LOCK_QUIZ;
     } else if (_i == 1) {
-        // Second side room is a Caesar Cipher-Locked Mainframe Room
+        // Second side room is the Security Holding Cell / Brig (locked by its own Caesar Cipher key!)
+        _rtype = ROOM_HOLDING;
+        _dtype = TILE_LOCK_CAESAR;
+    } else if (_i == 2) {
+        // Third side room is a Caesar Cipher-Locked Mainframe Room
         _rtype = ROOM_CAESAR_LOCKED;
         _dtype = TILE_LOCK_CAESAR;
     }

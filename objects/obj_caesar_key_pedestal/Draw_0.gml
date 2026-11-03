@@ -24,6 +24,15 @@ if (!collected) {
     draw_line_width(x + 1, _ky, x + 6, _ky, 2);
     draw_line(x + 4, _ky, x + 4, _ky + 3);
     draw_line(x + 6, _ky, x + 6, _ky + 3);
+
+    if (player_near && !ui_open) {
+        draw_set_alpha(0.90);
+        draw_set_color(make_color_rgb(10, 16, 26));
+        draw_rectangle(x - 7, y - 20, x + 7, y - 10, false);
+        draw_set_alpha(1.0);
+        draw_set_color(make_color_rgb(255, 210, 50));
+        draw_rectangle(x - 7, y - 20, x + 7, y - 10, true);
+    }
 } else {
     // Collected check glow
     draw_set_color(c_aqua);

@@ -2,6 +2,7 @@
 if (room == rm_menu || room == rm_settings || room == rm_cipher_select)
 {
     audio_stop_sound(snd_tutorial_void_music);
+    audio_stop_sound(snd_generic_background_music);
     if (!audio_is_playing(ms_start))
         audio_play_sound(ms_start, 10, true);
 }
@@ -9,14 +10,26 @@ if (room == rm_menu || room == rm_settings || room == rm_cipher_select)
 else if (room == rm_tutorial_void)
 {
     audio_stop_sound(ms_start);
+    audio_stop_sound(snd_generic_background_music);
     if (!audio_is_playing(snd_tutorial_void_music))
         audio_play_sound(snd_tutorial_void_music, 10, true);
 }
-// ── All other rooms: silence both menu tracks ─────────────────────────────────
+// ── Corporate Lockdown Dungeon: play tense background music continuously ─────
+else if (room == dungeon_test)
+{
+    audio_stop_sound(ms_start);
+    audio_stop_sound(snd_tutorial_void_music);
+    if (!audio_is_playing(snd_generic_background_music)) {
+        var _bgm = audio_play_sound(snd_generic_background_music, 10, true);
+        audio_sound_gain(_bgm, 0.65, 0);
+    }
+}
+// ── All other rooms: silence menu & dungeon tracks ───────────────────────────
 else
 {
     audio_stop_sound(ms_start);
     audio_stop_sound(snd_tutorial_void_music);
+    audio_stop_sound(snd_generic_background_music);
 }
 
 // --- GLOBAL DEBUG TOGGLES ---

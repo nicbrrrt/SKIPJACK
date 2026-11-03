@@ -20,6 +20,8 @@ if (!variable_global_exists("cam_pan_from_x"))  global.cam_pan_from_x  = 0;
 if (!variable_global_exists("cam_pan_from_y"))  global.cam_pan_from_y  = 0;
 if (!variable_global_exists("cam_pan_to_x"))    global.cam_pan_to_x    = 0;
 if (!variable_global_exists("cam_pan_to_y"))    global.cam_pan_to_y    = 0;
+if (!variable_global_exists("cam_shake_timer")) global.cam_shake_timer = 0;
+if (!variable_global_exists("cam_shake_mag"))   global.cam_shake_mag   = 0;
 
 // GUI size is managed globally by obj_game_controller's Room Start event
 

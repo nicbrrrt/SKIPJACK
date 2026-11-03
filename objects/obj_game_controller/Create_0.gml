@@ -29,6 +29,8 @@ function is_special_event_active() {
     if (instance_exists(obj_battle)) return true;
     if (instance_exists(obj_path)) return true;
     if (instance_exists(obj_cipher)) return true;
+    if (instance_exists(obj_dungeon_quiz)) return true;
+    if (instance_exists(obj_dungeon_victory)) return true;
     if (instance_exists(obj_qte)) return true;
     return false;
 }

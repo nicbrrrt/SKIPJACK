@@ -53,6 +53,9 @@ function scr_dungeon_spawn(logic_map, path_list) {
 
     var path_len = array_length(path_list);
     var links    = variable_instance_exists(id, "door_links") ? door_links : [];
+    var npc_seq  = 0;
+    var hall_seq = 0;
+    var pc_list  = [];
 
     show_debug_message("[scr_dungeon_spawn] Spawning " + string(path_len) + " rooms...");
 
@@ -154,6 +157,14 @@ function scr_dungeon_spawn(logic_map, path_list) {
                         var _pr = instance_create_layer(px, py, layer_name, obj_dungeon_prop);
                         _pr.depth       = (tile_val == TILE_PROP_PAPER) ? 45 : 24;
                         _pr.prop_type   = tile_val;
+                        if (room_type == ROOM_HOLDING) {
+                            _pr.is_holding_clue = true;
+                            if (tile_val == TILE_PROP_PC) {
+                                _pr.has_clue = true;
+                            }
+                        } else if (tile_val == TILE_PROP_PC) {
+                            array_push(pc_list, _pr);
+                        }
                         break;
 
                     case TILE_DOOR:
@@ -184,7 +195,9 @@ function scr_dungeon_spawn(logic_map, path_list) {
                         var _cd = instance_create_layer(px, py, layer_name, obj_doorway);
                         _cd.depth = 40;
                         var _cl = instance_create_layer(px, py, layer_name, obj_door_caesar_lock);
-                        _cl.depth = 25;
+                        _cl.depth            = 25;
+                        _cl.is_elevator_door = (room_type == ROOM_END);
+                        _cl.is_holding_door  = (room_type == ROOM_HOLDING);
                         break;
 
                     default:
@@ -203,12 +216,62 @@ function scr_dungeon_spawn(logic_map, path_list) {
         var center_x = world_x + (floor(CHUNK_SIZE / 2) * TILE_SIZE) + (TILE_SIZE * 0.5);
         var center_y = world_y + (floor(CHUNK_SIZE / 2) * TILE_SIZE) + (TILE_SIZE * 0.5);
 
-        // Place Jack at the center of the Start room on every new floor
+        // Place Jack at the center of the Start room on every new floor, plus a receptionist coworker NPC
         if (room_type == ROOM_START) {
             if (instance_exists(obj_jack)) {
                 obj_jack.x = center_x;
                 obj_jack.y = center_y;
                 obj_jack.isInCutscene = false;
+            }
+            var _start_npc = instance_create_layer(world_x + 2 * TILE_SIZE, world_y + 2 * TILE_SIZE, layer_name, obj_dungeon_prop);
+            _start_npc.prop_type = TILE_PROP_NPC;
+            _start_npc.npc_id    = (npc_seq++) mod 5;
+        }
+
+        // Spawn a hacked security drone patrolling the exact centerline of the Hallway Spine,
+        // plus Security Lockers along the hallway walls so the player can hide from the drone's vision cone!
+        if (room_type == ROOM_HALLWAY) {
+            hall_seq++;
+            if (hall_seq == 2) {
+                var _hall_drone = instance_create_layer(world_x + 4 * TILE_SIZE, world_y + 4 * TILE_SIZE, layer_name, obj_dungeon_prop);
+                _hall_drone.prop_type      = TILE_PROP_DRONE;
+                _hall_drone.wp_index       = 1;
+                _hall_drone.wp_dir         = 1;
+                _hall_drone.myName         = "Security Drone";
+                _hall_drone.myPortrait     = spr_jack_portrait;
+                _hall_drone.myPortraitTalk = spr_jack_portrait;
+                _hall_drone.init_done      = true;
+            }
+
+            // Place a Hiding Locker against a non-doorway wall of this hallway segment
+            var _lx = world_x + 3 * TILE_SIZE;
+            var _ly = world_y + 3 * TILE_SIZE;
+            if (top_tile == TILE_WALL) {
+                _lx = world_x + 4 * TILE_SIZE;
+                _ly = world_y + 3 * TILE_SIZE;
+            } else if (bottom_tile == TILE_WALL) {
+                _lx = world_x + 4 * TILE_SIZE;
+                _ly = world_y + 5 * TILE_SIZE;
+            } else if (left_tile == TILE_WALL) {
+                _lx = world_x + 3 * TILE_SIZE;
+                _ly = world_y + 4 * TILE_SIZE;
+            } else if (right_tile == TILE_WALL) {
+                _lx = world_x + 5 * TILE_SIZE;
+                _ly = world_y + 4 * TILE_SIZE;
+            }
+            var _locker = instance_create_layer(_lx, _ly, layer_name, obj_dungeon_prop);
+            _locker.prop_type = TILE_PROP_LOCKER;
+            _locker.depth     = 26;
+        }
+
+        // Populate Normal Office rooms with stranded coworkers (safe from hallway drones)
+        if (room_type == ROOM_NORMAL) {
+            if ((npc_seq mod 2) == 0) {
+                var _office_npc = instance_create_layer(world_x + 4 * TILE_SIZE, world_y + 4 * TILE_SIZE, layer_name, obj_dungeon_prop);
+                _office_npc.prop_type = TILE_PROP_NPC;
+                _office_npc.npc_id    = (npc_seq++) mod 5;
+            } else {
+                npc_seq++;
             }
         }
 
@@ -217,12 +280,48 @@ function scr_dungeon_spawn(logic_map, path_list) {
             instance_create_layer(center_x, center_y, layer_name, obj_caesar_key_pedestal);
         }
 
+        // Record the Security Holding Room coordinates (where drones send Jack if caught)
+        if (room_type == ROOM_HOLDING) {
+            global.holding_room_x   = center_x;
+            global.holding_room_y   = center_y;
+            global.holding_room_col = logic_col;
+            global.holding_room_row = logic_row;
+        }
+
         // Place the extraction goal beacon at the center of the End room
         if (room_type == ROOM_END) {
             instance_create_layer(center_x, center_y, layer_name, obj_dungeon_goal);
         }
 
     } // path index
+
+    // Select ONLY 2 specific computers across the floor to hold Case Clues
+    var _num_pcs = array_length(pc_list);
+    if (_num_pcs > 0) {
+        // Shuffle pc_list
+        for (var _pi = _num_pcs - 1; _pi > 0; _pi--) {
+            var _pj  = irandom(_pi);
+            var _tmp = pc_list[_pi];
+            pc_list[_pi] = pc_list[_pj];
+            pc_list[_pj] = _tmp;
+        }
+        var _clue_pc_count = min(2, _num_pcs);
+        for (var _ci = 0; _ci < _clue_pc_count; _ci++) {
+            pc_list[_ci].has_clue    = true;
+            pc_list[_ci].log_variant = _ci;
+        }
+    }
+
+    // Mark both sides of the Holding Room's doorway threshold as is_holding_door = true
+    if (variable_global_exists("holding_room_x") && global.holding_room_x > 0) {
+        var _hx = global.holding_room_x;
+        var _hy = global.holding_room_y;
+        with (obj_door_caesar_lock) {
+            if (point_distance(draw_x + 8, draw_y + 8, _hx, _hy) <= 85) {
+                is_holding_door = true;
+            }
+        }
+    }
 
     show_debug_message("[scr_dungeon_spawn] Spawning complete. Total rooms: " + string(path_len));
 }

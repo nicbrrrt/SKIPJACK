@@ -1,5 +1,12 @@
 // --- Updated obj_textbox Draw Event ---
 
+// Grey out / dim the background behind the dialogue box
+draw_set_alpha(0.62);
+draw_set_color(c_black);
+draw_rectangle(0, 0, display_get_gui_width(), display_get_gui_height(), false);
+draw_set_alpha(1.0);
+draw_set_color(c_white);
+
 //Draw textbox
 // Scale sprite vertically to match the dynamic box height
 var _sprite_h = sprite_get_height(dialogue_box);

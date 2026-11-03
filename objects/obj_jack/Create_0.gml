@@ -3,12 +3,18 @@
 isInCutscene = false;
 
 // --- MOVEMENT SETTINGS ---
-move_speed = 2.5; 
-anim_speed = 0.2; 
+move_speed   = 2.5;
+sprint_speed = 4.2;
+anim_speed   = 0.2; 
 
 // --- STATE ---
 last_move_x = 0;
 last_move_y = 1; // Default to facing down
+step_sfx_timer = 0;
+bump_timer     = 0;
+bump_vx        = 0;
+bump_vy        = 0;
+bump_door_type = "";
 
 // --- ANIMATION DATA ---
 anim = {

@@ -1,11 +1,13 @@
 /// @description obj_dungeon_generator — Draw Event
-/// Darkens / greys out all dungeon rooms except the room the player is currently in,
-/// and highlights special room types (ROOM_CAESAR_KEY, ROOM_CAESAR_LOCKED).
+/// Renders the Corporate Lockdown Blackout (lights OFF across the building during lockdown,
+/// with emergency red beacons and a personal glow around Jack), and restores full bright
+/// office lighting once the Extraction Elevator door is unlocked (global.lockdown_lifted).
 
 if (!gen_complete) exit;
 
-var _chunk_px    = CHUNK_SIZE * TILE_SIZE; // 144 px per room
-var _total_rooms = array_length(path_list);
+var _chunk_px        = CHUNK_SIZE * TILE_SIZE; // 144 px per room
+var _total_rooms     = array_length(path_list);
+var _lockdown_lifted = (variable_global_exists("lockdown_lifted") && global.lockdown_lifted);
 
 for (var _i = 0; _i < _total_rooms; _i++) {
     var _c = path_list[_i][0];
@@ -19,36 +21,90 @@ for (var _i = 0; _i < _total_rooms; _i++) {
 
     var _alpha = room_fog_alpha[_c][_r];
 
-    // If this room is currently active/visible, draw a subtle themed interior frame for special rooms
-    if (_alpha < 0.5) {
-        if (_rtype == ROOM_CAESAR_KEY) {
-            draw_set_alpha((1.0 - _alpha) * 0.45);
-            draw_set_color(make_color_rgb(255, 195, 35));
-            draw_rectangle(_x1 + 16, _y1 + 16, _x2 - 16, _y2 - 16, true);
-        } else if (_rtype == ROOM_CAESAR_LOCKED) {
-            draw_set_alpha((1.0 - _alpha) * 0.45);
-            draw_set_color(make_color_rgb(255, 65, 125));
-            draw_rectangle(_x1 + 16, _y1 + 16, _x2 - 16, _y2 - 16, true);
+    // Active / currently occupied room or hallway
+    if (_alpha < 0.85) {
+        var _vis = clamp(1.0 - _alpha, 0.0, 1.0);
+
+        if (!_lockdown_lifted) {
+            var _siren_pulse = 0.5 + 0.5 * sin(siren_timer * 0.06 + (_c * 0.9) + (_r * 0.6));
+
+            // 1. POWER-OUTAGE BLACKOUT OVERLAY (Makes the room look like the main lights are OFF!)
+            draw_set_alpha(_vis * 0.56);
+            draw_set_color(make_color_rgb(3, 5, 12));
+            draw_rectangle(_x1, _y1, _x2, _y2, false);
+
+            // 2. Pulsing red emergency lockdown wash
+            draw_set_alpha(_vis * (0.04 + 0.09 * _siren_pulse));
+            draw_set_color(make_color_rgb(255, 18, 36));
+            draw_rectangle(_x1 + 16, _y1 + 16, _x2 - 16, _y2 - 16, false);
+
+            // 3. Ceiling emergency beacon light at center of chunk
+            var _bx = _x1 + 72;
+            var _by = _y1 + 72;
+            draw_set_alpha(_vis * (0.10 + 0.18 * _siren_pulse));
+            draw_set_color(make_color_rgb(255, 35, 55));
+            draw_circle(_bx, _by, 20 + 8 * _siren_pulse, false);
+
+            draw_set_alpha(_vis * (0.45 + 0.50 * _siren_pulse));
+            draw_set_color(make_color_rgb(255, 130, 140));
+            draw_circle(_bx, _by, 2.5, false);
+
+            // 4. Special room interior frame highlights
+            if (_rtype == ROOM_CAESAR_KEY) {
+                draw_set_alpha(_vis * 0.50);
+                draw_set_color(make_color_rgb(255, 195, 35));
+                draw_rectangle(_x1 + 16, _y1 + 16, _x2 - 16, _y2 - 16, true);
+            } else if (_rtype == ROOM_CAESAR_LOCKED) {
+                draw_set_alpha(_vis * 0.50);
+                draw_set_color(make_color_rgb(255, 65, 125));
+                draw_rectangle(_x1 + 16, _y1 + 16, _x2 - 16, _y2 - 16, true);
+            } else if (_rtype == ROOM_HOLDING) {
+                draw_set_alpha(_vis * 0.55);
+                draw_set_color(make_color_rgb(255, 120, 30));
+                draw_rectangle(_x1 + 16, _y1 + 16, _x2 - 16, _y2 - 16, true);
+            }
+        } else {
+            // Lockdown lifted: main building lights are ON!
+            var _bx = _x1 + 72;
+            var _by = _y1 + 72;
+            draw_set_alpha(_vis * 0.10);
+            draw_set_color(make_color_rgb(225, 242, 255));
+            draw_circle(_bx, _by, 24, false);
+
+            draw_set_alpha(_vis * 0.50);
+            draw_set_color(c_white);
+            draw_circle(_bx, _by, 2.5, false);
         }
     }
 
     if (_alpha <= 0.01) continue;
 
-    // Darkened slate shroud over inactive rooms
+    // Near-pitch-black shroud over unlit rooms
     draw_set_alpha(_alpha);
-    draw_set_color(make_color_rgb(12, 14, 20));
+    draw_set_color(make_color_rgb(5, 7, 12));
     draw_rectangle(_x1, _y1, _x2, _y2, false);
 
-    // Subtle muted border tint on shrouded rooms (color-coded slightly for special rooms)
+    // Subtle muted border tint on shrouded rooms
     draw_set_alpha(_alpha * 0.30);
     if (_rtype == ROOM_CAESAR_KEY) {
         draw_set_color(make_color_rgb(120, 95, 30));
     } else if (_rtype == ROOM_CAESAR_LOCKED) {
         draw_set_color(make_color_rgb(120, 35, 65));
+    } else if (_rtype == ROOM_HOLDING) {
+        draw_set_color(make_color_rgb(130, 65, 25));
     } else {
-        draw_set_color(make_color_rgb(45, 52, 66));
+        draw_set_color(make_color_rgb(35, 42, 55));
     }
     draw_rectangle(_x1 + 2, _y1 + 2, _x2 - 2, _y2 - 2, true);
+}
+
+// Soft personal lantern aura around Jack during blackout so Jack is always crisp in the dark
+if (!_lockdown_lifted && instance_exists(obj_jack) && obj_jack.visible) {
+    draw_set_alpha(0.10);
+    draw_set_color(make_color_rgb(160, 215, 255));
+    draw_circle(obj_jack.x, obj_jack.y - 8, 28, false);
+    draw_set_alpha(0.08);
+    draw_circle(obj_jack.x, obj_jack.y - 8, 16, false);
 }
 
 draw_set_color(c_white);

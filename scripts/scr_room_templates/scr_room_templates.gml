@@ -244,6 +244,7 @@ function scr_get_template(room_type) {
         case ROOM_END:           return scr_template_end();
         case ROOM_CAESAR_KEY:    return scr_template_caesar_key();
         case ROOM_CAESAR_LOCKED: return scr_template_caesar_locked();
+        case ROOM_HOLDING:       return scr_template_compact_office();
         case ROOM_NORMAL:
             var _roll = irandom(2);
             if (_roll == 0) return scr_template_compact_office();
