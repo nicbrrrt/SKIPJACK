@@ -84,16 +84,60 @@ function scr_template_end() {
 
 
 // ---------------------------------------------------------------------------
+/// @function scr_template_caesar_key()
+/// @description Returns the 9x9 template for the Caesar Key Vault room (ROOM_CAESAR_KEY).
+///              Locked by a cybersecurity question; houses the Caesar cipher key at center.
+// ---------------------------------------------------------------------------
+function scr_template_caesar_key() {
+    var t = [
+        [1, 1, 1, 1, 1, 1, 1, 1, 1],  // row 0 — top wall
+        [1, 0, 0, 0, 0, 0, 0, 0, 1],  // row 1
+        [1, 0, 1, 0, 0, 0, 1, 0, 1],  // row 2 — vault corner pillars
+        [1, 0, 0, 0, 0, 0, 0, 0, 1],  // row 3
+        [1, 0, 0, 0, 0, 0, 0, 0, 1],  // row 4 — key pedestal sits at center (4,4)
+        [1, 0, 0, 0, 0, 0, 0, 0, 1],  // row 5
+        [1, 0, 1, 0, 0, 0, 1, 0, 1],  // row 6 — vault corner pillars
+        [1, 0, 0, 0, 0, 0, 0, 0, 1],  // row 7
+        [1, 1, 1, 1, 1, 1, 1, 1, 1],  // row 8 — bottom wall
+    ];
+    return t;
+}
+
+
+// ---------------------------------------------------------------------------
+/// @function scr_template_caesar_locked()
+/// @description Returns the 9x9 template for a Caesar Cipher-Locked room (ROOM_CAESAR_LOCKED).
+///              Guarded by a Caesar-encrypted door; requires the key from ROOM_CAESAR_KEY.
+// ---------------------------------------------------------------------------
+function scr_template_caesar_locked() {
+    var t = [
+        [1, 1, 1, 1, 1, 1, 1, 1, 1],  // row 0 — top wall
+        [1, 0, 0, 0, 0, 0, 0, 0, 1],  // row 1
+        [1, 0, 1, 0, 0, 0, 1, 0, 1],  // row 2 — security gate columns
+        [1, 0, 0, 0, 0, 0, 0, 0, 1],  // row 3
+        [1, 0, 0, 0, 0, 0, 0, 0, 1],  // row 4 — open center corridor
+        [1, 0, 0, 0, 0, 0, 0, 0, 1],  // row 5
+        [1, 0, 1, 0, 0, 0, 1, 0, 1],  // row 6 — security gate columns
+        [1, 0, 0, 0, 0, 0, 0, 0, 1],  // row 7
+        [1, 1, 1, 1, 1, 1, 1, 1, 1],  // row 8 — bottom wall
+    ];
+    return t;
+}
+
+
+// ---------------------------------------------------------------------------
 /// @function scr_get_template(room_type)
-/// @param {real} room_type  One of: ROOM_START, ROOM_NORMAL, ROOM_END
+/// @param {real} room_type  One of: ROOM_START, ROOM_NORMAL, ROOM_END, ROOM_CAESAR_KEY, ROOM_CAESAR_LOCKED
 /// @description Dispatcher — returns the correct 9x9 template array
 ///              for the given room type constant.
 // ---------------------------------------------------------------------------
 function scr_get_template(room_type) {
     switch (room_type) {
-        case ROOM_START:  return scr_template_start();
-        case ROOM_NORMAL: return scr_template_normal();
-        case ROOM_END:    return scr_template_end();
+        case ROOM_START:         return scr_template_start();
+        case ROOM_NORMAL:        return scr_template_normal();
+        case ROOM_END:           return scr_template_end();
+        case ROOM_CAESAR_KEY:    return scr_template_caesar_key();
+        case ROOM_CAESAR_LOCKED: return scr_template_caesar_locked();
         default:
             show_debug_message("[scr_get_template] WARNING: Unknown room type: " + string(room_type));
             return scr_template_normal(); // Fallback to Normal

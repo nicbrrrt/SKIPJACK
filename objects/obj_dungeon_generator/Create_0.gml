@@ -23,6 +23,13 @@
 // ---- Seed RNG so every generated dungeon floor is unique ----
 randomize();
 
+// ---- Roll a fresh Caesar shift key for this dungeon floor ----
+global.dungeon_cipher_key     = scr_roll_cipher_key();
+global.has_dungeon_cipher_key = false;
+if (!variable_global_exists("dungeons_cleared")) {
+    global.dungeons_cleared = 0;
+}
+
 // Ensure generator draws the room fog overlay above tiles/goal (20..50) and below Jack (-y)
 visible = true;
 depth   = 10;
@@ -223,10 +230,85 @@ var _last_idx  = array_length(path_list) - 1;
 var _last_type = logic_map[path_list[_last_idx][0]][path_list[_last_idx][1]];
 
 if (_last_type == ROOM_END) {
+    // ===========================================================================
+    // Step 4b — Assign Caesar Cipher Special Rooms
+    //   - ROOM_CAESAR_KEY: Locked by a Cybersecurity Question; contains Caesar Key.
+    //     Branches off an early Normal room so the player can obtain the key first.
+    //   - ROOM_CAESAR_LOCKED: Locked by a Caesar Cipher encryption; placed along
+    //     the second half of the main path before ROOM_END.
+    // ===========================================================================
+    main_path_len   = array_length(path_list);
+    key_room_parent = [-1, -1];
+    key_room_pos    = [-1, -1];
+
+    // 1. Convert 1-2 Normal rooms in the second half of the main path into ROOM_CAESAR_LOCKED
+    var _mid_idx = max(2, floor(main_path_len / 2));
+    var _locked_placed = 0;
+    for (var _pi = _mid_idx; _pi < main_path_len - 1; _pi++) {
+        var _rc = path_list[_pi][0];
+        var _rr = path_list[_pi][1];
+        if (logic_map[_rc][_rr] == ROOM_NORMAL) {
+            logic_map[_rc][_rr] = ROOM_CAESAR_LOCKED;
+            _locked_placed++;
+            show_debug_message(
+                "[obj_dungeon_generator] Placed ROOM_CAESAR_LOCKED at (" +
+                string(_rc) + ", " + string(_rr) + ") [path index " + string(_pi) + "]"
+            );
+            // Place up to 2 Caesar-locked rooms (with at least 1 room gap if possible)
+            if (_locked_placed >= 2) break;
+            _pi++;
+        }
+    }
+
+    // 2. Branch ROOM_CAESAR_KEY off an early room (before _mid_idx) so the key is reachable first
+    var _all_4_dirs = [
+        [ 0, -1], // UP
+        [ 0,  1], // DOWN
+        [-1,  0], // LEFT
+        [ 1,  0], // RIGHT
+    ];
+    var _key_placed = false;
+
+    for (var _pi = 1; _pi < _mid_idx && !_key_placed; _pi++) {
+        var _pc = path_list[_pi][0];
+        var _pr = path_list[_pi][1];
+        for (var _d = 0; _d < 4; _d++) {
+            var _kc = _pc + _all_4_dirs[_d][0];
+            var _kr = _pr + _all_4_dirs[_d][1];
+            if (_kc >= 0 && _kc < LOGIC_GRID_W && _kr >= 0 && _kr < LOGIC_GRID_H) {
+                if (logic_map[_kc][_kr] == ROOM_NONE) {
+                    logic_map[_kc][_kr] = ROOM_CAESAR_KEY;
+                    key_room_parent     = [_pc, _pr];
+                    key_room_pos        = [_kc, _kr];
+                    array_push(path_list, [_kc, _kr]);
+                    _key_placed = true;
+                    show_debug_message(
+                        "[obj_dungeon_generator] Placed ROOM_CAESAR_KEY branch at (" +
+                        string(_kc) + ", " + string(_kr) + ") off parent (" +
+                        string(_pc) + ", " + string(_pr) + ")"
+                    );
+                    break;
+                }
+            }
+        }
+    }
+
+    // Fallback: if no side slot was free, convert path_list[1] into ROOM_CAESAR_KEY
+    if (!_key_placed && main_path_len > 2) {
+        var _fc = path_list[1][0];
+        var _fr = path_list[1][1];
+        logic_map[_fc][_fr] = ROOM_CAESAR_KEY;
+        key_room_parent     = [path_list[0][0], path_list[0][1]];
+        key_room_pos        = [_fc, _fr];
+        show_debug_message(
+            "[obj_dungeon_generator] Placed ROOM_CAESAR_KEY (fallback on path) at (" +
+            string(_fc) + ", " + string(_fr) + ")"
+        );
+    }
+
     show_debug_message(
         "[obj_dungeon_generator] Generation SUCCESS. " +
-        string(array_length(path_list)) + " rooms total (" +
-        string(normal_count) + " Normal + 1 Start + 1 End). " +
+        string(array_length(path_list)) + " rooms total. " +
         "Iterations: " + string(_iter)
     );
     gen_complete = true;

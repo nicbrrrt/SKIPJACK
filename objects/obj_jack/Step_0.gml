@@ -22,6 +22,7 @@ if (isInCutscene
     || instance_exists(obj_transition)
     || instance_exists(obj_path)
     || instance_exists(obj_cipher)
+    || instance_exists(obj_dungeon_quiz)
     || instance_exists(obj_qte)
     || instance_exists(obj_textevent)
     || instance_exists(obj_atbash_mirror_gui)

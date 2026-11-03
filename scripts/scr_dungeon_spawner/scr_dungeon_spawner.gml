@@ -16,6 +16,45 @@
 
 
 // ---------------------------------------------------------------------------
+/// @function scr_get_border_door_type(c1, r1, c2, r2, logic_map, path_list, main_len, key_parent, key_pos)
+/// @description Returns TILE_WALL if (c1,r1) and (c2,r2) are not connected,
+///              or TILE_DOOR / TILE_LOCK_QUIZ / TILE_LOCK_CAESAR if connected.
+// ---------------------------------------------------------------------------
+function scr_get_border_door_type(c1, r1, c2, r2, logic_map, path_list, main_len, key_parent, key_pos) {
+    // 1. Check if this border connects the Key Room and its parent room
+    var _is_key_conn = (
+        (c1 == key_parent[0] && r1 == key_parent[1] && c2 == key_pos[0] && r2 == key_pos[1]) ||
+        (c2 == key_parent[0] && r2 == key_parent[1] && c1 == key_pos[0] && r1 == key_pos[1])
+    );
+    if (_is_key_conn) {
+        return TILE_LOCK_QUIZ;
+    }
+
+    // 2. Check if (c1,r1) and (c2,r2) are consecutive steps along the main path
+    for (var _i = 0; _i < main_len - 1; _i++) {
+        var _ac = path_list[_i][0];
+        var _ar = path_list[_i][1];
+        var _bc = path_list[_i + 1][0];
+        var _br = path_list[_i + 1][1];
+
+        if ((c1 == _ac && r1 == _ar && c2 == _bc && r2 == _br) ||
+            (c2 == _ac && r2 == _ar && c1 == _bc && r1 == _br)) {
+            // If the forward room (_bc, _br) is ROOM_CAESAR_LOCKED, lock this doorway with a Caesar lock
+            if (logic_map[_bc][_br] == ROOM_CAESAR_LOCKED) {
+                return TILE_LOCK_CAESAR;
+            }
+            if (logic_map[_bc][_br] == ROOM_CAESAR_KEY) {
+                return TILE_LOCK_QUIZ;
+            }
+            return TILE_DOOR;
+        }
+    }
+
+    return TILE_WALL;
+}
+
+
+// ---------------------------------------------------------------------------
 /// @function scr_dungeon_spawn(logic_map, path_list)
 /// @param {Array<Array<real>>} logic_map   The 2D grid of ROOM_* constants
 /// @param {Array<Array<real>>} path_list   Ordered list of [col, row] pairs
@@ -26,7 +65,10 @@ function scr_dungeon_spawn(logic_map, path_list) {
 
     var layer_name = "Instances"; // Must match an existing layer in the target room
 
-    var path_len = array_length(path_list);
+    var path_len   = array_length(path_list);
+    var main_len   = variable_instance_exists(id, "main_path_len")   ? main_path_len   : path_len;
+    var key_parent = variable_instance_exists(id, "key_room_parent") ? key_room_parent : [-1, -1];
+    var key_pos    = variable_instance_exists(id, "key_room_pos")    ? key_room_pos    : [-1, -1];
 
     show_debug_message("[scr_dungeon_spawn] Spawning " + string(path_len) + " rooms...");
 
@@ -42,40 +84,20 @@ function scr_dungeon_spawn(logic_map, path_list) {
         // Retrieve the 9x9 tile template for this room type
         var template = scr_get_template(room_type);
 
-        // Determine which neighboring rooms are connected to this room.
-        // We check the consecutive path connections (where the player came from and where they go next).
-        var has_top    = false;
-        var has_bottom = false;
-        var has_left   = false;
-        var has_right  = false;
-
-        // Check connection to previous room in the path
-        if (p > 0) {
-            var _pc = path_list[p - 1][0];
-            var _pr = path_list[p - 1][1];
-            if (_pc == logic_col && _pr == logic_row - 1) has_top    = true;
-            if (_pc == logic_col && _pr == logic_row + 1) has_bottom = true;
-            if (_pc == logic_col - 1 && _pr == logic_row) has_left   = true;
-            if (_pc == logic_col + 1 && _pr == logic_row) has_right  = true;
-        }
-
-        // Check connection to next room in the path
-        if (p < path_len - 1) {
-            var _nc = path_list[p + 1][0];
-            var _nr = path_list[p + 1][1];
-            if (_nc == logic_col && _nr == logic_row - 1) has_top    = true;
-            if (_nc == logic_col && _nr == logic_row + 1) has_bottom = true;
-            if (_nc == logic_col - 1 && _nr == logic_row) has_left   = true;
-            if (_nc == logic_col + 1 && _nr == logic_row) has_right  = true;
-        }
+        // Determine the door tile type (TILE_WALL, TILE_DOOR, TILE_LOCK_QUIZ, TILE_LOCK_CAESAR)
+        // for each of the 4 cardinal borders of this room.
+        var top_tile    = scr_get_border_door_type(logic_col, logic_row, logic_col,     logic_row - 1, logic_map, path_list, main_len, key_parent, key_pos);
+        var bottom_tile = scr_get_border_door_type(logic_col, logic_row, logic_col,     logic_row + 1, logic_map, path_list, main_len, key_parent, key_pos);
+        var left_tile   = scr_get_border_door_type(logic_col, logic_row, logic_col - 1, logic_row,     logic_map, path_list, main_len, key_parent, key_pos);
+        var right_tile  = scr_get_border_door_type(logic_col, logic_row, logic_col + 1, logic_row,     logic_map, path_list, main_len, key_parent, key_pos);
 
         // Carve 3-tile-wide doorways (tiles 3, 4, 5) ONLY on borders that connect to a neighboring room;
         // any border facing empty space remains a 100% solid wall.
         for (var _d_idx = 3; _d_idx <= 5; _d_idx++) {
-            template[0][_d_idx] = has_top    ? TILE_DOOR : TILE_WALL; // Top border center
-            template[8][_d_idx] = has_bottom ? TILE_DOOR : TILE_WALL; // Bottom border center
-            template[_d_idx][0] = has_left   ? TILE_DOOR : TILE_WALL; // Left border center
-            template[_d_idx][8] = has_right  ? TILE_DOOR : TILE_WALL; // Right border center
+            template[0][_d_idx] = top_tile;    // Top border center
+            template[8][_d_idx] = bottom_tile; // Bottom border center
+            template[_d_idx][0] = left_tile;   // Left border center
+            template[_d_idx][8] = right_tile;  // Right border center
         }
 
         // World-space top-left corner of this chunk (in pixels)
@@ -86,7 +108,7 @@ function scr_dungeon_spawn(logic_map, path_list) {
             "[scr_dungeon_spawn] Room " + string(p) +
             " type=" + string(room_type) +
             " logic=(" + string(logic_col) + "," + string(logic_row) + ")" +
-            " doors=[T:" + string(has_top) + " B:" + string(has_bottom) + " L:" + string(has_left) + " R:" + string(has_right) + "]"
+            " doors=[T:" + string(top_tile) + " B:" + string(bottom_tile) + " L:" + string(left_tile) + " R:" + string(right_tile) + "]"
         );
 
         // Iterate every tile in the 9x9 grid (row-major for clarity)
@@ -118,6 +140,24 @@ function scr_dungeon_spawn(logic_map, path_list) {
                         _d.depth = 40;
                         break;
 
+                    case TILE_LOCK_QUIZ:
+                        var _qf = instance_create_layer(px, py, layer_name, obj_floor);
+                        _qf.depth = 50;
+                        var _qd = instance_create_layer(px, py, layer_name, obj_doorway);
+                        _qd.depth = 40;
+                        var _ql = instance_create_layer(px, py, layer_name, obj_door_quiz_lock);
+                        _ql.depth = 25;
+                        break;
+
+                    case TILE_LOCK_CAESAR:
+                        var _cf = instance_create_layer(px, py, layer_name, obj_floor);
+                        _cf.depth = 50;
+                        var _cd = instance_create_layer(px, py, layer_name, obj_doorway);
+                        _cd.depth = 40;
+                        var _cl = instance_create_layer(px, py, layer_name, obj_door_caesar_lock);
+                        _cl.depth = 25;
+                        break;
+
                     default:
                         // Unknown tile value — log and skip (do not crash)
                         show_debug_message(
@@ -142,6 +182,11 @@ function scr_dungeon_spawn(logic_map, path_list) {
                 obj_jack.y = center_y;
                 obj_jack.isInCutscene = false;
             }
+        }
+
+        // Place the Caesar Key Pedestal at the center of ROOM_CAESAR_KEY
+        if (room_type == ROOM_CAESAR_KEY) {
+            instance_create_layer(center_x, center_y, layer_name, obj_caesar_key_pedestal);
         }
 
         // Place the extraction goal beacon at the center of the End room

@@ -1,5 +1,12 @@
 if (variable_global_exists("is_paused") && global.is_paused) exit;
 
+// In standalone (non-battle) mode, allow ESC to close the cipher overlay
+if (!instance_exists(obj_battle) && keyboard_check_pressed(vk_escape)) {
+    audio_play_sound(snd_button_click, 10, false);
+    instance_destroy();
+    exit;
+}
+
 // Move between slots with LEFT/RIGHT arrows
 if (keyboard_check_pressed(vk_right)) {
     current_slot = min(current_slot + 1, letters_len - 1);
@@ -10,7 +17,6 @@ if (keyboard_check_pressed(vk_left)) {
     audio_play_sound(select1, 10, false);
 }
 
-// Change letters with UP/DOWN arrows
 // Change letters with UP/DOWN arrows
 if (keyboard_check_pressed(vk_up)) {
     if (player_input[current_slot] == "") {
@@ -84,6 +90,17 @@ if (success_timer > 0) {
                 if (fight_anim == "idle") {
                     fight_anim = "player_attack";
                     fight_timer = 0;
+                }
+            }
+        } else {
+            // Standalone dungeon mode: unlock the Caesar-locked doorway that triggered this puzzle
+            var _tx = target_door_x;
+            var _ty = target_door_y;
+            with (obj_door_caesar_lock) {
+                if (point_distance(draw_x, draw_y, _tx, _ty) <= 64) {
+                    locked = false;
+                    x = -10000;
+                    y = -10000;
                 }
             }
         }

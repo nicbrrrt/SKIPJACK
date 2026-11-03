@@ -1,0 +1,14 @@
+/// @description obj_door_quiz_lock — Step Event
+/// Press E when adjacent to open the Cybersecurity Question UI (obj_dungeon_quiz).
+
+anim_t++;
+
+if (locked && instance_exists(obj_jack)) {
+    if (!instance_exists(obj_dungeon_quiz) && !instance_exists(obj_cipher) && !instance_exists(obj_dungeon_victory)) {
+        if (point_distance(obj_jack.x, obj_jack.y - 8, draw_x + 8, draw_y + 8) < 28) {
+            if (keyboard_check_pressed(ord("E"))) {
+                instance_create_depth(draw_x, draw_y, -15000, obj_dungeon_quiz);
+            }
+        }
+    }
+}

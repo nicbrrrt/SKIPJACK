@@ -5,17 +5,21 @@
 // ---------------------------------------------------------------------------
 // Tile type identifiers (used inside 9x9 room template arrays)
 // ---------------------------------------------------------------------------
-#macro TILE_FLOOR   0   // Walkable floor cell
-#macro TILE_WALL    1   // Solid wall cell
-#macro TILE_DOOR    2   // Doorway / open gap in a border wall
+#macro TILE_FLOOR       0   // Walkable floor cell
+#macro TILE_WALL        1   // Solid wall cell
+#macro TILE_DOOR        2   // Doorway / open gap in a border wall
+#macro TILE_LOCK_QUIZ   3   // Doorway locked by a Cybersecurity Question
+#macro TILE_LOCK_CAESAR 4   // Doorway locked by a Caesar Cipher encryption
 
 // ---------------------------------------------------------------------------
 // Logic-map room type identifiers (used in obj_dungeon_generator's grid)
 // ---------------------------------------------------------------------------
-#macro ROOM_NONE    -1  // Slot is unoccupied (default)
-#macro ROOM_START   1   // The starting room
-#macro ROOM_NORMAL  2   // A standard traversal room
-#macro ROOM_END     3   // The exit/boss room
+#macro ROOM_NONE          -1  // Slot is unoccupied (default)
+#macro ROOM_START          1  // The starting room
+#macro ROOM_NORMAL         2  // A standard traversal room
+#macro ROOM_END            3  // The exit/boss room
+#macro ROOM_CAESAR_KEY     4  // Locked vault room containing the Caesar cipher key
+#macro ROOM_CAESAR_LOCKED  5  // Room locked behind a Caesar cipher encrypted door
 
 // ---------------------------------------------------------------------------
 // Spatial configuration
