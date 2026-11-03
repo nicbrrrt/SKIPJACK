@@ -1,31 +1,39 @@
 /// @description Dungeon Generation — Global Constants
 /// All dungeon system constants are defined here as macros.
-/// Adjust TILE_SIZE to match your floor/wall sprite dimensions.
 
 // ---------------------------------------------------------------------------
 // Tile type identifiers (used inside 9x9 room template arrays)
 // ---------------------------------------------------------------------------
-#macro TILE_FLOOR       0   // Walkable floor cell
-#macro TILE_WALL        1   // Solid wall cell
-#macro TILE_DOOR        2   // Doorway / open gap in a border wall
-#macro TILE_LOCK_QUIZ   3   // Doorway locked by a Cybersecurity Question
-#macro TILE_LOCK_CAESAR 4   // Doorway locked by a Caesar Cipher encryption
+#macro TILE_VOID          -1   // Structural building void / outer wall mass
+#macro TILE_FLOOR          0   // Standard corporate floor tile
+#macro TILE_WALL           1   // Corporate interior wall cell
+#macro TILE_DOOR           2   // Open doorway / threshold tile
+#macro TILE_LOCK_QUIZ      3   // Doorway locked by a Cybersecurity Question
+#macro TILE_LOCK_CAESAR    4   // Doorway locked by a Caesar Cipher encryption
+#macro TILE_CARPET         5   // Corporate hallway runner / accent carpet tile
+#macro TILE_ELEVATOR_FLOOR 6   // Brushed steel elevator cab floor tile
+#macro TILE_PROP_PC        7   // Corporate computer desk terminal (solid prop)
+#macro TILE_PROP_CHAIR     8   // Office chair prop on floor
+#macro TILE_PROP_BOARD     9   // Corporate whiteboard / monitor on top wall
+#macro TILE_PROP_PAPER    10   // Scattered lockdown papers on floor
+#macro TILE_HALL_OPEN     11   // Seamless open corridor connection between two hallway chunks
 
 // ---------------------------------------------------------------------------
 // Logic-map room type identifiers (used in obj_dungeon_generator's grid)
 // ---------------------------------------------------------------------------
-#macro ROOM_NONE          -1  // Slot is unoccupied (default)
-#macro ROOM_START          1  // The starting room
-#macro ROOM_NORMAL         2  // A standard traversal room
-#macro ROOM_END            3  // The exit/boss room
-#macro ROOM_CAESAR_KEY     4  // Locked vault room containing the Caesar cipher key
-#macro ROOM_CAESAR_LOCKED  5  // Room locked behind a Caesar cipher encrypted door
+#macro ROOM_NONE          -1   // Slot is unoccupied (default)
+#macro ROOM_START          1   // Security Reception / Starting Lobby
+#macro ROOM_NORMAL         2   // Office / Apartment Room branching off the hallway
+#macro ROOM_END            3   // Corporate Extraction Elevator Room
+#macro ROOM_CAESAR_KEY     4   // Locked IT Key Vault containing the Caesar cipher key
+#macro ROOM_CAESAR_LOCKED  5   // Mainframe sector locked behind a Caesar cipher door
+#macro ROOM_HALLWAY        6   // Central building hallway spine connecting all rooms
 
 // ---------------------------------------------------------------------------
 // Spatial configuration
 // ---------------------------------------------------------------------------
 #macro CHUNK_SIZE   9   // Tiles per room chunk (width AND height)
-#macro TILE_SIZE    16  // Pixels per tile — matches spr_floor_tile / spr_wall_tile (16x16)
+#macro TILE_SIZE    16  // Pixels per tile (16x16)
 
 // ---------------------------------------------------------------------------
 // Logic grid dimensions (number of room slots, not pixels)

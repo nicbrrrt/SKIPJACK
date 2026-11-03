@@ -122,6 +122,7 @@
     {"id":{"name":"obj_doorway","path":"objects/obj_doorway/obj_doorway.yy",},},
     {"id":{"name":"obj_dungeon_generator","path":"objects/obj_dungeon_generator/obj_dungeon_generator.yy",},},
     {"id":{"name":"obj_dungeon_goal","path":"objects/obj_dungeon_goal/obj_dungeon_goal.yy",},},
+    {"id":{"name":"obj_dungeon_prop","path":"objects/obj_dungeon_prop/obj_dungeon_prop.yy",},},
     {"id":{"name":"obj_dungeon_quiz","path":"objects/obj_dungeon_quiz/obj_dungeon_quiz.yy",},},
     {"id":{"name":"obj_dungeon_victory","path":"objects/obj_dungeon_victory/obj_dungeon_victory.yy",},},
     {"id":{"name":"obj_dungeon_wall","path":"objects/obj_dungeon_wall/obj_dungeon_wall.yy",},},

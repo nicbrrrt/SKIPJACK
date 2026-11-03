@@ -1,24 +1,14 @@
 /// @description obj_dungeon_generator — Create Event
-/// Grid-walker dungeon generation algorithm.
-///
-/// FLOW:
-///   1. Initialise a LOGIC_GRID_W x LOGIC_GRID_H grid filled with ROOM_NONE.
-///   2. Place ROOM_START at the left-centre column (col 0, row mid).
-///   3. Walk right/up/down (never left) placing ROOM_NORMAL rooms.
-///   4. After MIN_PATH_LEN Normal rooms, allow ROOM_END to be placed.
-///   5. End placement is forced once MAX_PATH_LEN Normal rooms are placed
-///      OR when no forward move is available.
-///   6. On completion, call scr_dungeon_spawn() to instantiate tiles.
-///
-/// BACKTRACKING:
-///   If the walker gets stuck (all neighbours occupied / out of bounds),
-///   it backtracks one step in path_list. If the full path_list is exhausted
-///   during backtracking, the generator retries from scratch.
-///
-/// SAFETY:
-///   GEN_MAX_ITER caps the total number of walker iterations to prevent
-///   any potential infinite loop during development.
-/// ---------------------------------------------------------------------------
+/// Apartment / Corporate Office Floor Generator:
+///   1. Places ROOM_START (Reception Lobby) at (0, 5).
+///   2. Generates a connected Hallway Spine (ROOM_HALLWAY chunks) across the grid.
+///   3. Places ROOM_END (Extraction Elevator) at the far end of the Hallway Spine
+///      behind a Caesar Cipher Lock (TILE_LOCK_CAESAR).
+///   4. Branches individual rooms off the sides of the Hallway Spine:
+///        - 1 ROOM_CAESAR_KEY (locked by TILE_LOCK_QUIZ, contains Caesar Key)
+///        - 1-2 ROOM_CAESAR_LOCKED (locked by TILE_LOCK_CAESAR)
+///        - 3-5 ROOM_NORMAL (varied office/apartment rooms with TILE_DOOR)
+///      Rooms only connect to the Hallway Spine (never directly to adjacent rooms).
 
 // ---- Seed RNG so every generated dungeon floor is unique ----
 randomize();
@@ -34,17 +24,14 @@ if (!variable_global_exists("dungeons_cleared")) {
 visible = true;
 depth   = 10;
 
-// ---- Instance variables exposed for external read (e.g. spawner, debug) ----
+// ---- Instance variables exposed for spawner & fog system ----
 logic_map      = [];    // 2D array [col][row] of ROOM_* constants
 room_fog_alpha = [];    // 2D array [col][row] of fog alpha (0 = lit, 0.90 = darkened)
-path_list      = [];    // Ordered array of [col, row] pairs
-gen_complete   = false; // True once generation + spawning both finish
-normal_count   = 0;     // Running count of ROOM_NORMAL rooms placed
-active_col     = 0;     // Player's current room column
-active_row     = 0;     // Player's current room row
-
-// ---- Internal walker state ----
-var _attempts = 0;      // Safety iteration counter
+path_list      = [];    // All active chunks [col, row] (hallways + rooms)
+door_links     = [];    // Explicit doorway connections: [c1, r1, c2, r2, door_tile_type]
+gen_complete   = false;
+active_col     = 0;
+active_row     = 0;
 
 // ===========================================================================
 // Step 1 — Initialise the logic map & fog alpha grid
@@ -59,268 +46,173 @@ for (var _c = 0; _c < LOGIC_GRID_W; _c++) {
 }
 
 // ===========================================================================
-// Step 2 — Place the Start room
+// Step 2 — Place ROOM_START & build the Central Hallway Spine
 // ===========================================================================
 var _start_col = 0;
-var _start_row = floor(LOGIC_GRID_H / 2);   // Vertical centre (row 5 on a 10-row grid)
+var _start_row = floor(LOGIC_GRID_H / 2); // (0, 5)
 
 logic_map[_start_col][_start_row]      = ROOM_START;
 room_fog_alpha[_start_col][_start_row] = 0.0;
 active_col = _start_col;
 active_row = _start_row;
-path_list[0] = [_start_col, _start_row];
+array_push(path_list, [_start_col, _start_row]);
 
+// First hallway segment directly to the right of Start Room at (1, 5)
+var _hc = 1;
+var _hr = _start_row;
+logic_map[_hc][_hr] = ROOM_HALLWAY;
+array_push(path_list, [_hc, _hr]);
+array_push(door_links, [_start_col, _start_row, _hc, _hr, TILE_DOOR]);
+
+var _hallway_spine = [[_hc, _hr]];
+var _target_hall_len = irandom_range(4, 6);
+
+// Walk the hallway spine (mostly RIGHT with occasional UP/DOWN turns, keeping room for side rooms)
+for (var _s = 1; _s < _target_hall_len; _s++) {
+    // Weight RIGHT higher so the hallway feels like a long building corridor
+    var _cand_dirs = [
+        [ 1,  0],
+        [ 1,  0],
+        [ 0, -1],
+        [ 0,  1],
+    ];
+    // Shuffle candidate directions
+    for (var _i = 3; _i > 0; _i--) {
+        var _j = irandom(_i);
+        var _tmp = _cand_dirs[_i];
+        _cand_dirs[_i] = _cand_dirs[_j];
+        _cand_dirs[_j] = _tmp;
+    }
+
+    var _placed_seg = false;
+    for (var _d = 0; _d < 4; _d++) {
+        var _nc = _hc + _cand_dirs[_d][0];
+        var _nr = _hr + _cand_dirs[_d][1];
+        // Keep hallway within rows 2..7 and cols 1..7 so side rooms always fit on the grid
+        if (_nc >= 1 && _nc <= LOGIC_GRID_W - 3 && _nr >= 2 && _nr <= LOGIC_GRID_H - 3) {
+            if (logic_map[_nc][_nr] == ROOM_NONE) {
+                logic_map[_nc][_nr] = ROOM_HALLWAY;
+                array_push(path_list, [_nc, _nr]);
+                array_push(_hallway_spine, [_nc, _nr]);
+                // Seamless open hallway connection between adjacent hallway segments
+                array_push(door_links, [_hc, _hr, _nc, _nr, TILE_HALL_OPEN]);
+                _hc = _nc;
+                _hr = _nr;
+                _placed_seg = true;
+                break;
+            }
+        }
+    }
+    if (!_placed_seg) break;
+}
+
+// ===========================================================================
+// Step 3 — Place ROOM_END (Extraction Elevator) at the end of the Hallway Spine
+// ===========================================================================
+var _end_dirs = [
+    [ 1,  0], // Prefer placing the elevator straight ahead at the right end of the hall
+    [ 0, -1],
+    [ 0,  1],
+    [-1,  0],
+];
+var _end_placed = false;
+for (var _hi = array_length(_hallway_spine) - 1; _hi >= 0 && !_end_placed; _hi--) {
+    var _ehc = _hallway_spine[_hi][0];
+    var _ehr = _hallway_spine[_hi][1];
+    for (var _d = 0; _d < 4; _d++) {
+        var _ec = _ehc + _end_dirs[_d][0];
+        var _er = _ehr + _end_dirs[_d][1];
+        if (_ec >= 0 && _ec < LOGIC_GRID_W && _er >= 0 && _er < LOGIC_GRID_H) {
+            if (logic_map[_ec][_er] == ROOM_NONE) {
+                logic_map[_ec][_er] = ROOM_END;
+                array_push(path_list, [_ec, _er]);
+                // Guard the Elevator entrance with a Caesar Cipher Lock so the player must find the Key!
+                array_push(door_links, [_ehc, _ehr, _ec, _er, TILE_LOCK_CAESAR]);
+                _end_placed = true;
+                break;
+            }
+        }
+    }
+}
+
+// ===========================================================================
+// Step 4 — Branch Apartment / Office Rooms off the sides of the Hallway Spine
+// ===========================================================================
+var _side_candidates = []; // Each entry: [hall_col, hall_row, room_col, room_row]
+var _all_4_dirs = [
+    [ 0, -1], // Top side of hallway
+    [ 0,  1], // Bottom side of hallway
+    [-1,  0], // Left side of hallway
+    [ 1,  0], // Right side of hallway
+];
+
+var _hall_len = array_length(_hallway_spine);
+for (var _hi = 0; _hi < _hall_len; _hi++) {
+    var _sc = _hallway_spine[_hi][0];
+    var _sr = _hallway_spine[_hi][1];
+
+    for (var _d = 0; _d < 4; _d++) {
+        var _rc = _sc + _all_4_dirs[_d][0];
+        var _rr = _sr + _all_4_dirs[_d][1];
+        if (_rc >= 0 && _rc < LOGIC_GRID_W && _rr >= 0 && _rr < LOGIC_GRID_H) {
+            if (logic_map[_rc][_rr] == ROOM_NONE) {
+                // Temporarily mark reserved so we don't add duplicates to _side_candidates
+                logic_map[_rc][_rr] = -2;
+                array_push(_side_candidates, [_sc, _sr, _rc, _rr]);
+            }
+        }
+    }
+}
+
+// Reset temporary -2 markers back to ROOM_NONE
+for (var _i = 0; _i < array_length(_side_candidates); _i++) {
+    var _rc = _side_candidates[_i][2];
+    var _rr = _side_candidates[_i][3];
+    logic_map[_rc][_rr] = ROOM_NONE;
+}
+
+// Shuffle _side_candidates so rooms are distributed organically along the hallway
+for (var _i = array_length(_side_candidates) - 1; _i > 0; _i--) {
+    var _j = irandom(_i);
+    var _tmp = _side_candidates[_i];
+    _side_candidates[_i] = _side_candidates[_j];
+    _side_candidates[_j] = _tmp;
+}
+
+var _max_side_rooms = min(array_length(_side_candidates), irandom_range(5, 7));
+for (var _i = 0; _i < _max_side_rooms; _i++) {
+    var _h_col = _side_candidates[_i][0];
+    var _h_row = _side_candidates[_i][1];
+    var _r_col = _side_candidates[_i][2];
+    var _r_row = _side_candidates[_i][3];
+
+    var _rtype = ROOM_NORMAL;
+    var _dtype = TILE_DOOR;
+
+    if (_i == 0) {
+        // First side room is ALWAYS the Caesar Key Vault (locked by a Cybersecurity Question)
+        _rtype = ROOM_CAESAR_KEY;
+        _dtype = TILE_LOCK_QUIZ;
+    } else if (_i == 1) {
+        // Second side room is a Caesar Cipher-Locked Mainframe Room
+        _rtype = ROOM_CAESAR_LOCKED;
+        _dtype = TILE_LOCK_CAESAR;
+    }
+
+    logic_map[_r_col][_r_row] = _rtype;
+    array_push(path_list, [_r_col, _r_row]);
+    // Connect this room ONLY to its hallway segment (never to adjacent rooms!)
+    array_push(door_links, [_h_col, _h_row, _r_col, _r_row, _dtype]);
+}
+
+gen_complete = true;
 show_debug_message(
-    "[obj_dungeon_generator] Generation started. " +
-    "Start room at (" + string(_start_col) + ", " + string(_start_row) + ")"
+    "[obj_dungeon_generator] Apartment/Office Hallway Floor generated: " +
+    string(_hall_len) + " hallway segments, " +
+    string(_max_side_rooms) + " side rooms + Start + Elevator."
 );
 
 // ===========================================================================
-// Step 3 — Grid walker loop
+// Step 5 — Invoke the spawner to build the physical dungeon
 // ===========================================================================
-
-// Direction vectors: RIGHT, DOWN, UP  (no LEFT — enforces forward progression)
-// Each entry: [delta_col, delta_row]
-var _directions = [
-    [ 1,  0],   // RIGHT
-    [ 0,  1],   // DOWN
-    [ 0, -1],   // UP
-];
-
-var _finished   = false;
-var _iter       = 0;
-
-while (!_finished && _iter < GEN_MAX_ITER) {
-    _iter++;
-    _attempts++;
-
-    var _path_len = array_length(path_list);
-
-    // Grab current head of the path
-    var _cur_col = path_list[_path_len - 1][0];
-    var _cur_row = path_list[_path_len - 1][1];
-
-    // -------------------------------------------------------------------
-    // Check if End room can/must be placed now
-    // -------------------------------------------------------------------
-    var _can_place_end  = (normal_count >= MIN_PATH_LEN);
-    var _must_place_end = (normal_count >= MAX_PATH_LEN);
-
-    if (_must_place_end) {
-        // Scan all neighbours for any empty slot to force the End room
-        var _placed_end = false;
-        for (var _d = 0; _d < array_length(_directions); _d++) {
-            var _nc = _cur_col + _directions[_d][0];
-            var _nr = _cur_row + _directions[_d][1];
-            if (_nc >= 0 && _nc < LOGIC_GRID_W && _nr >= 0 && _nr < LOGIC_GRID_H) {
-                if (logic_map[_nc][_nr] == ROOM_NONE) {
-                    logic_map[_nc][_nr] = ROOM_END;
-                    array_push(path_list, [_nc, _nr]);
-                    show_debug_message(
-                        "[obj_dungeon_generator] ROOM_END placed (forced) at (" +
-                        string(_nc) + ", " + string(_nr) + ")"
-                    );
-                    _finished    = true;
-                    _placed_end  = true;
-                    break;
-                }
-            }
-        }
-        if (!_placed_end) {
-            // Dead end with no room to place End — backtrack
-            show_debug_message("[obj_dungeon_generator] Dead-end during forced End placement — backtracking.");
-            if (array_length(path_list) > 1) {
-                logic_map[_cur_col][_cur_row] = ROOM_NONE;
-                array_delete(path_list, array_length(path_list) - 1, 1);
-                normal_count = max(0, normal_count - 1);
-            } else {
-                // Complete failure — restart (re-run this event via a room restart or flag)
-                show_debug_message("[obj_dungeon_generator] CRITICAL: Could not place End room. Generation failed.");
-                _finished = true; // Exit loop; gen_complete stays false
-            }
-        }
-        continue;
-    }
-
-    // -------------------------------------------------------------------
-    // Shuffle directions (Fisher-Yates, 3 elements)
-    // -------------------------------------------------------------------
-    var _dirs = array_create(3);
-    _dirs[0]  = _directions[0];
-    _dirs[1]  = _directions[1];
-    _dirs[2]  = _directions[2];
-
-    // Swap [2] with random pick from [0..2]
-    var _swap_idx = irandom(2);
-    var _tmp = _dirs[2]; _dirs[2] = _dirs[_swap_idx]; _dirs[_swap_idx] = _tmp;
-    // Swap [1] with random pick from [0..1]
-    _swap_idx = irandom(1);
-    _tmp = _dirs[1]; _dirs[1] = _dirs[_swap_idx]; _dirs[_swap_idx] = _tmp;
-
-    // -------------------------------------------------------------------
-    // Try each direction for a valid Normal or End move
-    // -------------------------------------------------------------------
-    var _moved = false;
-
-    for (var _d = 0; _d < 3; _d++) {
-        var _nc = _cur_col + _dirs[_d][0];
-        var _nr = _cur_row + _dirs[_d][1];
-
-        // Bounds check
-        if (_nc < 0 || _nc >= LOGIC_GRID_W || _nr < 0 || _nr >= LOGIC_GRID_H) continue;
-
-        // Must be unoccupied
-        if (logic_map[_nc][_nr] != ROOM_NONE) continue;
-
-        // ---- Attempt to place End room ----
-        // (Only when we've met the minimum path length)
-        if (_can_place_end && irandom(4) == 0) {   // ~20% chance to end early if eligible
-            logic_map[_nc][_nr] = ROOM_END;
-            array_push(path_list, [_nc, _nr]);
-            show_debug_message(
-                "[obj_dungeon_generator] ROOM_END placed (organic) at (" +
-                string(_nc) + ", " + string(_nr) + ")"
-            );
-            _finished = true;
-            _moved    = true;
-            break;
-        }
-
-        // ---- Place a Normal room ----
-        logic_map[_nc][_nr] = ROOM_NORMAL;
-        array_push(path_list, [_nc, _nr]);
-        normal_count++;
-        show_debug_message(
-            "[obj_dungeon_generator] ROOM_NORMAL #" + string(normal_count) +
-            " at (" + string(_nc) + ", " + string(_nr) + ")"
-        );
-        _moved = true;
-        break;
-    }
-
-    // -------------------------------------------------------------------
-    // If no move was found, backtrack one step
-    // -------------------------------------------------------------------
-    if (!_moved && !_finished) {
-        if (array_length(path_list) > 1) {
-            show_debug_message("[obj_dungeon_generator] No valid move — backtracking from (" +
-                string(_cur_col) + ", " + string(_cur_row) + ")");
-            logic_map[_cur_col][_cur_row] = ROOM_NONE;
-            array_delete(path_list, array_length(path_list) - 1, 1);
-            normal_count = max(0, normal_count - 1);
-        } else {
-            // Start room is the only room left — nothing more to backtrack into
-            show_debug_message("[obj_dungeon_generator] ERROR: Walker exhausted all paths from Start. Generation failed.");
-            _finished = true;
-        }
-    }
-
-} // end walker while-loop
-
-// ===========================================================================
-// Step 4 — Safety check & finalization
-// ===========================================================================
-if (_iter >= GEN_MAX_ITER) {
-    show_debug_message("[obj_dungeon_generator] WARNING: Hit GEN_MAX_ITER (" +
-        string(GEN_MAX_ITER) + ") — generation may be incomplete.");
-}
-
-// Verify the last room in path_list is indeed ROOM_END
-var _last_idx  = array_length(path_list) - 1;
-var _last_type = logic_map[path_list[_last_idx][0]][path_list[_last_idx][1]];
-
-if (_last_type == ROOM_END) {
-    // ===========================================================================
-    // Step 4b — Assign Caesar Cipher Special Rooms
-    //   - ROOM_CAESAR_KEY: Locked by a Cybersecurity Question; contains Caesar Key.
-    //     Branches off an early Normal room so the player can obtain the key first.
-    //   - ROOM_CAESAR_LOCKED: Locked by a Caesar Cipher encryption; placed along
-    //     the second half of the main path before ROOM_END.
-    // ===========================================================================
-    main_path_len   = array_length(path_list);
-    key_room_parent = [-1, -1];
-    key_room_pos    = [-1, -1];
-
-    // 1. Convert 1-2 Normal rooms in the second half of the main path into ROOM_CAESAR_LOCKED
-    var _mid_idx = max(2, floor(main_path_len / 2));
-    var _locked_placed = 0;
-    for (var _pi = _mid_idx; _pi < main_path_len - 1; _pi++) {
-        var _rc = path_list[_pi][0];
-        var _rr = path_list[_pi][1];
-        if (logic_map[_rc][_rr] == ROOM_NORMAL) {
-            logic_map[_rc][_rr] = ROOM_CAESAR_LOCKED;
-            _locked_placed++;
-            show_debug_message(
-                "[obj_dungeon_generator] Placed ROOM_CAESAR_LOCKED at (" +
-                string(_rc) + ", " + string(_rr) + ") [path index " + string(_pi) + "]"
-            );
-            // Place up to 2 Caesar-locked rooms (with at least 1 room gap if possible)
-            if (_locked_placed >= 2) break;
-            _pi++;
-        }
-    }
-
-    // 2. Branch ROOM_CAESAR_KEY off an early room (before _mid_idx) so the key is reachable first
-    var _all_4_dirs = [
-        [ 0, -1], // UP
-        [ 0,  1], // DOWN
-        [-1,  0], // LEFT
-        [ 1,  0], // RIGHT
-    ];
-    var _key_placed = false;
-
-    for (var _pi = 1; _pi < _mid_idx && !_key_placed; _pi++) {
-        var _pc = path_list[_pi][0];
-        var _pr = path_list[_pi][1];
-        for (var _d = 0; _d < 4; _d++) {
-            var _kc = _pc + _all_4_dirs[_d][0];
-            var _kr = _pr + _all_4_dirs[_d][1];
-            if (_kc >= 0 && _kc < LOGIC_GRID_W && _kr >= 0 && _kr < LOGIC_GRID_H) {
-                if (logic_map[_kc][_kr] == ROOM_NONE) {
-                    logic_map[_kc][_kr] = ROOM_CAESAR_KEY;
-                    key_room_parent     = [_pc, _pr];
-                    key_room_pos        = [_kc, _kr];
-                    array_push(path_list, [_kc, _kr]);
-                    _key_placed = true;
-                    show_debug_message(
-                        "[obj_dungeon_generator] Placed ROOM_CAESAR_KEY branch at (" +
-                        string(_kc) + ", " + string(_kr) + ") off parent (" +
-                        string(_pc) + ", " + string(_pr) + ")"
-                    );
-                    break;
-                }
-            }
-        }
-    }
-
-    // Fallback: if no side slot was free, convert path_list[1] into ROOM_CAESAR_KEY
-    if (!_key_placed && main_path_len > 2) {
-        var _fc = path_list[1][0];
-        var _fr = path_list[1][1];
-        logic_map[_fc][_fr] = ROOM_CAESAR_KEY;
-        key_room_parent     = [path_list[0][0], path_list[0][1]];
-        key_room_pos        = [_fc, _fr];
-        show_debug_message(
-            "[obj_dungeon_generator] Placed ROOM_CAESAR_KEY (fallback on path) at (" +
-            string(_fc) + ", " + string(_fr) + ")"
-        );
-    }
-
-    show_debug_message(
-        "[obj_dungeon_generator] Generation SUCCESS. " +
-        string(array_length(path_list)) + " rooms total. " +
-        "Iterations: " + string(_iter)
-    );
-    gen_complete = true;
-
-    // ===========================================================================
-    // Step 5 — Invoke the spawner to build the physical dungeon
-    // ===========================================================================
-    scr_dungeon_spawn(logic_map, path_list);
-
-} else {
-    show_debug_message(
-        "[obj_dungeon_generator] Generation INCOMPLETE — last room type is " +
-        string(_last_type) + ". Spawner NOT called."
-    );
-}
+scr_dungeon_spawn(logic_map, path_list);

@@ -16,40 +16,26 @@
 
 
 // ---------------------------------------------------------------------------
-/// @function scr_get_border_door_type(c1, r1, c2, r2, logic_map, path_list, main_len, key_parent, key_pos)
-/// @description Returns TILE_WALL if (c1,r1) and (c2,r2) are not connected,
-///              or TILE_DOOR / TILE_LOCK_QUIZ / TILE_LOCK_CAESAR if connected.
+/// @function scr_get_border_door_type(c1, r1, c2, r2, door_links)
+/// @description Looks up whether (c1,r1) and (c2,r2) share an explicit connection
+///              in door_links. Returns TILE_WALL if not connected, or
+///              TILE_DOOR / TILE_HALL_OPEN / TILE_LOCK_QUIZ / TILE_LOCK_CAESAR.
 // ---------------------------------------------------------------------------
-function scr_get_border_door_type(c1, r1, c2, r2, logic_map, path_list, main_len, key_parent, key_pos) {
-    // 1. Check if this border connects the Key Room and its parent room
-    var _is_key_conn = (
-        (c1 == key_parent[0] && r1 == key_parent[1] && c2 == key_pos[0] && r2 == key_pos[1]) ||
-        (c2 == key_parent[0] && r2 == key_parent[1] && c1 == key_pos[0] && r1 == key_pos[1])
-    );
-    if (_is_key_conn) {
-        return TILE_LOCK_QUIZ;
-    }
-
-    // 2. Check if (c1,r1) and (c2,r2) are consecutive steps along the main path
-    for (var _i = 0; _i < main_len - 1; _i++) {
-        var _ac = path_list[_i][0];
-        var _ar = path_list[_i][1];
-        var _bc = path_list[_i + 1][0];
-        var _br = path_list[_i + 1][1];
+function scr_get_border_door_type(c1, r1, c2, r2, door_links) {
+    var _len = array_length(door_links);
+    for (var _i = 0; _i < _len; _i++) {
+        var _link = door_links[_i];
+        var _ac   = _link[0];
+        var _ar   = _link[1];
+        var _bc   = _link[2];
+        var _br   = _link[3];
+        var _dt   = _link[4];
 
         if ((c1 == _ac && r1 == _ar && c2 == _bc && r2 == _br) ||
             (c2 == _ac && r2 == _ar && c1 == _bc && r1 == _br)) {
-            // If the forward room (_bc, _br) is ROOM_CAESAR_LOCKED, lock this doorway with a Caesar lock
-            if (logic_map[_bc][_br] == ROOM_CAESAR_LOCKED) {
-                return TILE_LOCK_CAESAR;
-            }
-            if (logic_map[_bc][_br] == ROOM_CAESAR_KEY) {
-                return TILE_LOCK_QUIZ;
-            }
-            return TILE_DOOR;
+            return _dt;
         }
     }
-
     return TILE_WALL;
 }
 
@@ -65,10 +51,8 @@ function scr_dungeon_spawn(logic_map, path_list) {
 
     var layer_name = "Instances"; // Must match an existing layer in the target room
 
-    var path_len   = array_length(path_list);
-    var main_len   = variable_instance_exists(id, "main_path_len")   ? main_path_len   : path_len;
-    var key_parent = variable_instance_exists(id, "key_room_parent") ? key_room_parent : [-1, -1];
-    var key_pos    = variable_instance_exists(id, "key_room_pos")    ? key_room_pos    : [-1, -1];
+    var path_len = array_length(path_list);
+    var links    = variable_instance_exists(id, "door_links") ? door_links : [];
 
     show_debug_message("[scr_dungeon_spawn] Spawning " + string(path_len) + " rooms...");
 
@@ -84,21 +68,16 @@ function scr_dungeon_spawn(logic_map, path_list) {
         // Retrieve the 9x9 tile template for this room type
         var template = scr_get_template(room_type);
 
-        // Determine the door tile type (TILE_WALL, TILE_DOOR, TILE_LOCK_QUIZ, TILE_LOCK_CAESAR)
-        // for each of the 4 cardinal borders of this room.
-        var top_tile    = scr_get_border_door_type(logic_col, logic_row, logic_col,     logic_row - 1, logic_map, path_list, main_len, key_parent, key_pos);
-        var bottom_tile = scr_get_border_door_type(logic_col, logic_row, logic_col,     logic_row + 1, logic_map, path_list, main_len, key_parent, key_pos);
-        var left_tile   = scr_get_border_door_type(logic_col, logic_row, logic_col - 1, logic_row,     logic_map, path_list, main_len, key_parent, key_pos);
-        var right_tile  = scr_get_border_door_type(logic_col, logic_row, logic_col + 1, logic_row,     logic_map, path_list, main_len, key_parent, key_pos);
+        // Determine the door tile type (TILE_WALL, TILE_DOOR, TILE_HALL_OPEN, TILE_LOCK_QUIZ, TILE_LOCK_CAESAR)
+        // for each of the 4 cardinal borders of this room using explicit door_links.
+        var top_tile    = scr_get_border_door_type(logic_col, logic_row, logic_col,     logic_row - 1, links);
+        var bottom_tile = scr_get_border_door_type(logic_col, logic_row, logic_col,     logic_row + 1, links);
+        var left_tile   = scr_get_border_door_type(logic_col, logic_row, logic_col - 1, logic_row,     links);
+        var right_tile  = scr_get_border_door_type(logic_col, logic_row, logic_col + 1, logic_row,     links);
 
-        // Carve 3-tile-wide doorways (tiles 3, 4, 5) ONLY on borders that connect to a neighboring room;
-        // any border facing empty space remains a 100% solid wall.
-        for (var _d_idx = 3; _d_idx <= 5; _d_idx++) {
-            template[0][_d_idx] = top_tile;    // Top border center
-            template[8][_d_idx] = bottom_tile; // Bottom border center
-            template[_d_idx][0] = left_tile;   // Left border center
-            template[_d_idx][8] = right_tile;  // Right border center
-        }
+        // Carve 3-tile-wide doorways (tiles 3, 4, 5) ONLY on borders that connect to a neighboring room,
+        // and extend 3-tile walled vestibules inward for smaller rooms & hallways.
+        template = scr_carve_door_connections(template, top_tile, bottom_tile, left_tile, right_tile);
 
         // World-space top-left corner of this chunk (in pixels)
         var world_x = logic_col * (CHUNK_SIZE * TILE_SIZE);
@@ -123,26 +102,74 @@ function scr_dungeon_spawn(logic_map, path_list) {
 
                 // Instantiate the matching object for this tile type
                 switch (tile_val) {
+                    case TILE_VOID:
+                        var _vw = instance_create_layer(px, py, layer_name, obj_dungeon_wall);
+                        _vw.depth      = 30;
+                        _vw.wall_style = 1;
+                        _vw.room_theme = room_type;
+                        break;
+
                     case TILE_WALL:
                         var _w = instance_create_layer(px, py, layer_name, obj_dungeon_wall);
-                        _w.depth = 30;
+                        _w.depth      = 30;
+                        _w.wall_style = 0;
+                        _w.room_theme = room_type;
+                        break;
+
+                    case TILE_PROP_BOARD:
+                        var _bw = instance_create_layer(px, py, layer_name, obj_dungeon_wall);
+                        _bw.depth      = 30;
+                        _bw.wall_style = 2;
+                        _bw.room_theme = room_type;
                         break;
 
                     case TILE_FLOOR:
                         var _f = instance_create_layer(px, py, layer_name, obj_floor);
-                        _f.depth = 50;
+                        _f.depth       = 50;
+                        _f.floor_style = 0;
+                        _f.room_theme  = room_type;
+                        break;
+
+                    case TILE_CARPET:
+                        var _cf0 = instance_create_layer(px, py, layer_name, obj_floor);
+                        _cf0.depth       = 50;
+                        _cf0.floor_style = 1;
+                        _cf0.room_theme  = room_type;
+                        break;
+
+                    case TILE_ELEVATOR_FLOOR:
+                        var _ef = instance_create_layer(px, py, layer_name, obj_floor);
+                        _ef.depth       = 50;
+                        _ef.floor_style = 2;
+                        _ef.room_theme  = room_type;
+                        break;
+
+                    case TILE_PROP_PC:
+                    case TILE_PROP_CHAIR:
+                    case TILE_PROP_PAPER:
+                        var _pf = instance_create_layer(px, py, layer_name, obj_floor);
+                        _pf.depth       = 50;
+                        _pf.floor_style = 0;
+                        _pf.room_theme  = room_type;
+                        var _pr = instance_create_layer(px, py, layer_name, obj_dungeon_prop);
+                        _pr.depth       = (tile_val == TILE_PROP_PAPER) ? 45 : 24;
+                        _pr.prop_type   = tile_val;
                         break;
 
                     case TILE_DOOR:
                         var _df = instance_create_layer(px, py, layer_name, obj_floor);
-                        _df.depth = 50;
+                        _df.depth       = 50;
+                        _df.floor_style = 1;
+                        _df.room_theme  = room_type;
                         var _d = instance_create_layer(px, py, layer_name, obj_doorway);
                         _d.depth = 40;
                         break;
 
                     case TILE_LOCK_QUIZ:
                         var _qf = instance_create_layer(px, py, layer_name, obj_floor);
-                        _qf.depth = 50;
+                        _qf.depth       = 50;
+                        _qf.floor_style = 1;
+                        _qf.room_theme  = room_type;
                         var _qd = instance_create_layer(px, py, layer_name, obj_doorway);
                         _qd.depth = 40;
                         var _ql = instance_create_layer(px, py, layer_name, obj_door_quiz_lock);
@@ -151,7 +178,9 @@ function scr_dungeon_spawn(logic_map, path_list) {
 
                     case TILE_LOCK_CAESAR:
                         var _cf = instance_create_layer(px, py, layer_name, obj_floor);
-                        _cf.depth = 50;
+                        _cf.depth       = 50;
+                        _cf.floor_style = 1;
+                        _cf.room_theme  = room_type;
                         var _cd = instance_create_layer(px, py, layer_name, obj_doorway);
                         _cd.depth = 40;
                         var _cl = instance_create_layer(px, py, layer_name, obj_door_caesar_lock);
@@ -159,7 +188,6 @@ function scr_dungeon_spawn(logic_map, path_list) {
                         break;
 
                     default:
-                        // Unknown tile value — log and skip (do not crash)
                         show_debug_message(
                             "[scr_dungeon_spawn] WARNING: Unknown tile value " +
                             string(tile_val) + " at template[" +
