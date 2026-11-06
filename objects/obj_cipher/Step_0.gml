@@ -2,6 +2,8 @@ if (variable_global_exists("is_paused") && global.is_paused) exit;
 
 // In standalone (non-battle) mode, allow ESC to close the cipher overlay
 if (!instance_exists(obj_battle) && keyboard_check_pressed(vk_escape)) {
+    global.esc_block_frames = 2;
+    keyboard_clear(vk_escape);
     audio_play_sound(snd_button_click, 10, false);
     instance_destroy();
     exit;
@@ -73,23 +75,23 @@ if (keyboard_check_pressed(vk_enter)) {
 
         if (is_holding_lock) {
             if (_correct_slots > 0) {
-                status_msg = "ALMOST! " + string(_correct_slots) + "/4 letters match! Check the Math Equation in the Holding Cell!";
+                status_msg = string(_correct_slots) + "/4 letters match!";
                 text_color = c_orange;
             } else {
-                status_msg = "INCORRECT: Solve the Math Equation on the Cell Terminal/Note to find the Shift Key!";
+                status_msg = "Check the Math Equation in the Cell!";
             }
         } else if (!instance_exists(obj_battle) && !(variable_global_exists("has_dungeon_cipher_key") && global.has_dungeon_cipher_key)) {
-            status_msg = "NO KEY: Unlock the Gold Key Vault first to find the Shift Key!";
+            status_msg = "Find the Shift Key in the Gold Vault first!";
         } else if (answer == _wrong_dir_word) {
-            var _k_dir = (key > 0) ? ("+" + string(key) + " (UP/RIGHT)") : (string(key) + " (DOWN/LEFT)");
-            status_msg = "WRONG DIRECTION! You shifted opposite — shift by " + _k_dir + "!";
+            var _k_dir = (key > 0) ? ("+" + string(key)) : string(key);
+            status_msg = "Wrong direction! Shift by " + _k_dir + "!";
             text_color = c_orange;
         } else if (_correct_slots > 0) {
-            status_msg = "ALMOST! " + string(_correct_slots) + "/" + string(letters_len) + " letters match! Check each slot's shift offset.";
+            status_msg = string(_correct_slots) + "/" + string(letters_len) + " letters match!";
             text_color = c_orange;
         } else {
             var _k_hint = (key > 0) ? ("+" + string(key)) : string(key);
-            status_msg = "INCORRECT: Shift each Encrypted letter by " + _k_hint + " on the A-Z strip!";
+            status_msg = "Try shifting each letter by " + _k_hint + "!";
         }
 
         audio_play_sound(wrong1, 10, false);

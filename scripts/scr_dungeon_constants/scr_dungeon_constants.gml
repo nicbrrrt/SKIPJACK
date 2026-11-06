@@ -66,149 +66,156 @@ function scr_get_floor_incident_case(_case_idx) {
     var _cases = [
         {
             word:     "PHISHING",
-            title:    "Fake 'Urgent Login' Emails",
-            scenario: "INCIDENT: Staff received a fake 'Urgent Password Reset' email from a spoofed domain that stole their logins. Name this attack:",
-            hint:     "Fraudulent emails or fake websites that trick victims into handing over passwords.",
-            takeaway: "REAL-WORLD DEFENSE: Always verify the sender's real domain and never click urgent password-reset links!",
+            title:    "Fake Login Emails",
+            scenario: "Fake emails or websites that trick you into giving up passwords:",
+            hint:     "Uses fake emails as 'bait' to steal logins.",
+            takeaway: "TIP: Always check the sender's address before clicking login links!",
             npc_clues: [
-                "Greg here... I clicked an email from 'admin@skipjack-login-support.ru' saying my account would be deleted in 10 minutes. Kyle says that's called PHISHING—using fake emails to bait people into giving up passwords!",
-                "Did you see that fake 'Free Holiday Bonus' email? Attackers use urgency or rewards to trick you into typing your login on a fake page. In cybersecurity, that attack is called PHISHING!",
-                "I almost fell for the fake IT login page too, until I noticed the URL was misspelled! Remember the term for the Key Vault lock: deceptive emails stealing credentials is PHISHING!"
+                "Someone clicked a fake 'Holiday Bonus' email and typed their login into a bogus page!",
+                "I almost fell for that fake IT login email too, until I saw the sender URL was misspelled!",
+                "The hackers sent urgent fake emails pretending to be HR just to steal our passwords!"
             ],
+            jack_reply: "Fake emails baiting people into handing over their passwords... that's PHISHING!",
             pc_logs: [
-                "[EMAIL FORENSICS]: Spoofed sender 'IT-Help@corpp-verify.net' detected. Attackers impersonated trusted staff to harvest credentials — a classic PHISHING attack.",
-                "[BROWSER ALERT]: Blocked deceptive login page imitating internal portal. Classification: Credential Harvesting via PHISHING.",
-                "[SECURITY TRAINING LOG]: Lesson #1 — PHISHING (pronounced 'fishing') uses fake emails as 'bait' to hook victims into revealing sensitive info."
+                "ALERT: Fake 'Password Reset' email stole staff logins.\n\nTHREAT KEYWORD:   PHISHING",
+                "BLOCKED: Bogus login page imitating internal portal.\n\nTHREAT KEYWORD:   PHISHING",
+                "NOTE: Fake emails used as 'bait' to steal data.\n\nTHREAT KEYWORD:   PHISHING"
             ],
             memo_notes: [
-                "[STICKY NOTE]: 'Red flags of PHISHING: 1) Urgent threats or too-good-to-be-true rewards, 2) Misspelled sender domains, 3) Asking for your password or PIN!'",
-                "[IT MEMO]: 'Quiz Vault Reminder: When hackers send fraudulent emails pretending to be someone you trust to steal data, the term is P-H-I-S-H-I-N-G.'"
+                "[STICKY NOTE]: 'Urgent fake emails asking for your password = PHISHING!'",
+                "[IT MEMO]: 'Key Vault Word: P-H-I-S-H-I-N-G.'"
             ]
         },
         {
             word:     "TROJAN",
-            title:    "Disguised 'Calculator_Pro.exe' App",
-            scenario: "INCIDENT: Someone installed a 'Free RAM Booster' app that looked harmless, but secretly opened a hacker backdoor. Name this malware:",
-            hint:     "Malware disguised as legitimate, useful software that hides a malicious payload inside.",
-            takeaway: "REAL-WORLD DEFENSE: Only download software from official, verified sources—free 'optimizers' or pirated apps often hide Trojans!",
+            title:    "Disguised Malware App",
+            scenario: "Malware disguised as a harmless, useful program:",
+            hint:     "Hides inside a normal-looking app (like the Trojan Horse).",
+            takeaway: "TIP: Only download apps from official, verified sources!",
             npc_clues: [
-                "Someone in accounting downloaded 'Free_Spreadsheet_Turbo.exe'! It looked like a normal tool, but it secretly unlocked the building's backdoors. That's called a TROJAN—named after the wooden Trojan Horse!",
-                "Unlike viruses that spread on their own, a TROJAN tricks you into installing it by pretending to be a helpful program or game!",
-                "If the Gold Key Vault asks what hit our workstations today, remember: malware disguised as real, legitimate software is a TROJAN!"
+                "Someone in accounting installed 'Free_Spreadsheet_Turbo.exe' and it secretly unlocked the building's backdoors!",
+                "That app looked like a harmless desktop tool on the outside, but it hid hacker malware inside!",
+                "It didn't spread on its own—it tricked us into installing it by pretending to be useful software!"
             ],
+            jack_reply: "Malware hiding inside a harmless-looking program—just like the wooden TROJAN horse!",
             pc_logs: [
-                "[PROCESS MONITOR]: 'Desktop_Clock_Widget.exe' is secretly opening port 4444 to an external hacker IP! Threat classification: TROJAN Horse.",
-                "[ANTIVIRUS QUARANTINE]: File 'Free_PDF_Converter.exe' contains a hidden remote-access backdoor. Malware type: TROJAN.",
-                "[CYBER GLOSSARY]: TROJAN — Malicious code hidden inside seemingly harmless software, just like soldiers hiding inside the wooden horse of Troy."
+                "ALERT: 'Desktop_Clock.exe' opened a hidden backdoor.\n\nTHREAT KEYWORD:   TROJAN",
+                "QUARANTINE: Disguised app hiding remote-access code.\n\nTHREAT KEYWORD:   TROJAN",
+                "NOTE: Malware disguised as a helpful program.\n\nTHREAT KEYWORD:   TROJAN"
             ],
             memo_notes: [
-                "[STICKY NOTE]: 'Never run random .exe files from unofficial download sites! A program that looks useful on the outside but hides malware inside is a TROJAN.'",
-                "[IT MEMO]: 'Incident Summary: The breach began with disguised software hiding a backdoor payload — known in cybersecurity as a T-R-O-J-A-N.'"
+                "[STICKY NOTE]: 'Malware disguised as a helpful app = TROJAN!'",
+                "[IT MEMO]: 'Key Vault Word: T-R-O-J-A-N.'"
             ]
         },
         {
             word:     "FIREWALL",
-            title:    "Disabled Network Port Barrier",
-            scenario: "INCIDENT: The security barrier that monitors and filters incoming/outgoing network traffic rules was turned off. Name this defense:",
-            hint:     "A network security system that monitors and blocks unauthorized traffic between networks.",
-            takeaway: "REAL-WORLD DEFENSE: Always keep your OS and router Firewalls enabled to block unauthorized incoming connections!",
+            title:    "Network Traffic Barrier",
+            scenario: "The security barrier that monitors and blocks unauthorized network traffic:",
+            hint:     "Blocks suspicious traffic between your network and the internet.",
+            takeaway: "TIP: Keep your Firewall enabled to block unauthorized connections!",
             npc_clues: [
-                "Someone disabled our network security barrier so they could host a LAN party at work, and the hackers walked right through! That barrier is called a FIREWALL!",
-                "Think of a FIREWALL like a digital security guard at the building's front door—it checks every data packet against security rules and blocks suspicious traffic!",
-                "Need the answer for the Gold Key Vault? The defense system that monitors and filters incoming and outgoing network traffic is a FIREWALL!"
+                "Someone turned off our network traffic filter to host a LAN party, and the hackers walked right in!",
+                "Without our digital security guard checking incoming data packets, every network port was wide open!",
+                "We need to re-enable the security barrier that blocks unauthorized traffic between our LAN and the internet!"
             ],
+            jack_reply: "The security barrier that filters network traffic based on rules... our FIREWALL is down!",
             pc_logs: [
-                "[NETWORK CONFIG]: CRITICAL WARNING — Inbound packet filter (FIREWALL) is currently OFF. All external ports are exposed to the public internet!",
-                "[PACKET MONITOR]: A FIREWALL inspects network traffic between your private internal network and the outside internet, blocking unauthorized ports.",
-                "[SYSADMIN LOG]: Rule #1 of network security: Never disable the FIREWALL in production!"
+                "WARNING: Inbound network packet filter is OFF.\n\nDEFENSE KEYWORD:   FIREWALL",
+                "ALERT: Unauthorized ports exposed to the internet.\n\nDEFENSE KEYWORD:   FIREWALL",
+                "NOTE: Security barrier that filters network traffic.\n\nDEFENSE KEYWORD:   FIREWALL"
             ],
             memo_notes: [
-                "[STICKY NOTE]: 'Just like a brick fire-wall stops flames from spreading between rooms, a network FIREWALL stops malicious traffic from entering our LAN!'",
-                "[IT MEMO]: 'Key Vault Term: The security barrier that filters network traffic based on rules is a F-I-R-E-W-A-L-L.'"
+                "[STICKY NOTE]: 'The barrier that blocks bad network traffic = FIREWALL!'",
+                "[IT MEMO]: 'Key Vault Word: F-I-R-E-W-A-L-L.'"
             ]
         },
         {
             word:     "BOTNET",
-            title:    "Army of Hijacked Smart Devices",
-            scenario: "INCIDENT: Hackers infected 200 office PCs and smart printers, linking them into a remote-controlled 'zombie' army. Name this network:",
-            hint:     "A network of infected computers/devices ('bots') remotely controlled by an attacker.",
-            takeaway: "REAL-WORLD DEFENSE: Change default passwords on routers and smart IoT devices so hackers can't recruit them into a Botnet!",
+            title:    "Hijacked Device Army",
+            scenario: "A network of hijacked 'zombie' computers controlled remotely by a hacker:",
+            hint:     "'Robot' + 'Network' — an army of infected devices.",
+            takeaway: "TIP: Change default passwords on smart devices to stop Botnets!",
             npc_clues: [
-                "Even the breakroom smart fridge and the office printers got hijacked! When hackers link hundreds of infected devices together under remote control, it's called a BOTNET!",
-                "The word BOTNET comes from 'Robot' + 'Network'. Each infected computer becomes a 'bot' or 'zombie' obeying the hacker's Command-and-Control server!",
-                "Heading to the Gold Key Vault? Remember: a network of infected computers controlled remotely as a group is a BOTNET!"
+                "Even the breakroom smart fridge and the office printers got hijacked into a zombie army!",
+                "Hundreds of infected office devices are all taking remote orders from the hacker's server at once!",
+                "They linked all our hijacked computers together—'Robot' plus 'Network'!"
             ],
+            jack_reply: "A whole network of hijacked zombie devices controlled remotely... we're dealing with a BOTNET!",
             pc_logs: [
-                "[TRAFFIC ANALYZER]: 240 office workstations and IoT cameras are simultaneously taking orders from an external Command & Control server. Diagnosis: BOTNET infection.",
-                "[CYBER GLOSSARY]: BOTNET ('Bot' + 'Network') — A fleet of hijacked internet-connected devices used by attackers to launch massive DDoS floods.",
-                "[IOT SECURITY LOG]: Smart thermostat still had default password 'admin/admin' and was recruited into the hacker's BOTNET."
+                "ALERT: 240 office devices taking remote hacker orders.\n\nTHREAT KEYWORD:   BOTNET",
+                "DETECTED: Fleet of hijacked zombie PCs ('Bot' + 'Network').\n\nTHREAT KEYWORD:   BOTNET",
+                "NOTE: Smart devices linked into a remote army.\n\nTHREAT KEYWORD:   BOTNET"
             ],
             memo_notes: [
-                "[STICKY NOTE]: 'One infected computer is a problem; thousands of infected computers linked together into a remote-controlled army is a BOTNET!'",
-                "[IT MEMO]: 'Key Vault Term: A network of hijacked zombie devices controlled by a hacker is called a B-O-T-N-E-T.'"
+                "[STICKY NOTE]: 'An army of hijacked zombie devices = BOTNET!'",
+                "[IT MEMO]: 'Key Vault Word: B-O-T-N-E-T.'"
             ]
         },
         {
             word:     "SPYWARE",
-            title:    "Hidden Keylogger on Workstations",
-            scenario: "INCIDENT: A silent background program recorded every keystroke and screen password without the user's knowledge. Name this software:",
-            hint:     "Malicious software that secretly monitors user activity and steals private information.",
-            takeaway: "REAL-WORLD DEFENSE: Use reputable anti-malware scanners and check startup processes to catch hidden Spyware and keyloggers!",
+            title:    "Hidden Keylogger",
+            scenario: "Malicious software that secretly watches your screen and records keystrokes:",
+            hint:     "Acts like a hidden spy to steal your passwords.",
+            takeaway: "TIP: Scan regularly for hidden background keyloggers and Spyware!",
             npc_clues: [
-                "How did the hackers know my new password 5 seconds after I typed it?! Kyle found a hidden keylogger on my PC—software that secretly watches and records you is called SPYWARE!",
-                "Unlike ransomware that locks your screen right away, SPYWARE stays completely silent in the background so it can spy on your keystrokes, webcam, and passwords!",
-                "For the Gold Key Vault quiz: software that secretly gathers your private information without your consent is SPYWARE!"
+                "The hackers knew my new password five seconds after I typed it! Something is recording my keyboard!",
+                "It didn't lock my screen—it just hid silently in the background watching everything I typed!",
+                "Kyle found a hidden keylogger secretly spying on our screens and sending data to the hackers!"
             ],
+            jack_reply: "Malware that hides in the background to secretly watch and record your activity... that's SPYWARE!",
             pc_logs: [
-                "[TASK MANAGER]: Hidden background process 'win_key_hook.dll' is logging all keyboard input and sending screenshots to an outside server. Classification: SPYWARE.",
-                "[SECURITY AUDIT]: SPYWARE (including keyloggers) operates stealthily to harvest credentials, banking details, and browsing habits without consent.",
-                "[PRIVACY ALERT]: Unauthorized microphone and keystroke monitoring detected — removing SPYWARE module."
+                "ALERT: Hidden keylogger recording keyboard input.\n\nTHREAT KEYWORD:   SPYWARE",
+                "DETECTED: Background process secretly stealing logins.\n\nTHREAT KEYWORD:   SPYWARE",
+                "NOTE: Software that secretly spies on user activity.\n\nTHREAT KEYWORD:   SPYWARE"
             ],
             memo_notes: [
-                "[STICKY NOTE]: 'If malware is secretly acting like a hidden spy—recording what you type and watching your screen—it is called SPYWARE!'",
-                "[IT MEMO]: 'Key Vault Term: Software that covertly monitors user activity and steals data without consent is S-P-Y-W-A-R-E.'"
+                "[STICKY NOTE]: 'Software that secretly records what you type = SPYWARE!'",
+                "[IT MEMO]: 'Key Vault Word: S-P-Y-W-A-R-E.'"
             ]
         },
         {
             word:     "MALWARE",
-            title:    "The Parking Lot USB Drop",
-            scenario: "INCIDENT: A harmful program from an unknown USB drive was designed to damage, exploit, and disable our servers. What is the umbrella term?",
-            hint:     "Short for 'Malicious Software' — any program designed to harm or exploit a computer.",
-            takeaway: "REAL-WORLD DEFENSE: Never plug unknown USB drives into your computer—'USB drop' attacks auto-launch Malware in seconds!",
+            title:    "Malicious Software",
+            scenario: "The general umbrella term for any 'Malicious Software' built to harm a PC:",
+            hint:     "Short for MALicious + softWARE.",
+            takeaway: "TIP: Never plug unknown USB drives into your computer!",
             npc_clues: [
-                "I found a USB drive in the lobby labeled 'Q4 Bonus Pay' and plugged it in... turns out it was loaded with MALWARE! That's short for Malicious Software!",
-                "Viruses, Trojans, Spyware, and Ransomware are all part of one big family called MALWARE—any software intentionally written to harm or exploit a system!",
-                "When you get to the Gold Key Vault, remember the umbrella term for any 'Malicious Software' designed to damage a system: MALWARE!"
+                "Someone found a USB drive in the parking lot labeled 'Bonus Pay' and plugged it into the server!",
+                "As soon as that USB drive went in, hostile software started corrupting files and locking doors!",
+                "Whether it's a virus, worm, or trojan, any 'Malicious Software' built to harm a system has one umbrella name!"
             ],
+            jack_reply: "MALicious + softWARE... the umbrella term for any hostile program is MALWARE!",
             pc_logs: [
-                "[USB PORT ALERT]: External drive auto-executed harmful payload! Threat category: MALWARE (Malicious Software).",
-                "[CYBER GLOSSARY]: MALWARE = MALicious + softWARE. The general term for all hostile programs including viruses, worms, trojans, and spyware.",
-                "[INCIDENT REPORT]: Hostile code attempting to corrupt system files and disable security services. Classification: MALWARE."
+                "ALERT: Unknown USB drive launched hostile code.\n\nTHREAT KEYWORD:   MALWARE",
+                "DETECTED: MALicious + softWARE corrupting system files.\n\nTHREAT KEYWORD:   MALWARE",
+                "NOTE: Umbrella term for viruses, trojans & spyware.\n\nTHREAT KEYWORD:   MALWARE"
             ],
             memo_notes: [
-                "[STICKY NOTE]: 'MALicious + softWARE = MALWARE! It's the umbrella term for any software built to harm, exploit, or hijack a computer.'",
-                "[IT MEMO]: 'Key Vault Term: Any software intentionally designed to cause damage or unauthorized access is M-A-L-W-A-R-E.'"
+                "[STICKY NOTE]: 'MALicious + softWARE = MALWARE!'",
+                "[IT MEMO]: 'Key Vault Word: M-A-L-W-A-R-E.'"
             ]
         },
         {
             word:     "CAESAR",
-            title:    "The Roman Alphabet Shift",
-            scenario: "INCIDENT: The elevator lock encrypts words by shifting every letter a fixed number of steps down the alphabet. Name this classical cipher:",
-            hint:     "A substitution cipher named after a Roman leader that shifts each letter by a fixed number.",
-            takeaway: "REAL-WORLD CRYPTOGRAPHY: A Caesar cipher only has 25 possible keys, making it easy to break—modern encryption uses complex math keys!",
+            title:    "Alphabet Shift Cipher",
+            scenario: "Classical cipher that shifts every letter in the alphabet by a fixed key:",
+            hint:     "Named after Roman leader Julius Caesar.",
+            takeaway: "TIP: Caesar ciphers only have 25 keys—easy for computers to crack!",
             npc_clues: [
-                "The hackers locked the elevator with a cipher used over 2,000 years ago by Julius CAESAR! It works by shifting every letter in the alphabet by a fixed number!",
-                "In a CAESAR cipher, if the shift key is +3, then 'A' shifts 3 spots forward to 'D', and to decrypt 'D' you shift 3 spots back to 'A'!",
-                "The Gold Key Vault is testing your cryptography basics today: a cipher that shifts each letter of the alphabet by a fixed amount is a CAESAR cipher!"
+                "The hackers encrypted the doors with a 2,000-year-old Roman cipher that shifts every letter in the alphabet!",
+                "If the shift key is +3, then 'A' becomes 'D'—and you shift 3 steps back to decrypt it!",
+                "The Key Vault is asking for the name of the Roman general who invented this alphabet-shift cipher!"
             ],
+            jack_reply: "Shifting every letter by a fixed number down the alphabet... that's the CAESAR cipher!",
             pc_logs: [
-                "[CRYPTO ANALYSIS]: Door lock uses monoalphabetic shift substitution: E(x) = (x + k) mod 26. Historical name: CAESAR Cipher.",
-                "[DECRYPTION GUIDE]: Named after Julius CAESAR, who used a shift of 3 to protect military messages. Today, 25 keys can be brute-forced instantly!",
-                "[KEY VAULT LOG]: Retrieve the Shift Key from the Gold Vault to reverse the CAESAR cipher on the Extraction Elevator."
+                "ALERT: Door lock shifts each letter by a fixed number.\n\nCIPHER KEYWORD:   CAESAR",
+                "DETECTED: Roman alphabet-shift encryption.\n\nCIPHER KEYWORD:   CAESAR",
+                "NOTE: Named after Julius Caesar (shifts A-Z by key).\n\nCIPHER KEYWORD:   CAESAR"
             ],
             memo_notes: [
-                "[STICKY NOTE]: 'Julius CAESAR protected his battle plans by shifting every letter in the alphabet by a fixed number. That's why it's called the CAESAR Cipher!'",
-                "[IT MEMO]: 'Key Vault Term: The classical substitution cipher that shifts letters by a fixed key is C-A-E-S-A-R.'"
+                "[STICKY NOTE]: 'The Roman alphabet-shift cipher = CAESAR!'",
+                "[IT MEMO]: 'Key Vault Word: C-A-E-S-A-R.'"
             ]
         }
     ];

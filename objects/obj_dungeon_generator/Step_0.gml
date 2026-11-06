@@ -37,7 +37,7 @@ for (var _i = 0; _i < _total_rooms; _i++) {
     var _rtype = logic_map[_c][_r];
 
     var _is_lit = _lockdown_lifted || (_c == active_col && _r == active_row) || (_in_hallway && _rtype == ROOM_HALLWAY);
-    var _target_alpha = _is_lit ? 0.0 : 0.96;
+    var _target_alpha = _is_lit ? 0.0 : 0.88;
 
     if (_is_lit) {
         room_discovered[_c][_r] = 2; // Visited / Lit

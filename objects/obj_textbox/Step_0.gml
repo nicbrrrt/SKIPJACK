@@ -28,6 +28,16 @@ if (portrait[page] != -1 && portrait_idle[page] != -1 && portrait_idle[page] != 
 
 #region TYPE 0: NORMAL
 if(type[page] == 0){
+	// Allow ESC to cleanly close the dialogue without triggering the pause menu
+	if (keyboard_check_pressed(vk_escape)) {
+		global.esc_block_frames = 2;
+		keyboard_clear(vk_escape);
+		audio_play_sound(snd_button_click, 5, false);
+		event_perform(ev_other, ev_user0);
+		instance_destroy();
+		exit;
+	}
+
 	if(keyboard_check_pressed(interact_key)){
 
 		//If we haven't "typed out" all the letters, immediately "type out" all letters (works as a "skip")

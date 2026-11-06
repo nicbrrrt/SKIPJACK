@@ -12,8 +12,12 @@ if (player_nearby && keyboard_check_pressed(ord("E")) && !is_open
     global.poster_opened = true; // persist across room reloads
 }
 
-// Close popup — X key
-if (is_open && keyboard_check_pressed(ord("X"))) {
+// Close popup — X or ESC key
+if (is_open && (keyboard_check_pressed(ord("X")) || keyboard_check_pressed(vk_escape))) {
+    if (keyboard_check_pressed(vk_escape)) {
+        global.esc_block_frames = 2;
+        keyboard_clear(vk_escape);
+    }
     is_open = false;
 }
 

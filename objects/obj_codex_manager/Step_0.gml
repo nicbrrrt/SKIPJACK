@@ -4,6 +4,10 @@ var _is_combat_room = (room == rm_combat || room == rm_battle_scramble || room =
 
 // ── Open / Close ─────────────────────────────────────────────────────────
 if (is_open && (keyboard_check_pressed(vk_escape) || keyboard_check_pressed(ord("C")))) {
+    if (keyboard_check_pressed(vk_escape)) {
+        global.esc_block_frames = 2;
+        keyboard_clear(vk_escape);
+    }
     is_open = false;
     // Reset button hover frames so menu doesn't stay lit after closing
     with (obj_button_master) { image_index = 0; }

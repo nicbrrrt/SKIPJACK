@@ -70,7 +70,7 @@ for (var _c = 0; _c < LOGIC_GRID_W; _c++) {
     room_discovered[_c] = [];
     for (var _r = 0; _r < LOGIC_GRID_H; _r++) {
         logic_map[_c][_r]       = ROOM_NONE;
-        room_fog_alpha[_c][_r]  = 0.90;
+        room_fog_alpha[_c][_r]  = 0.88;
         room_discovered[_c][_r] = 0;
     }
 }

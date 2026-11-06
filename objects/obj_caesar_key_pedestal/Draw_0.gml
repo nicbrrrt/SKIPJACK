@@ -4,10 +4,10 @@
 var _pulse = 0.5 + 0.5 * sin(anim_timer * 0.08);
 var _bob   = sin(anim_timer * 0.1) * 2;
 
-// Vault floor aura around pedestal
-draw_set_alpha(0.25 + _pulse * 0.15);
+// Subtle vault floor aura around pedestal
+draw_set_alpha(0.06 + _pulse * 0.05);
 draw_set_color(collected ? c_lime : make_color_rgb(255, 200, 40));
-draw_circle(x, y, 14, false);
+draw_circle(x, y, 11, false);
 
 // Pedestal base
 draw_set_alpha(1.0);
@@ -26,12 +26,12 @@ if (!collected) {
     draw_line(x + 6, _ky, x + 6, _ky + 3);
 
     if (player_near && !ui_open) {
-        draw_set_alpha(0.90);
+        draw_set_alpha(0.55);
         draw_set_color(make_color_rgb(10, 16, 26));
-        draw_rectangle(x - 7, y - 20, x + 7, y - 10, false);
-        draw_set_alpha(1.0);
+        draw_rectangle(x - 6, y - 19, x + 6, y - 11, false);
+        draw_set_alpha(0.65);
         draw_set_color(make_color_rgb(255, 210, 50));
-        draw_rectangle(x - 7, y - 20, x + 7, y - 10, true);
+        draw_rectangle(x - 6, y - 19, x + 6, y - 11, true);
     }
 } else {
     // Collected check glow

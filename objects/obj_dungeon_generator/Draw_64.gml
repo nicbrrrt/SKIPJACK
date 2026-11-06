@@ -11,7 +11,7 @@ var _gui_w = display_get_gui_width();
 var _gui_h = display_get_gui_height();
 
 // =========================================================
-// DEDICATED COMPUTER MONITOR SCREEN OVERLAY
+// DEDICATED COMPUTER MONITOR SCREEN OVERLAY (Clean & Minimal)
 // =========================================================
 if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
     // 1. Grey out / darken the background
@@ -22,8 +22,8 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
 
     var _mcx = _gui_w * 0.5;
     var _mcy = _gui_h * 0.47;
-    var _mw  = 490;
-    var _mh  = 248;
+    var _mw  = 410;
+    var _mh  = 204;
     var _mx1 = _mcx - _mw * 0.5;
     var _my1 = _mcy - _mh * 0.5;
     var _mx2 = _mcx + _mw * 0.5;
@@ -31,20 +31,20 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
 
     // 2. Monitor Stand & Base at bottom
     draw_set_color(make_color_rgb(38, 44, 56));
-    draw_rectangle(_mcx - 26, _my2, _mcx + 26, _my2 + 18, false);
-    draw_rectangle(_mcx - 70, _my2 + 16, _mcx + 70, _my2 + 24, false);
+    draw_rectangle(_mcx - 24, _my2, _mcx + 24, _my2 + 16, false);
+    draw_rectangle(_mcx - 60, _my2 + 14, _mcx + 60, _my2 + 22, false);
     draw_set_color(make_color_rgb(75, 88, 110));
-    draw_rectangle(_mcx - 70, _my2 + 16, _mcx + 70, _my2 + 24, true);
+    draw_rectangle(_mcx - 60, _my2 + 14, _mcx + 60, _my2 + 22, true);
 
     // 3. Outer Monitor Plastic Bezel
     draw_set_color(make_color_rgb(46, 54, 68));
-    draw_roundrect(_mx1 - 10, _my1 - 10, _mx2 + 10, _my2 + 10, false);
+    draw_roundrect(_mx1 - 8, _my1 - 8, _mx2 + 8, _my2 + 8, false);
     draw_set_color(make_color_rgb(105, 120, 145));
-    draw_roundrect(_mx1 - 10, _my1 - 10, _mx2 + 10, _my2 + 10, true);
+    draw_roundrect(_mx1 - 8, _my1 - 8, _mx2 + 8, _my2 + 8, true);
 
     // Power LED on bottom-right bezel
     draw_set_color(c_lime);
-    draw_circle(_mx2 - 8, _my2 + 5, 2.5, false);
+    draw_circle(_mx2 - 6, _my2 + 4, 2, false);
 
     // 4. Inner CRT / LCD Terminal Screen
     draw_set_color(make_color_rgb(8, 18, 22));
@@ -64,6 +64,11 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
     draw_set_color(c_lime);
     draw_text(_mx1 + 10, _my1 + 13, global.pc_screen_title);
 
+    // Clue counter pill on top bar right
+    draw_set_halign(fa_right);
+    draw_set_color(make_color_rgb(255, 210, 55));
+    draw_text_transformed(_mx2 - 30, _my1 + 13, global.pc_screen_badge, 0.80, 0.80, 0);
+
     // Close [X] button in top-right of screen
     var _bx1 = _mx2 - 22, _by1 = _my1 + 3, _bx2 = _mx2 - 4, _by2 = _my1 + 21;
     var _gmx = device_mouse_x_to_gui(0);
@@ -75,45 +80,39 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
     draw_text((_bx1 + _bx2) * 0.5, (_by1 + _by2) * 0.5, "X");
 
     // Subtle CRT horizontal scanlines
-    draw_set_alpha(0.08);
+    draw_set_alpha(0.06);
     draw_set_color(c_aqua);
-    for (var _sy = _my1 + 28; _sy < _my2 - 4; _sy += 4) {
+    for (var _sy = _my1 + 28; _sy < _my2 - 4; _sy += 5) {
         draw_line(_mx1 + 2, _sy, _mx2 - 2, _sy);
     }
     draw_set_alpha(1.0);
 
-    // Case Clue Recorded Badge
-    draw_set_halign(fa_center);
-    draw_set_color(make_color_rgb(18, 42, 32));
-    draw_rectangle(_mx1 + 16, _my1 + 32, _mx2 - 16, _my1 + 54, false);
-    draw_set_color(make_color_rgb(255, 210, 55));
-    draw_rectangle(_mx1 + 16, _my1 + 32, _mx2 - 16, _my1 + 54, true);
-    draw_text(_mcx, _my1 + 43, global.pc_screen_badge);
-
-    // Main Forensic Log Content Box
-    draw_set_halign(fa_left);
-    draw_set_valign(fa_top);
-    draw_set_color(c_white);
-    draw_text_ext(_mx1 + 20, _my1 + 66, global.pc_screen_body, 18, _mw - 40);
-
-    // Radar Direction Readout Box at bottom of monitor
-    draw_set_color(make_color_rgb(14, 30, 44));
-    draw_rectangle(_mx1 + 16, _my2 - 58, _mx2 - 16, _my2 - 30, false);
-    draw_set_color(c_aqua);
-    draw_rectangle(_mx1 + 16, _my2 - 58, _mx2 - 16, _my2 - 30, true);
+    // Centered Main Clue Box (Short, spacious & easy to scan)
     draw_set_halign(fa_center);
     draw_set_valign(fa_middle);
-    draw_text_transformed(_mcx, _my2 - 44, global.pc_screen_radar, 0.90, 0.90, 0);
+    draw_set_color(c_white);
+    draw_text_ext(_mcx, _my1 + 92, global.pc_screen_body, 20, _mw - 48);
 
-    // Close instruction footer
-    draw_set_color(make_color_rgb(160, 225, 190));
-    draw_text_transformed(_mcx, _my2 - 14, "Press [X] or [ESC] to Close Monitor", 0.85, 0.85, 0);
+    // Compact Radar Pill at bottom of monitor
+    draw_set_color(make_color_rgb(14, 30, 44));
+    draw_rectangle(_mcx - 135, _my2 - 52, _mcx + 135, _my2 - 28, false);
+    draw_set_color(c_aqua);
+    draw_rectangle(_mcx - 135, _my2 - 52, _mcx + 135, _my2 - 28, true);
+    draw_text_transformed(_mcx, _my2 - 40, global.pc_screen_radar, 0.85, 0.85, 0);
+
+    // Minimal close prompt
+    draw_set_color(make_color_rgb(150, 200, 175));
+    draw_text_transformed(_mcx, _my2 - 13, "[ESC] Close", 0.80, 0.80, 0);
 
     // Close controls (X, ESC, or clicking [X])
     if (keyboard_check_pressed(ord("X"))
         || keyboard_check_pressed(vk_escape)
         || (_hover_x && mouse_check_button_pressed(mb_left)))
     {
+        if (keyboard_check_pressed(vk_escape)) {
+            global.esc_block_frames = 2;
+            keyboard_clear(vk_escape);
+        }
         global.pc_screen_open = false;
         audio_play_sound(snd_button_click, 5, false);
     }

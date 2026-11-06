@@ -1,5 +1,15 @@
 // obj_camera — Step Event
 
+// Zoom in to a tighter 320x180 FOV inside the procedural dungeon (144x144 room chunks),
+// while preserving the standard 640x360 view in story/overworld rooms.
+if (instance_exists(obj_dungeon_generator)) {
+    global.cam_width  = 320;
+    global.cam_height = 180;
+} else {
+    global.cam_width  = 640;
+    global.cam_height = 360;
+}
+
 camera_set_view_target(view_camera[0], noone);
 camera_set_view_size(view_camera[0], global.cam_width, global.cam_height);
 

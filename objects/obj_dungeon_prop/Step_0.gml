@@ -59,7 +59,7 @@ var _lifted = (variable_global_exists("lockdown_lifted") && global.lockdown_lift
 // 1. Stranded Coworker NPC Animation & Facing
 // ---------------------------------------------------------------------------
 if (prop_type == TILE_PROP_NPC) {
-    depth = -(y + 12);
+    depth = 22; // Beneath room fog overlay (depth 10) so NPCs in adjacent rooms stay hidden
     if (instance_exists(obj_jack)) {
         var _dx = obj_jack.x - (x + 8);
         var _dy = obj_jack.y - (y + 12);
@@ -78,7 +78,7 @@ if (prop_type == TILE_PROP_NPC) {
 // 2. Roaming Rogue Security Drone — Patrols Exact Centerline of Hallway Spine
 // ---------------------------------------------------------------------------
 if (prop_type == TILE_PROP_DRONE) {
-    depth = -(y + 10);
+    depth = -(y + 10); // Draws above room fog so you can see the drone & flashlight outside your doorway
     hover_t += 0.08;
     if (zap_cd > 0) zap_cd--;
 
@@ -183,8 +183,10 @@ if (prop_type == TILE_PROP_DRONE) {
                         // 5. Notify the player in the Holding Cell
                         global.e_dialogue_intro_shown = true;
                         create_textevent([
-                            "BUSTED! The security drone caught me in its flashlight beam and locked me inside the Security Holding Cell! Worse—the lockdown protocol re-locked all the doors and changed the floor's Caesar Key! I need to look around this cell [E] for a Math Equation clue to figure out the cell door's Shift Key!"
-                        ], [obj_jack.id]);
+                            "BUSTED! The security drone caught me in its beam and locked me in the Holding Cell!",
+                            "Worse—the lockdown protocol just re-locked all the doors and rotated the floor's Caesar Key.",
+                            "I need to check the terminal or note in this cell [E] for a math clue to crack the brig door!"
+                        ], [obj_jack.id, obj_jack.id, obj_jack.id]);
                         exit;
                     }
                 }
@@ -277,7 +279,7 @@ if (player_near && keyboard_check_pressed(ord("E"))) {
         var _hdir = (_dx < -40) ? "WEST"  : ((_dx > 40) ? "EAST"  : "");
         var _compass = (_vdir != "" && _hdir != "") ? (_vdir + "-" + _hdir) : (_vdir + _hdir);
         if (_compass == "") _compass = "NEARBY";
-        _radar_hint = "RADAR SCAN: Gold Key Vault is " + _compass + " of this terminal.";
+        _radar_hint = "KEY VAULT: " + _compass;
     } else if (instance_exists(obj_dungeon_goal)) {
         var _dx = obj_dungeon_goal.x - x;
         var _dy = obj_dungeon_goal.y - y;
@@ -285,7 +287,7 @@ if (player_near && keyboard_check_pressed(ord("E"))) {
         var _hdir = (_dx < -40) ? "WEST"  : ((_dx > 40) ? "EAST"  : "");
         var _compass = (_vdir != "" && _hdir != "") ? (_vdir + "-" + _hdir) : (_vdir + _hdir);
         if (_compass == "") _compass = "NEARBY";
-        _radar_hint = "RADAR SCAN: Extraction Elevator is " + _compass + " of this terminal.";
+        _radar_hint = "ELEVATOR: " + _compass;
     }
 
     if (prop_type == TILE_PROP_PC && has_clue) {
@@ -293,54 +295,69 @@ if (player_near && keyboard_check_pressed(ord("E"))) {
         if (is_holding_clue) {
             var _eq = variable_global_exists("holding_math_clue") ? global.holding_math_clue : "SHIFT KEY (X) = (3 * 3) - 6";
             global.pc_screen_open  = true;
-            global.pc_screen_title = "SKIPJACK_OS // HOLDING CELL OVERRIDE TERMINAL";
-            global.pc_screen_body  = "[BRIG DOOR ENCRYPTION PUZZLE]\nThe Holding Cell door uses a separate Caesar Shift Key (X).\nSolve the equation below to find X, then shift each door letter by X:\n\n    " + _eq;
-            global.pc_screen_radar = "TIP: Positive X = Shift UP/Forward   |   Negative X = Shift DOWN/Backward";
-            global.pc_screen_badge = "HOLDING CELL ESCAPE EQUATION";
+            global.pc_screen_title = "HOLDING CELL TERMINAL";
+            global.pc_screen_body  = "Solve for the cell door's Shift Key (X):\n\n" + _eq;
+            global.pc_screen_radar = "+X = Shift UP   |   -X = Shift DOWN";
+            global.pc_screen_badge = "CELL DOOR KEY CLUE";
         } else {
             var _logs = _case.pc_logs;
             var _log_line = _logs[log_variant mod array_length(_logs)];
 
             global.pc_screen_open  = true;
-            global.pc_screen_title = "SKIPJACK_OS // FORENSIC TERMINAL #" + string(log_variant + 1);
+            global.pc_screen_title = "TERMINAL #" + string(log_variant + 1);
             global.pc_screen_body  = _lifted
-                ? ("[WORKSTATION RESTORED]\nThreat '" + _case.word + "' neutralized.\n\n" + _case.takeaway)
+                ? ("THREAT CLEARED: " + _case.word + "\n\n" + _case.takeaway)
                 : _log_line;
             global.pc_screen_radar = _radar_hint;
-            global.pc_screen_badge = _is_new_clue
-                ? ("+1 CASE CLUE RECORDED (" + string(global.clues_found) + "/" + string(global.clues_needed) + ")")
-                : ("CASE CLUE LOGGED (" + string(global.clues_found) + "/" + string(global.clues_needed) + ")");
+            global.pc_screen_badge = "CLUES FOUND: " + string(global.clues_found) + " / " + string(global.clues_needed);
         }
     }
     else if (prop_type == TILE_PROP_PAPER) {
         if (is_holding_clue) {
             var _eq = variable_global_exists("holding_math_clue") ? global.holding_math_clue : "SHIFT KEY (X) = (3 * 3) - 6";
             create_textevent([
-                "[SCRATCHPAD NOTE ON CELL FLOOR]: 'The brig door has its own Caesar Shift Key (X)! Solve this equation to get out:   " + _eq + "   (Positive = Shift UP, Negative = Shift DOWN!)'"
-            ], [obj_jack.id]);
+                "[SCRATCHPAD NOTE]: 'The brig door has its own Shift Key (X)! Solve this equation to escape:'",
+                _eq + "   (Positive X = Shift UP, Negative X = Shift DOWN!)"
+            ], [obj_jack.id, obj_jack.id]);
         } else {
             var _notes = _case.memo_notes;
-            var _memo  = _clue_prefix + _notes[log_variant mod array_length(_notes)];
-            create_textevent([_memo], [obj_jack.id]);
+            var _memo  = _notes[log_variant mod array_length(_notes)];
+            create_textevent([
+                _clue_prefix + _memo,
+                "I'll keep '" + _case.word + "' in mind for the Gold Key Vault lock."
+            ], [obj_jack.id, obj_jack.id]);
         }
     }
     else if (prop_type == TILE_PROP_NPC) {
-        var _line = "";
         if (_lifted) {
+            var _l1 = "";
             switch (npc_id) {
-                case 0: _line = "Whoa, the red lockdown alarms just shut off! You stopped the " + _case.word + " breach and unlocked the elevator! You're a legend, Jack!"; break;
-                case 1: _line = "The monitors stopped flashing red! " + _case.takeaway; break;
-                case 2: _line = "All security grid locks on the elevator are green! Hurry into the Extraction Elevator so we can clear the next floor!"; break;
-                case 3: _line = "Network traffic is back to normal! That Caesar cipher stood no chance against you, Jack."; break;
-                default: _line = "Power is restored across the whole floor! I owe you a coffee once we get out of this building."; break;
+                case 0: _l1 = "The red lockdown alarms just shut off! You stopped the " + _case.word + " breach!"; break;
+                case 1: _l1 = "The monitors stopped flashing red! " + _case.takeaway; break;
+                case 2: _l1 = "All security grid locks on the elevator are green! Head to the Extraction Elevator!"; break;
+                case 3: _l1 = "Network traffic is back to normal! That Caesar cipher stood no chance against you."; break;
+                default: _l1 = "Power is restored across the floor! I owe you a coffee once we get out of here."; break;
             }
+            create_textevent([
+                _l1,
+                "All clear—let's get to the Extraction Elevator and secure the building."
+            ], [id, obj_jack.id]);
         } else {
             var _nclues = _case.npc_clues;
-            _line = _clue_prefix + _nclues[npc_id mod array_length(_nclues)] + " (" + _radar_hint + ")";
+            var _npc_open  = _nclues[npc_id mod array_length(_nclues)];
+            var _jack_line = variable_struct_exists(_case, "jack_reply") ? _case.jack_reply : ("So the security keyword for this floor is " + _case.word + "!");
+            var _npc_close = _clue_prefix + "Use '" + _case.word + "' at the Key Vault! (" + _radar_hint + ")";
+            create_textevent([
+                _npc_open,
+                _jack_line,
+                _npc_close
+            ], [id, obj_jack.id, id]);
         }
-        create_textevent([_line], [id]);
     }
     else if (prop_type == TILE_PROP_DRONE && _lifted) {
-        create_textevent(["Looks like unlocking the elevator door rebooted this rogue security drone into sleep mode. Sweet dreams, little toaster!"], [obj_jack.id]);
+        create_textevent([
+            "Unlocking the elevator door rebooted this rogue drone into sleep mode.",
+            "Sweet dreams, little toaster!"
+        ], [obj_jack.id, obj_jack.id]);
     }
 }

@@ -13,29 +13,32 @@ if (prop_type == TILE_PROP_PC) {
         // =========================================================
         var _pulse = 0.5 + 0.5 * sin(current_time / 160 + x);
 
-        // Bright golden/emerald screen light pool on floor
-        draw_set_alpha(0.22 + 0.12 * _pulse);
+        // Subtle golden/emerald screen light pool on floor
+        draw_set_alpha(0.06 + 0.04 * _pulse);
         draw_set_color(talked_once ? c_lime : make_color_rgb(255, 210, 45));
-        draw_circle(_cx, y + 10, 14, false);
+        draw_circle(_cx, y + 10, 11, false);
 
         // Forensic Gold-Trimmed Desk Base
-        draw_set_alpha(0.98);
+        draw_set_alpha(0.95);
         draw_set_color(make_color_rgb(55, 45, 22));
         draw_rectangle(x, y + 3, x + 15, y + 15, false);
+        draw_set_alpha(0.65);
         draw_set_color(talked_once ? c_lime : make_color_rgb(255, 205, 40));
         draw_rectangle(x, y + 3, x + 15, y + 15, true);
 
-        // Animated Computer Terminal with bright highlight tint
+        // Animated Computer Terminal with highlight tint
+        draw_set_alpha(1.0);
         var _frame = floor(current_time / 140 + sub_img) mod sprite_get_number(spr_computer);
         draw_sprite_ext(spr_computer, _frame, _cx, _by, 0.80, 0.70, 0, make_color_rgb(255, 250, 210), 1.0);
 
-        // Floating bobbing Clue Terminal Beacon above monitor
-        var _bob = sin(current_time / 170 + x) * 1.5;
-        draw_set_alpha(0.92);
+        // Subtle floating Clue Terminal indicator above monitor
+        var _bob = sin(current_time / 170 + x) * 1.2;
+        draw_set_alpha(0.38);
         draw_set_color(talked_once ? c_lime : make_color_rgb(255, 205, 35));
-        draw_rectangle(_cx - 4, y - 12 + _bob, _cx + 4, y - 4 + _bob, false);
+        draw_rectangle(_cx - 3, y - 11 + _bob, _cx + 3, y - 5 + _bob, false);
+        draw_set_alpha(0.45);
         draw_set_color(c_black);
-        draw_rectangle(_cx - 4, y - 12 + _bob, _cx + 4, y - 4 + _bob, true);
+        draw_rectangle(_cx - 3, y - 11 + _bob, _cx + 3, y - 5 + _bob, true);
     } else {
         // =========================================================
         // STANDARD DECORATIVE OFFICE PC (Muted, non-interactive)
@@ -74,14 +77,15 @@ else if (prop_type == TILE_PROP_NPC) {
     var _sy = scr_battle_sprite_feet_y(npc_spr, 1.0, y + 15);
     draw_sprite_ext(npc_spr, npc_frame, x, _sy, 1.0, 1.0, 0, c_white, 1.0);
 
-    // Floating status badge above NPC head (! when unvisited, green dot when all clear)
-    var _bob = sin(current_time / 180 + x) * 1.5;
+    // Subtle floating status dot above NPC head
+    var _bob = sin(current_time / 180 + x) * 1.2;
     if (!talked_once || _lifted) {
-        draw_set_alpha(0.90);
+        draw_set_alpha(0.38);
         draw_set_color(_lifted ? c_lime : make_color_rgb(255, 215, 50));
-        draw_circle(_cx, y - 16 + _bob, 3.5, false);
+        draw_circle(_cx, y - 16 + _bob, 2.5, false);
+        draw_set_alpha(0.45);
         draw_set_color(c_black);
-        draw_circle(_cx, y - 16 + _bob, 3.5, true);
+        draw_circle(_cx, y - 16 + _bob, 2.5, true);
     }
 }
 else if (prop_type == TILE_PROP_LOCKER) {
@@ -90,10 +94,10 @@ else if (prop_type == TILE_PROP_LOCKER) {
     // =========================================================
     var _is_occupied = (variable_global_exists("player_in_locker") && global.player_in_locker && global.active_locker_id == id);
 
-    // Bright cyan/gold floor light pool so locker stands out from the floor
-    draw_set_alpha(0.28);
+    // Subtle floor light pool under locker
+    draw_set_alpha(0.07);
     draw_set_color(_is_occupied ? c_lime : c_aqua);
-    draw_circle(_cx, y + 8, 12, false);
+    draw_circle(_cx, y + 8, 10, false);
 
     // Drop shadow under locker
     draw_set_alpha(0.55);
@@ -146,10 +150,10 @@ else if (prop_type == TILE_PROP_DRONE) {
         var _half_fov  = 32;
         var _num_rays  = 24;
 
-        // Soft flashlight glow around the drone lens itself
-        draw_set_alpha(0.22);
+        // Subtle flashlight glow around the drone lens itself
+        draw_set_alpha(0.08);
         draw_set_color(make_color_rgb(255, 210, 120));
-        draw_circle(_cx, _cy, 12, false);
+        draw_circle(_cx, _cy, 10, false);
 
         // Outer Raycast Flashlight Fan (clips against walls & spills into open doorway alcoves!)
         draw_primitive_begin(pr_trianglefan);
@@ -186,15 +190,15 @@ else if (prop_type == TILE_PROP_DRONE) {
     draw_sprite_ext(drone_spr, _dframe, _cx, y + 6 + _hover_y, 0.42, 0.42, 0, _dtint, 1.0);
 }
 
-// Floating [E] indicator directly over the prop when Jack is within range
+// Subtle floating [E] indicator directly over the prop when Jack is within range
 if (player_near) {
     var _ey = (prop_type == TILE_PROP_NPC) ? (y - 24) : (y - 16);
-    draw_set_alpha(0.88);
+    draw_set_alpha(0.55);
     draw_set_color(make_color_rgb(10, 16, 26));
-    draw_rectangle(_cx - 7, _ey - 5, _cx + 7, _ey + 5, false);
-    draw_set_alpha(1.0);
+    draw_rectangle(_cx - 6, _ey - 4, _cx + 6, _ey + 4, false);
+    draw_set_alpha(0.65);
     draw_set_color(c_aqua);
-    draw_rectangle(_cx - 7, _ey - 5, _cx + 7, _ey + 5, true);
+    draw_rectangle(_cx - 6, _ey - 4, _cx + 6, _ey + 4, true);
 }
 
 draw_set_color(c_white);

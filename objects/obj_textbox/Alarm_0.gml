@@ -16,17 +16,18 @@ text_speed_al	= array_length_1d(text_speed[page])/2;
 effects_al		= array_length_1d(effects[page])/2;
 text_col_al		= array_length_1d(text_col[page])/2;
 
-if(portrait[page] == -1){
-	pos_x			= (gb_diff/2);
-	finishede_x		= pos_x + boxWidth - x_buffer;
-} else {
-	pos_x			= (gb_diff/2)+(portraitWidth/2);
-	finishede_x		= pos_x + boxWidth - x_buffer;
-}
+// Keep Visual Novel text area anchored cleanly inside the bottom VN panel
+pos_x       = 124;
+pos_y       = 236;
+boxWidth    = 468;
+boxHeight   = 100;
+finishede_x = vn_panel_x2 - 18;
+finishede_y = vn_panel_y2 - 14;
 
 draw_set_font(font[page]);
-charSize   = string_width("M");		//gets new charSize under current font
-charHeight = string_height("M");	//same for height
+charSize     = string_width("M");		//gets new charSize under current font
+charHeight   = string_height("M");	//same for height
+stringHeight = max(charHeight + 4, 18);
 #endregion
 
 #region GET THE BREAKPOINTS AND TEXT EFFECTS
@@ -58,20 +59,6 @@ if(type[page] == 0){
 
 		cc++;
 	}
-
-	// --- DYNAMIC BOX HEIGHT ---
-	// by = number of forced line-breaks, so total lines = by + 1
-	var _num_lines  = by + 1;
-	var _min_box_h  = sprite_get_height(dialogue_box) * scale;
-	var _max_box_h  = floor(gui_height * 0.70); // never taller than 70% of screen
-	var _text_h     = (_num_lines * charHeight) + (y_buffer * 2);
-	boxHeight       = clamp(_text_h, _min_box_h, _max_box_h);
-
-	// Re-anchor to screen bottom (box grows upward)
-	pos_y           = gui_height - boxHeight - 8;
-	name_box_y      = pos_y - (23 * scale);
-	name_box_text_y = name_box_y + y_buffer;
-	finishede_y     = pos_y + boxHeight - y_buffer;
 }
 #endregion
 

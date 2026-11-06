@@ -46,25 +46,35 @@ portrait_idle_c = 0;
 emotes			= -1;
 speaker			= noone;
 
-boxHeight		= sprite_get_height(dialogue_box) * scale;
-boxWidth		= sprite_get_width(dialogue_box) * scale;
 gui_width		= display_get_gui_width();
 gui_height		= display_get_gui_height();
+
+// Visual Novel panel layout (fixed sleek bottom panel on 640x360 GUI)
+vn_panel_x1     = 36;
+vn_panel_y1     = 228;
+vn_panel_x2     = 604;
+vn_panel_y2     = 344;
+vn_stage_acc    = 0;
+
+// Text layout inside the VN panel (to the right of the 64x64 portrait card)
+pos_x			= 124;
+pos_y			= 236;
+boxWidth		= 468;
+boxHeight		= 100;
+x_buffer		= 10;
+y_buffer		= 8;
 gb_diff			= gui_width - boxWidth;
-portraitWidth	= sprite_get_width(portrait_frame) * scale;
+portraitWidth	= 64;
 finishede_num	= sprite_get_number(finished_effect);
 finishede_spd	= (sprite_get_speed(spr_dialoguefinished)/room_speed);
 
-pos_x			= (gb_diff/2)+(portraitWidth/2);
-pos_y			= gui_height-boxHeight-8;
+name_box_x		= vn_panel_x1 + 12;
+name_box_y		= vn_panel_y1 - 24;
+name_box_text_x = name_box_x + 90;
+name_box_text_y = name_box_y + 4;
 
-name_box_x		= pos_x + (8 * scale);
-name_box_y		= pos_y - (23 * scale);
-name_box_text_x = name_box_x + ((sprite_get_width(name_box)*scale)/2);
-name_box_text_y = name_box_y + y_buffer;
-
-finishede_x		= pos_x + boxWidth - x_buffer;
-finishede_y		= pos_y + boxHeight - y_buffer;
+finishede_x		= vn_panel_x2 - 18;
+finishede_y		= vn_panel_y2 - 14;
 
 letter			= 0;
 charCount		= 0;

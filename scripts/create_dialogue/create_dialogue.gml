@@ -31,6 +31,52 @@ function create_dialogue() {
 	if(!is_array(arg[1]))	{ _speaker = array_create(text_len, id); }
 	else					{ _speaker = arg[1]; }
 
+	// Visual Novel Auto-Pagination: split overly long paragraphs (> 135 chars) into bite-sized VN pages
+	if (arg_count <= 2) {
+		var _new_text = [];
+		var _new_spk  = [];
+		var _out_i    = 0;
+		for (var _pi = 0; _pi < text_len; _pi++) {
+			var _rem = is_string(_text[_pi]) ? _text[_pi] : string(_text[_pi]);
+			var _spk_item = (_pi < array_length_1d(_speaker)) ? _speaker[_pi] : _speaker[0];
+			while (string_length(_rem) > 135) {
+				var _cut = 0;
+				// Prefer splitting after a sentence mark (. ! ?) between char 45 and 135
+				for (var _ci = 45; _ci <= 135; _ci++) {
+					var _c1 = string_char_at(_rem, _ci);
+					var _c2 = string_char_at(_rem, _ci + 1);
+					if ((_c1 == "." || _c1 == "!" || _c1 == "?") && _c2 == " ") {
+						_cut = _ci;
+						break;
+					}
+				}
+				// Otherwise split at the last space before char 130
+				if (_cut == 0) {
+					for (var _ci = 130; _ci >= 60; _ci--) {
+						if (string_char_at(_rem, _ci) == " ") {
+							_cut = _ci - 1;
+							break;
+						}
+					}
+				}
+				if (_cut <= 0) _cut = 130;
+				_new_text[_out_i] = string_copy(_rem, 1, _cut);
+				_new_spk[_out_i]  = _spk_item;
+				_out_i++;
+				_rem = string_delete(_rem, 1, _cut);
+				while (string_length(_rem) > 0 && string_char_at(_rem, 1) == " ") {
+					_rem = string_delete(_rem, 1, 1);
+				}
+			}
+			_new_text[_out_i] = _rem;
+			_new_spk[_out_i]  = _spk_item;
+			_out_i++;
+		}
+		_text    = _new_text;
+		_speaker = _new_spk;
+		text_len = _out_i;
+	}
+
 	//Get rest of arguments, fill with default
 	var _effects	= array_create(text_len, [1,0]);
 	var _speed		= array_create(text_len, [1,0.5]);

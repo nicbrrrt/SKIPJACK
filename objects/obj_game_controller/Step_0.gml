@@ -185,21 +185,30 @@ if (mouse_locked_until_release)
     }
 }
 
-// 2. ESCAPE KEY TOGGLE
-if (keyboard_check_pressed(vk_escape))
+// 2. ESCAPE KEY TOGGLE (Only opens Pause Menu when NO dialogue or sub-UI is open)
+if (!variable_global_exists("esc_block_frames")) global.esc_block_frames = 0;
+if (global.esc_block_frames > 0) global.esc_block_frames--;
+
+var _popup_open = instance_exists(obj_textbox)
+               || instance_exists(obj_textevent)
+               || (instance_exists(obj_cipher) && !instance_exists(obj_battle))
+               || instance_exists(obj_dungeon_quiz)
+               || instance_exists(obj_dungeon_victory)
+               || (instance_exists(obj_codex_manager) && obj_codex_manager.is_open)
+               || (variable_global_exists("pc_screen_open") && global.pc_screen_open)
+               || (variable_global_exists("key_analyzer_open") && global.key_analyzer_open)
+               || (instance_exists(obj_kyle) && obj_kyle.gui_open)
+               || (instance_exists(obj_hallway_poster) && obj_hallway_poster.is_open);
+
+if (keyboard_check_pressed(vk_escape) && global.esc_block_frames <= 0)
 {
     if (global.is_paused)
     {
         unpause_game();
     }
-    else
+    else if (!_popup_open && (instance_exists(obj_jack) || is_special_event_active()))
     {
-        var _popup_open = (instance_exists(obj_kyle) && obj_kyle.gui_open)
-                       || (instance_exists(obj_hallway_poster) && obj_hallway_poster.is_open);
-        if (!_popup_open && (instance_exists(obj_jack) || is_special_event_active()))
-        {
-            pause_game();
-        }
+        pause_game();
     }
 }
 

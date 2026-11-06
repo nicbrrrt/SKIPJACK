@@ -28,6 +28,8 @@ if (success_timer > 0) {
 
 // Allow Escape to cancel and step away from the door
 if (keyboard_check_pressed(vk_escape)) {
+    global.esc_block_frames = 2;
+    keyboard_clear(vk_escape);
     audio_play_sound(snd_button_click, 10, false);
     instance_destroy();
     exit;
@@ -77,7 +79,7 @@ if (string_length(player_guess) == _len) {
     if (player_guess == target_word) {
         status_msg    = "CORRECT! KEY VAULT UNLOCKED";
         status_col    = c_lime;
-        success_timer = 100;
+        success_timer = 55;
         audio_play_sound(snd_correct_ping, 10, false);
     } else {
         shake_timer  = 12;

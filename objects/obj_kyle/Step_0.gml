@@ -7,6 +7,10 @@ visible = true;
 // --- GUI CLOSE (E or ESC while panel is open) ---
 if (gui_open) {
     if (keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_escape)) {
+        if (keyboard_check_pressed(vk_escape)) {
+            global.esc_block_frames = 2;
+            keyboard_clear(vk_escape);
+        }
         gui_open = false;
         // Mark lesson done and free player immediately — every time the panel closes
         if (!global.kyle_lesson_done) {

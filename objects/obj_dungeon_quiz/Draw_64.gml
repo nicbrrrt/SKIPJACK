@@ -1,5 +1,5 @@
 /// @description obj_dungeon_quiz — Draw GUI Event
-/// Renders the Cybersecurity Incident Case Quiz UI overlay (640x360 GUI).
+/// Renders a clean, minimal Key Vault Security Quiz UI (640x360 GUI).
 
 var _gui_w = display_get_gui_width();
 var _gui_h = display_get_gui_height();
@@ -11,13 +11,13 @@ var _cx = (_gui_w * 0.5) + _sx;
 var _cy = (_gui_h * 0.5) + _sy;
 
 // Dim background backdrop
-draw_set_alpha(0.80);
+draw_set_alpha(0.82);
 draw_set_color(c_black);
 draw_rectangle(0, 0, _gui_w, _gui_h, false);
 
-// Main quiz panel
-var _pw = 556;
-var _ph = 278;
+// Compact quiz panel
+var _pw = 500;
+var _ph = 248;
 var _x1 = _cx - (_pw * 0.5);
 var _y1 = _cy - (_ph * 0.5);
 var _x2 = _cx + (_pw * 0.5);
@@ -37,44 +37,40 @@ draw_set_font(fnt_dialogue);
 draw_set_halign(fa_center);
 draw_set_valign(fa_middle);
 
-// Header
+// Header & Clue Badge
 draw_set_color(make_color_rgb(255, 210, 55));
-draw_text_transformed(_cx, _y1 + 20, "KEY VAULT SECURITY VERIFICATION", 1.1, 1.1, 0);
+draw_text_transformed(_cx, _y1 + 20, "KEY VAULT LOCK", 1.05, 1.05, 0);
 
-// Floor Incident Case Scenario Box
-draw_set_alpha(0.85);
+// Short 1-Line Question Box
 draw_set_color(make_color_rgb(22, 32, 48));
-draw_rectangle(_x1 + 16, _y1 + 36, _x2 - 16, _y1 + 82, false);
-draw_set_alpha(1.0);
+draw_rectangle(_x1 + 18, _y1 + 36, _x2 - 18, _y1 + 74, false);
 draw_set_color(make_color_rgb(65, 130, 175));
-draw_rectangle(_x1 + 16, _y1 + 36, _x2 - 16, _y1 + 82, true);
+draw_rectangle(_x1 + 18, _y1 + 36, _x2 - 18, _y1 + 74, true);
 
 draw_set_color(c_white);
-draw_text_ext_transformed(_cx, _y1 + 59, current_scenario, 16, (_pw - 48) / 0.88, 0.88, 0.88, 0);
+draw_text_ext_transformed(_cx, _y1 + 55, current_scenario, 15, (_pw - 52) / 0.88, 0.88, 0.88, 0);
 
-// Field Clues / Investigation Status Banner
+// Concise Clue Status Line
 var _clues_cur = variable_global_exists("clues_found")  ? global.clues_found  : 0;
-var _clues_req = variable_global_exists("clues_needed") ? global.clues_needed : 2;
-
 if (_clues_cur <= 0) {
-    draw_set_color(make_color_rgb(255, 170, 65));
-    draw_text_transformed(_cx, _y1 + 98, "FIELD CLUES: 0/2 — Talk to coworkers or inspect PCs [E] to unlock hints & letter bank!", 0.82, 0.82, 0);
+    draw_set_color(make_color_rgb(255, 175, 65));
+    draw_text_transformed(_cx, _y1 + 90, "CLUES: 0/2  —  Find clues [E] to reveal letters!", 0.84, 0.84, 0);
 } else if (_clues_cur == 1) {
     draw_set_color(c_aqua);
-    draw_text_transformed(_cx, _y1 + 98, "CLUE 1/2 UNLOCKED: " + current_hint, 0.85, 0.85, 0);
+    draw_text_transformed(_cx, _y1 + 90, "CLUES: 1/2  —  Letters Unlocked!", 0.84, 0.84, 0);
 } else {
     var _first_two = string_copy(target_word, 1, 2);
     draw_set_color(c_lime);
-    draw_text_transformed(_cx, _y1 + 98, "FULL FIELD NOTES (2/2): " + current_hint + " (Starts with '" + _first_two + "...')", 0.82, 0.82, 0);
+    draw_text_transformed(_cx, _y1 + 90, "CLUES: 2/2  —  Starts with '" + _first_two + "...'", 0.84, 0.84, 0);
 }
 
-// Scrambled letter tiles row (masked with '?' if player hasn't gathered any clues yet!)
+// Scrambled letter tiles row
 var _len      = array_length(letter_chars);
 var _tile_sz  = 28;
 var _tile_gap = 8;
 var _total_w  = (_len * _tile_sz) + ((_len - 1) * _tile_gap);
 var _start_x  = _cx - (_total_w * 0.5) + (_tile_sz * 0.5);
-var _tiles_y  = _y1 + 134;
+var _tiles_y  = _y1 + 124;
 
 for (var _i = 0; _i < _len; _i++) {
     var _tx   = _start_x + _i * (_tile_sz + _tile_gap);
@@ -91,7 +87,7 @@ for (var _i = 0; _i < _len; _i++) {
 }
 
 // Player Answer Slots row
-var _ans_y = _y1 + 180;
+var _ans_y = _y1 + 168;
 for (var _i = 0; _i < _len; _i++) {
     var _tx = _start_x + _i * (_tile_sz + _tile_gap);
     var _has_ch = (_i < string_length(player_guess));
@@ -107,22 +103,17 @@ for (var _i = 0; _i < _len; _i++) {
     draw_text(_tx, _ans_y, _ch);
 }
 
-// Status message or Lesson Takeaway upon solving
+// Minimal Status & Footer
 if (success_timer > 0) {
     draw_set_color(c_lime);
-    draw_text(_cx, _y1 + 214, status_msg);
-    draw_set_color(make_color_rgb(170, 245, 205));
-    draw_text_ext_transformed(_cx, _y1 + 236, current_takeaway, 14, (_pw - 40) / 0.82, 0.82, 0.82, 0);
+    draw_text_transformed(_cx, _y2 - 42, "VAULT UNLOCKED!", 0.95, 0.95, 0);
 } else if (status_msg != "") {
     draw_set_color(status_col);
-    draw_text(_cx, _y1 + 220, status_msg);
-} else {
-    draw_set_color(c_ltgray);
-    draw_text_transformed(_cx, _y1 + 220, "Type the cybersecurity term that matches this floor's incident!", 0.90, 0.90, 0);
+    draw_text_transformed(_cx, _y2 - 42, status_msg, 0.88, 0.88, 0);
 }
 
-draw_set_color(make_color_rgb(160, 175, 195));
-draw_text_transformed(_cx, _y1 + 258, "TYPE [A-Z]   |   [BACKSPACE] Erase   |   [ESC] Step Back & Investigate Rooms", 0.82, 0.82, 0);
+draw_set_color(make_color_rgb(150, 170, 195));
+draw_text_transformed(_cx, _y2 - 16, "[A-Z] Type   |   [BACKSPACE] Erase   |   [ESC] Back", 0.82, 0.82, 0);
 
 // Reset draw state
 draw_set_font(fnt_default);

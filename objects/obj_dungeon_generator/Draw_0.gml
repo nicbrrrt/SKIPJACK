@@ -33,33 +33,29 @@ for (var _i = 0; _i < _total_rooms; _i++) {
             draw_set_color(make_color_rgb(3, 5, 12));
             draw_rectangle(_x1, _y1, _x2, _y2, false);
 
-            // 2. Pulsing red emergency lockdown wash
-            draw_set_alpha(_vis * (0.04 + 0.09 * _siren_pulse));
+            // 2. Pulsing red emergency lockdown wash in the room
+            draw_set_alpha(_vis * (0.03 + 0.06 * _siren_pulse));
             draw_set_color(make_color_rgb(255, 18, 36));
             draw_rectangle(_x1 + 16, _y1 + 16, _x2 - 16, _y2 - 16, false);
 
-            // 3. Ceiling emergency beacon light at center of chunk
+            // 3. Ceiling emergency blinking LED point at center of chunk (no outer circle halo)
             var _bx = _x1 + 72;
             var _by = _y1 + 72;
-            draw_set_alpha(_vis * (0.10 + 0.18 * _siren_pulse));
-            draw_set_color(make_color_rgb(255, 35, 55));
-            draw_circle(_bx, _by, 20 + 8 * _siren_pulse, false);
-
-            draw_set_alpha(_vis * (0.45 + 0.50 * _siren_pulse));
+            draw_set_alpha(_vis * (0.35 + 0.45 * _siren_pulse));
             draw_set_color(make_color_rgb(255, 130, 140));
-            draw_circle(_bx, _by, 2.5, false);
+            draw_circle(_bx, _by, 2.0, false);
 
-            // 4. Special room interior frame highlights
+            // 4. Special room interior frame highlights (subtle)
             if (_rtype == ROOM_CAESAR_KEY) {
-                draw_set_alpha(_vis * 0.50);
+                draw_set_alpha(_vis * 0.22);
                 draw_set_color(make_color_rgb(255, 195, 35));
                 draw_rectangle(_x1 + 16, _y1 + 16, _x2 - 16, _y2 - 16, true);
             } else if (_rtype == ROOM_CAESAR_LOCKED) {
-                draw_set_alpha(_vis * 0.50);
+                draw_set_alpha(_vis * 0.22);
                 draw_set_color(make_color_rgb(255, 65, 125));
                 draw_rectangle(_x1 + 16, _y1 + 16, _x2 - 16, _y2 - 16, true);
             } else if (_rtype == ROOM_HOLDING) {
-                draw_set_alpha(_vis * 0.55);
+                draw_set_alpha(_vis * 0.25);
                 draw_set_color(make_color_rgb(255, 120, 30));
                 draw_rectangle(_x1 + 16, _y1 + 16, _x2 - 16, _y2 - 16, true);
             }
@@ -67,44 +63,27 @@ for (var _i = 0; _i < _total_rooms; _i++) {
             // Lockdown lifted: main building lights are ON!
             var _bx = _x1 + 72;
             var _by = _y1 + 72;
-            draw_set_alpha(_vis * 0.10);
-            draw_set_color(make_color_rgb(225, 242, 255));
-            draw_circle(_bx, _by, 24, false);
-
-            draw_set_alpha(_vis * 0.50);
+            draw_set_alpha(_vis * 0.35);
             draw_set_color(c_white);
-            draw_circle(_bx, _by, 2.5, false);
+            draw_circle(_bx, _by, 2.0, false);
         }
     }
 
     if (_alpha <= 0.01) continue;
 
-    // Near-pitch-black shroud over unlit rooms
+    // 100% opaque pitch-black shroud over unlit rooms so the player cannot see into neighboring rooms
     draw_set_alpha(_alpha);
-    draw_set_color(make_color_rgb(5, 7, 12));
+    draw_set_color(make_color_rgb(3, 5, 10));
     draw_rectangle(_x1, _y1, _x2, _y2, false);
-
-    // Subtle muted border tint on shrouded rooms
-    draw_set_alpha(_alpha * 0.30);
-    if (_rtype == ROOM_CAESAR_KEY) {
-        draw_set_color(make_color_rgb(120, 95, 30));
-    } else if (_rtype == ROOM_CAESAR_LOCKED) {
-        draw_set_color(make_color_rgb(120, 35, 65));
-    } else if (_rtype == ROOM_HOLDING) {
-        draw_set_color(make_color_rgb(130, 65, 25));
-    } else {
-        draw_set_color(make_color_rgb(35, 42, 55));
-    }
-    draw_rectangle(_x1 + 2, _y1 + 2, _x2 - 2, _y2 - 2, true);
 }
 
 // Soft personal lantern aura around Jack during blackout so Jack is always crisp in the dark
 if (!_lockdown_lifted && instance_exists(obj_jack) && obj_jack.visible) {
-    draw_set_alpha(0.10);
+    draw_set_alpha(0.05);
     draw_set_color(make_color_rgb(160, 215, 255));
-    draw_circle(obj_jack.x, obj_jack.y - 8, 28, false);
-    draw_set_alpha(0.08);
-    draw_circle(obj_jack.x, obj_jack.y - 8, 16, false);
+    draw_circle(obj_jack.x, obj_jack.y - 8, 26, false);
+    draw_set_alpha(0.04);
+    draw_circle(obj_jack.x, obj_jack.y - 8, 14, false);
 }
 
 draw_set_color(c_white);

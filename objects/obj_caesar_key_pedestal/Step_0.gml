@@ -37,6 +37,8 @@ if (ui_open) {
 
     // Allow ESC to close
     if (keyboard_check_pressed(vk_escape)) {
+        global.esc_block_frames  = 2;
+        keyboard_clear(vk_escape);
         ui_open                  = false;
         global.key_analyzer_open = false;
         audio_play_sound(snd_button_click, 10, false);
@@ -63,18 +65,14 @@ if (ui_open) {
         if (dial_shift == _floor_key) {
             collected                     = true;
             global.has_dungeon_cipher_key = true;
-            status_msg                    = "KEY CRACKED! Shift " + _d_str + " turns '" + sample_enc + "' into '" + sample_plain + "'! Saved to HUD!";
+            status_msg                    = "KEY SAVED: SHIFT " + _d_str + "!";
             status_col                    = c_lime;
-            success_timer                 = 85;
+            success_timer                 = 70;
             audio_play_sound(snd_objective_complete, 10, false);
         } else {
             shake_timer = 10;
             status_col  = c_orange;
-            if (dial_shift == -_floor_key) {
-                status_msg = "OPPOSITE DIRECTION! Shift " + _d_str + " moves away from '" + sample_plain + "' — reverse the sign!";
-            } else {
-                status_msg = "NOT QUITE: Shifting '" + sample_enc + "' by " + _d_str + " lands on '" + _landed_ch + "', not '" + sample_plain + "'!";
-            }
+            status_msg  = "Lands on '" + _landed_ch + "' — align with '" + sample_plain + "'!";
             audio_play_sound(wrong1, 10, false);
         }
     }
