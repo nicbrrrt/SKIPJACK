@@ -26,14 +26,18 @@ if (variable_global_exists("player_in_locker") && global.player_in_locker) {
 
 // Freeze during cutscenes, transitions, or active minigames
 if (isInCutscene
-    || (variable_global_exists("pc_screen_open") && global.pc_screen_open)
+    || (variable_global_exists("cam_pan_phase")    && global.cam_pan_phase != "off")
+    || (variable_global_exists("pc_screen_open")   && global.pc_screen_open)
     || (variable_global_exists("key_analyzer_open") && global.key_analyzer_open)
+    || (variable_global_exists("override_ui_open")  && global.override_ui_open)
+    || (variable_global_exists("breaker_ui_open")   && global.breaker_ui_open)
     || instance_exists(obj_transition)
     || instance_exists(obj_path)
     || instance_exists(obj_cipher)
     || instance_exists(obj_dungeon_quiz)
     || instance_exists(obj_qte)
     || instance_exists(obj_textevent)
+    || instance_exists(obj_textbox)
     || instance_exists(obj_atbash_mirror_gui)
     || instance_exists(obj_atbash_board_gui)
     || instance_exists(obj_atbash_combat_gui)

@@ -14,14 +14,21 @@ global.cam_width = 640;
 global.cam_height = 360;
 
 // Camera pan state safety guards (in case camera is initialized before or without obj_game_init)
-if (!variable_global_exists("cam_pan_phase"))   global.cam_pan_phase   = "off";
-if (!variable_global_exists("cam_pan_timer"))   global.cam_pan_timer   = 0;
-if (!variable_global_exists("cam_pan_from_x"))  global.cam_pan_from_x  = 0;
-if (!variable_global_exists("cam_pan_from_y"))  global.cam_pan_from_y  = 0;
-if (!variable_global_exists("cam_pan_to_x"))    global.cam_pan_to_x    = 0;
-if (!variable_global_exists("cam_pan_to_y"))    global.cam_pan_to_y    = 0;
-if (!variable_global_exists("cam_shake_timer")) global.cam_shake_timer = 0;
-if (!variable_global_exists("cam_shake_mag"))   global.cam_shake_mag   = 0;
+if (!variable_global_exists("cam_pan_phase"))    global.cam_pan_phase    = "off";
+if (!variable_global_exists("cam_pan_mode"))     global.cam_pan_mode     = "";
+if (!variable_global_exists("cam_pan_timer"))    global.cam_pan_timer    = 0;
+if (!variable_global_exists("cam_pan_from_x"))   global.cam_pan_from_x   = 0;
+if (!variable_global_exists("cam_pan_from_y"))   global.cam_pan_from_y   = 0;
+if (!variable_global_exists("cam_pan_cur_x"))    global.cam_pan_cur_x    = 0;
+if (!variable_global_exists("cam_pan_cur_y"))    global.cam_pan_cur_y    = 0;
+if (!variable_global_exists("cam_pan_to_x"))     global.cam_pan_to_x     = 0;
+if (!variable_global_exists("cam_pan_to_y"))     global.cam_pan_to_y     = 0;
+if (!variable_global_exists("cam_pan_targets"))  global.cam_pan_targets  = [];
+if (!variable_global_exists("cam_pan_label"))    global.cam_pan_label    = "";
+if (!variable_global_exists("cam_pan_sublabel")) global.cam_pan_sublabel = "";
+if (!variable_global_exists("cam_pan_col"))      global.cam_pan_col      = c_aqua;
+if (!variable_global_exists("cam_shake_timer"))  global.cam_shake_timer  = 0;
+if (!variable_global_exists("cam_shake_mag"))    global.cam_shake_mag    = 0;
 
 // GUI size is managed globally by obj_game_controller's Room Start event
 

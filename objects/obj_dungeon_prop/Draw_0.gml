@@ -4,7 +4,10 @@
 
 var _cx     = x + 8;
 var _by     = y + 15;
-var _lifted = (variable_global_exists("lockdown_lifted") && global.lockdown_lifted);
+var _lifted = (variable_global_exists("lockdown_lifted")     && global.lockdown_lifted)
+           || (variable_global_exists("lockdown_overridden") && global.lockdown_overridden);
+var _pwr_on = (variable_global_exists("power_restored")      && global.power_restored)
+           || (variable_global_exists("lockdown_lifted")     && global.lockdown_lifted);
 
 if (prop_type == TILE_PROP_PC) {
     if (has_clue) {
@@ -135,6 +138,55 @@ else if (prop_type == TILE_PROP_LOCKER) {
     // Bright White/Silver Locker Handle
     draw_set_color(c_white);
     draw_rectangle(x + 10, y + 6, x + 12, y + 10, false);
+}
+else if (prop_type == TILE_PROP_OVERRIDE) {
+    // =========================================================
+    // RED LOCKDOWN OVERRIDE CONSOLE (Stage 2 Objective)
+    // =========================================================
+    var _pulse = 0.5 + 0.5 * sin(current_time / 160);
+
+    // Subtle floor glow
+    draw_set_alpha(0.08 + 0.04 * _pulse);
+    draw_set_color(_lifted ? c_lime : make_color_rgb(255, 65, 85));
+    draw_circle(_cx, y + 9, 12, false);
+
+    // Steel Console Pedestal Base
+    draw_set_alpha(0.95);
+    draw_set_color(make_color_rgb(32, 24, 36));
+    draw_rectangle(x + 1, y, x + 14, y + 14, false);
+    draw_set_color(_lifted ? c_lime : make_color_rgb(255, 80, 105));
+    draw_rectangle(x + 1, y, x + 14, y + 14, true);
+
+    // Center Big Red Override Dome Button (Turns Emerald Green when overridden!)
+    draw_set_color(_lifted ? c_lime : merge_color(make_color_rgb(220, 30, 50), make_color_rgb(255, 120, 130), _pulse));
+    draw_circle(_cx, y + 6, 4, false);
+    draw_set_color(c_white);
+    draw_circle(_cx - 1, y + 5, 1, false);
+}
+else if (prop_type == TILE_PROP_BREAKER) {
+    // =========================================================
+    // HIGH-VOLTAGE POWER BREAKER PANEL (Stage 3 Objective)
+    // =========================================================
+    var _pulse = 0.5 + 0.5 * sin(current_time / 170);
+
+    // Subtle electric floor glow
+    draw_set_alpha(0.08 + 0.04 * _pulse);
+    draw_set_color(_pwr_on ? c_lime : c_aqua);
+    draw_circle(_cx, y + 9, 12, false);
+
+    // Industrial Breaker Cabinet Box
+    draw_set_alpha(0.95);
+    draw_set_color(make_color_rgb(22, 34, 48));
+    draw_rectangle(x + 1, y - 2, x + 14, y + 14, false);
+    draw_set_color(_pwr_on ? c_lime : c_aqua);
+    draw_rectangle(x + 1, y - 2, x + 14, y + 14, true);
+
+    // 3 Miniature Fuse Switch Bars inside cabinet
+    for (var _fi = 0; _fi < 3; _fi++) {
+        var _fy = y + 1 + _fi * 4;
+        draw_set_color(_pwr_on ? c_lime : ((_fi == 1) ? make_color_rgb(255, 200, 50) : c_aqua));
+        draw_rectangle(x + 4, _fy, x + 11, _fy + 2, false);
+    }
 }
 else if (prop_type == TILE_PROP_DRONE) {
     var _cy      = y + 8;

@@ -1,10 +1,9 @@
 /// @description obj_dungeon_victory — Create Event
 /// Extraction Elevator Incident Debrief Report Card shown when completing a dungeon floor.
-/// Summarizes the Cybersecurity Attack Vector neutralized and Cryptography lesson learned.
+/// Tracks Chapter (1..3) and Floor (1..10) progression and unlocks the next Chapter on Floor 10!
 
 depth = -15000;
 
-// Freeze Jack while the victory screen is active
 if (instance_exists(obj_jack)) {
     obj_jack.isInCutscene = true;
 }
@@ -13,11 +12,35 @@ phase        = "fade_in"; // "fade_in" | "display" | "fade_out"
 phase_timer  = 0;
 anim_timer   = 0;
 screen_alpha = 0;
-next_action  = "next_dungeon"; // "next_dungeon" | "menu"
+next_action  = "next_dungeon"; // "next_dungeon" | "chapter_select" | "menu"
 
-cleared_count = variable_global_exists("dungeons_cleared") ? global.dungeons_cleared : 1;
-clues_total   = variable_global_exists("clues_found")      ? global.clues_found      : 0;
-floor_key     = variable_global_exists("dungeon_cipher_key") ? global.dungeon_cipher_key : 3;
+chapter_num   = variable_global_exists("dungeon_chapter") ? global.dungeon_chapter : CHAPTER_CAESAR;
+cleared_floor = variable_global_exists("chapter_floor")   ? global.chapter_floor   : 1;
+is_final_exam = (cleared_floor >= CHAPTER_MAX_FLOORS);
+
+clues_total = variable_global_exists("clues_found")          ? global.clues_found          : 0;
+clues_req   = variable_global_exists("clues_needed")         ? global.clues_needed         : 2;
+floor_key   = variable_global_exists("dungeon_cipher_key")   ? global.dungeon_cipher_key   : 3;
+vig_key     = variable_global_exists("dungeon_vigenere_key") ? global.dungeon_vigenere_key : "CAB";
+
+// Unlock next Chapter if Floor 10 Final Exam was just passed!
+if (is_final_exam) {
+    if (chapter_num == CHAPTER_CAESAR) {
+        global.vigenere_unlocked  = true;
+        global.final_boss_defeated = true;
+        global.newly_unlocked     = "vigenere";
+        if (instance_exists(obj_codex_manager)) {
+            obj_codex_manager.tab_locked[3] = false;
+        }
+    } else if (chapter_num == CHAPTER_VIGENERE) {
+        global.atbash_unlocked      = true;
+        global.atbash_boss_defeated = true;
+        global.newly_unlocked       = "atbash";
+        if (instance_exists(obj_codex_manager)) {
+            obj_codex_manager.tab_locked[2] = false;
+        }
+    }
+}
 
 var _case = variable_global_exists("floor_case")
     ? global.floor_case
@@ -28,14 +51,33 @@ case_title    = _case.title;
 case_hint     = _case.hint;
 case_takeaway = _case.takeaway;
 
-// Rotating Cryptography / Cryptanalysis facts for the debrief card
-var _crypto_facts = [
-    "CRYPTO FACT: Because a Caesar Cipher has only 25 possible shift keys, any modern computer can brute-force all 25 possibilities in less than a microsecond!",
-    "CRYPTO FACT: Matching one Encrypted letter to one known Plaintext letter (a 'Known-Plaintext Attack') immediately reveals the entire Caesar Shift Key!",
-    "CRYPTO FACT: Even if you don't know the key, 'Frequency Analysis' breaks Caesar ciphers by checking which encrypted letter appears most often (usually 'E' in English)!",
-    "CRYPTO FACT: Modern encryption (like AES-256) uses 2^256 possible keys instead of 25 — more keys than there are atoms in the observable universe!"
+// Chapter-specific Cryptography / Cryptanalysis facts for the debrief card
+var _caesar_facts = [
+    "CAESAR FACT: Because a Caesar Cipher has only 25 possible shift keys, a modern computer can brute-force all 25 keys in less than a microsecond!",
+    "CAESAR FACT: Matching one Encrypted letter to one known Plaintext letter immediately reveals the entire Caesar Shift Key!",
+    "CAESAR FACT: Negative Caesar keys (-K) shift backward toward 'A' and wrap around to 'Z' (modulo 26 arithmetic)!",
+    "CAESAR FACT: Frequency Analysis cracks Caesar ciphers by checking which encrypted letter appears most often (usually 'E' in English)!"
 ];
-crypto_fact = _crypto_facts[(cleared_count - 1) mod array_length(_crypto_facts)];
+var _vig_facts = [
+    "VIGENERE FACT: Invented in the 1500s, the Vigenere Cipher was called 'le chiffre indechiffrable' (the unbreakable cipher) for 300 years!",
+    "VIGENERE FACT: Each letter in the Keyword applies its own Caesar shift (A=+0, B=+1, C=+2...), defeating simple letter-frequency analysis!",
+    "VIGENERE FACT: When the Keyword is shorter than the message, it repeats over and over until every letter is encrypted!",
+    "VIGENERE FACT: If a Vigenere keyword is completely random, as long as the message, and used only once, it becomes a 'One-Time Pad'—mathematically unbreakable!"
+];
+var _atb_facts = [
+    "ATBASH FACT: Atbash is an ancient Hebrew substitution cipher that folds the alphabet in half like a mirror (A<->Z, B<->Y, M<->N)!",
+    "ATBASH FACT: Because Atbash is a symmetric reflection, encrypting and decrypting use the exact same mirror rule!",
+    "ATBASH FACT: In mathematical terms, if A=0 and Z=25, the Atbash mirror formula is simply: Decoded = 25 - Encrypted!",
+    "ATBASH FACT: Because Atbash has no variable secret key, its security relies on hiding the method—which modern cryptography replaces with secret keys!"
+];
+
+if (chapter_num == CHAPTER_VIGENERE) {
+    crypto_fact = _vig_facts[(cleared_floor - 1) mod array_length(_vig_facts)];
+} else if (chapter_num == CHAPTER_ATBASH) {
+    crypto_fact = _atb_facts[(cleared_floor - 1) mod array_length(_atb_facts)];
+} else {
+    crypto_fact = _caesar_facts[(cleared_floor - 1) mod array_length(_caesar_facts)];
+}
 
 // Decorative background particles
 stars = [];

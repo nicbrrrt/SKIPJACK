@@ -150,14 +150,20 @@ function scr_dungeon_spawn(logic_map, path_list) {
                     case TILE_PROP_PC:
                     case TILE_PROP_CHAIR:
                     case TILE_PROP_PAPER:
+                    case TILE_PROP_OVERRIDE:
+                    case TILE_PROP_BREAKER:
                         var _pf = instance_create_layer(px, py, layer_name, obj_floor);
                         _pf.depth       = 50;
-                        _pf.floor_style = 0;
+                        _pf.floor_style = (tile_val == TILE_PROP_OVERRIDE || tile_val == TILE_PROP_BREAKER) ? 1 : 0;
                         _pf.room_theme  = room_type;
                         var _pr = instance_create_layer(px, py, layer_name, obj_dungeon_prop);
                         _pr.depth       = (tile_val == TILE_PROP_PAPER) ? 45 : 24;
                         _pr.prop_type   = tile_val;
-                        if (room_type == ROOM_HOLDING) {
+                        if (tile_val == TILE_PROP_OVERRIDE) {
+                            global.override_prop_inst = _pr;
+                        } else if (tile_val == TILE_PROP_BREAKER) {
+                            global.breaker_prop_inst = _pr;
+                        } else if (room_type == ROOM_HOLDING) {
                             _pr.is_holding_clue = true;
                             if (tile_val == TILE_PROP_PC) {
                                 _pr.has_clue = true;
@@ -173,7 +179,8 @@ function scr_dungeon_spawn(logic_map, path_list) {
                         _df.floor_style = 1;
                         _df.room_theme  = room_type;
                         var _d = instance_create_layer(px, py, layer_name, obj_doorway);
-                        _d.depth = 40;
+                        _d.depth            = 26;
+                        _d.has_lock_overlay = false;
                         break;
 
                     case TILE_LOCK_QUIZ:
@@ -182,7 +189,8 @@ function scr_dungeon_spawn(logic_map, path_list) {
                         _qf.floor_style = 1;
                         _qf.room_theme  = room_type;
                         var _qd = instance_create_layer(px, py, layer_name, obj_doorway);
-                        _qd.depth = 40;
+                        _qd.depth            = 40;
+                        _qd.has_lock_overlay = true;
                         var _ql = instance_create_layer(px, py, layer_name, obj_door_quiz_lock);
                         _ql.depth = 25;
                         break;
@@ -193,11 +201,13 @@ function scr_dungeon_spawn(logic_map, path_list) {
                         _cf.floor_style = 1;
                         _cf.room_theme  = room_type;
                         var _cd = instance_create_layer(px, py, layer_name, obj_doorway);
-                        _cd.depth = 40;
+                        _cd.depth            = 40;
+                        _cd.has_lock_overlay = true;
                         var _cl = instance_create_layer(px, py, layer_name, obj_door_caesar_lock);
                         _cl.depth            = 25;
                         _cl.is_elevator_door = (room_type == ROOM_END);
                         _cl.is_holding_door  = (room_type == ROOM_HOLDING);
+                        _cl.is_breaker_door  = (room_type == ROOM_POWER);
                         break;
 
                     default:
@@ -224,15 +234,26 @@ function scr_dungeon_spawn(logic_map, path_list) {
                 obj_jack.isInCutscene = false;
             }
             var _start_npc = instance_create_layer(world_x + 2 * TILE_SIZE, world_y + 2 * TILE_SIZE, layer_name, obj_dungeon_prop);
-            _start_npc.prop_type = TILE_PROP_NPC;
-            _start_npc.npc_id    = (npc_seq++) mod 5;
+            _start_npc.prop_type      = TILE_PROP_NPC;
+            _start_npc.npc_id         = 2; // Kyle (Security Analyst) acts as the Start Room Mentor!
+            _start_npc.myName         = "Kyle (Security Analyst)";
+            _start_npc.npc_spr        = spr_kyle_idle;
+            _start_npc.myPortrait     = spr_kyle_portrait;
+            _start_npc.myPortraitTalk = spr_kyle_portrait;
+            _start_npc.myVoice        = snd_voice2;
+            _start_npc.init_done      = true;
+            global.floor_mentor_inst  = _start_npc;
+            npc_seq++;
         }
 
-        // Spawn a hacked security drone patrolling the exact centerline of the Hallway Spine,
+        // Spawn a hacked security drone patrolling the exact centerline of the Hallway Spine (if enabled on this floor),
         // plus Security Lockers along the hallway walls so the player can hide from the drone's vision cone!
         if (room_type == ROOM_HALLWAY) {
             hall_seq++;
-            if (hall_seq == 2) {
+            var _spawn_drone = (variable_global_exists("floor_curriculum") && variable_struct_exists(global.floor_curriculum, "spawn_drone"))
+                ? global.floor_curriculum.spawn_drone
+                : true;
+            if (hall_seq == 2 && _spawn_drone) {
                 var _hall_drone = instance_create_layer(world_x + 4 * TILE_SIZE, world_y + 4 * TILE_SIZE, layer_name, obj_dungeon_prop);
                 _hall_drone.prop_type      = TILE_PROP_DRONE;
                 _hall_drone.wp_index       = 1;
@@ -319,6 +340,17 @@ function scr_dungeon_spawn(logic_map, path_list) {
         with (obj_door_caesar_lock) {
             if (point_distance(draw_x + 8, draw_y + 8, _hx, _hy) <= 85) {
                 is_holding_door = true;
+            }
+        }
+    }
+
+    // Mark both sides of the Power Breaker Room's doorway threshold as is_breaker_door = true
+    if (variable_global_exists("breaker_prop_inst") && instance_exists(global.breaker_prop_inst)) {
+        var _bx = global.breaker_prop_inst.x + 8;
+        var _by = global.breaker_prop_inst.y + 8;
+        with (obj_door_caesar_lock) {
+            if (point_distance(draw_x + 8, draw_y + 8, _bx, _by) <= 85) {
+                is_breaker_door = true;
             }
         }
     }

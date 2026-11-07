@@ -1,7 +1,7 @@
 /// @description obj_caesar_key_pedestal — Create Event
 /// Placed at the center of ROOM_CAESAR_KEY.
-/// Opens the "Crack the Key" (Known-Plaintext Cryptanalysis) mini-lesson
-/// so the player actively deduces the floor's Caesar Shift Key!
+/// Opens the Chapter Key Calibration mini-lesson (Caesar Shift, Vigenere Keyword, or Atbash Mirror)
+/// with Guided Hand-Holding on Tutorial Floors 1-3.
 
 depth = 20; // Below room fog (10) and Jack (-y), above floor (50)
 
@@ -15,9 +15,10 @@ status_msg    = "";
 status_col    = c_white;
 success_timer = 0;
 
-// Pick a clean middle-of-the-alphabet letter (G..T) so shifting ±5 never wraps awkwardly during the intro lesson
-sample_plain_idx = irandom_range(6, 19);
-last_floor_key   = 0;
+sample_plain_idx = irandom_range(6, 15);
+last_floor_key   = -999;
+last_vig_key     = "";
 sample_plain     = "H";
 sample_enc       = "E";
+target_shift     = 3;
 global.key_analyzer_open = false;

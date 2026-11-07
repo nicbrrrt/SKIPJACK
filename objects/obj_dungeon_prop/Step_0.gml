@@ -44,7 +44,12 @@ if (!init_done) {
 
 if (variable_global_exists("is_paused") && global.is_paused) exit;
 if (instance_exists(obj_textevent)
-    || (variable_global_exists("pc_screen_open") && global.pc_screen_open)
+    || instance_exists(obj_textbox)
+    || (variable_global_exists("cam_pan_phase")     && global.cam_pan_phase != "off")
+    || (variable_global_exists("pc_screen_open")    && global.pc_screen_open)
+    || (variable_global_exists("key_analyzer_open") && global.key_analyzer_open)
+    || (variable_global_exists("override_ui_open")  && global.override_ui_open)
+    || (variable_global_exists("breaker_ui_open")   && global.breaker_ui_open)
     || instance_exists(obj_cipher)
     || instance_exists(obj_dungeon_quiz)
     || instance_exists(obj_dungeon_victory))
@@ -53,7 +58,10 @@ if (instance_exists(obj_textevent)
     exit;
 }
 
-var _lifted = (variable_global_exists("lockdown_lifted") && global.lockdown_lifted);
+var _lifted = (variable_global_exists("lockdown_lifted")     && global.lockdown_lifted)
+           || (variable_global_exists("lockdown_overridden") && global.lockdown_overridden);
+var _pwr_on = (variable_global_exists("power_restored")      && global.power_restored)
+           || (variable_global_exists("lockdown_lifted")     && global.lockdown_lifted);
 
 // ---------------------------------------------------------------------------
 // 1. Stranded Coworker NPC Animation & Facing
@@ -91,7 +99,9 @@ if (prop_type == TILE_PROP_DRONE) {
                 var _tx = _wps[wp_index][0];
                 var _ty = _wps[wp_index][1];
                 var _dist_wp = point_distance(x, y, _tx, _ty);
-                var _spd = 0.95;
+                var _spd = (variable_global_exists("floor_curriculum") && variable_struct_exists(global.floor_curriculum, "drone_speed"))
+                    ? global.floor_curriculum.drone_speed
+                    : 0.95;
 
                 if (_dist_wp <= _spd) {
                     x = _tx;
@@ -152,7 +162,7 @@ if (prop_type == TILE_PROP_DRONE) {
                             obj_dungeon_generator.room_discovered[global.holding_room_col][global.holding_room_row] = 2;
                         }
 
-                        // 3. Rotate the Caesar Shift Key to a new value & reset Key possession
+                        // 3. Rotate the Chapter Cipher Key to a new value & reset Key possession
                         var _old_key = variable_global_exists("dungeon_cipher_key") ? global.dungeon_cipher_key : 1;
                         var _new_key = scr_roll_cipher_key();
                         var _guard   = 0;
@@ -161,14 +171,16 @@ if (prop_type == TILE_PROP_DRONE) {
                             _guard++;
                         }
                         global.dungeon_cipher_key     = _new_key;
+                        global.dungeon_vigenere_key   = scr_roll_vigenere_keyword(variable_global_exists("chapter_floor") ? global.chapter_floor : 4);
                         global.has_dungeon_cipher_key = false;
                         scr_roll_holding_key_and_equation();
+                        scr_init_facility_puzzles();
 
                         with (obj_caesar_key_pedestal) {
                             collected = false;
                         }
 
-                        // 4. Re-lock ALL Quiz and Caesar doors across the floor
+                        // 4. Re-lock ALL Quiz and Cipher doors across the floor
                         with (obj_door_quiz_lock) {
                             locked = true;
                             x      = draw_x;
@@ -184,7 +196,7 @@ if (prop_type == TILE_PROP_DRONE) {
                         global.e_dialogue_intro_shown = true;
                         create_textevent([
                             "BUSTED! The security drone caught me in its beam and locked me in the Holding Cell!",
-                            "Worse—the lockdown protocol just re-locked all the doors and rotated the floor's Caesar Key.",
+                            "Worse—the lockdown protocol just re-locked all the doors and rotated the floor's Cipher Key.",
                             "I need to check the terminal or note in this cell [E] for a math clue to crack the brig door!"
                         ], [obj_jack.id, obj_jack.id, obj_jack.id]);
                         exit;
@@ -215,11 +227,13 @@ if (prop_type == TILE_PROP_LOCKER && variable_global_exists("player_in_locker") 
 
 if (variable_global_exists("player_in_locker") && global.player_in_locker) exit;
 
-// ONLY Clue Computers (has_clue == true), Papers, NPCs, Lockers, or Powered-Down Drones can be interacted with!
+// ONLY Clue Computers (has_clue == true), Papers, NPCs, Lockers, Override/Breaker Consoles, or Powered-Down Drones can be interacted with!
 var _can_inspect = (prop_type == TILE_PROP_PC && has_clue)
                 || (prop_type == TILE_PROP_PAPER)
                 || (prop_type == TILE_PROP_NPC)
                 || (prop_type == TILE_PROP_LOCKER)
+                || (prop_type == TILE_PROP_OVERRIDE)
+                || (prop_type == TILE_PROP_BREAKER)
                 || (prop_type == TILE_PROP_DRONE && _lifted);
 
 if (!_can_inspect) exit;
@@ -253,6 +267,36 @@ if (player_near && keyboard_check_pressed(ord("E"))) {
         exit;
     }
 
+    // Interacting with the Red Lockdown Override Console (Stage 2)
+    if (prop_type == TILE_PROP_OVERRIDE) {
+        audio_play_sound(snd_select, 8, false);
+        if (variable_global_exists("lockdown_overridden") && global.lockdown_overridden) {
+            global.e_dialogue_intro_shown = true;
+            create_textevent([
+                "The Lockdown Override is already active—the red sirens and hallway security drones are shut down!",
+                "Next: head to the Power Control Room and flip the Breaker Panel to restore floor power."
+            ], [obj_jack.id, obj_jack.id]);
+        } else {
+            global.override_ui_open = true;
+        }
+        exit;
+    }
+
+    // Interacting with the High-Voltage Power Breaker Panel (Stage 3)
+    if (prop_type == TILE_PROP_BREAKER) {
+        audio_play_sound(snd_select, 8, false);
+        if (variable_global_exists("power_restored") && global.power_restored) {
+            global.e_dialogue_intro_shown = true;
+            create_textevent([
+                "Floor power is restored! The office lights and Extraction Elevator are back online.",
+                "Now I just need to make sure Lockdown Override is engaged and unlock the Extraction Elevator!"
+            ], [obj_jack.id, obj_jack.id]);
+        } else {
+            global.breaker_ui_open = true;
+        }
+        exit;
+    }
+
     var _is_new_clue = !talked_once && !_lifted && ((prop_type == TILE_PROP_PC && has_clue) || prop_type == TILE_PROP_PAPER || prop_type == TILE_PROP_NPC);
     talked_once = true;
     audio_play_sound(snd_button_click, 5, false);
@@ -269,25 +313,36 @@ if (player_near && keyboard_check_pressed(ord("E"))) {
 
     var _case = variable_global_exists("floor_case") ? global.floor_case : scr_get_floor_incident_case(0);
 
-    // Helper: compute compass direction to the Key Pedestal or Elevator Goal
+    // Helper: compute compass direction to the next active facility objective (Key Vault -> Override -> Breaker -> Elevator)
     var _radar_hint = "";
     var _has_key = (variable_global_exists("has_dungeon_cipher_key") && global.has_dungeon_cipher_key);
+    var _ov_done = (variable_global_exists("lockdown_overridden")    && global.lockdown_overridden);
+    var _pw_done = (variable_global_exists("power_restored")         && global.power_restored);
+
+    var _target_inst = noone;
+    var _target_lbl  = "ELEVATOR";
     if (!_has_key && instance_exists(obj_caesar_key_pedestal)) {
-        var _dx = obj_caesar_key_pedestal.x - x;
-        var _dy = obj_caesar_key_pedestal.y - y;
-        var _vdir = (_dy < -40) ? "NORTH" : ((_dy > 40) ? "SOUTH" : "");
-        var _hdir = (_dx < -40) ? "WEST"  : ((_dx > 40) ? "EAST"  : "");
-        var _compass = (_vdir != "" && _hdir != "") ? (_vdir + "-" + _hdir) : (_vdir + _hdir);
-        if (_compass == "") _compass = "NEARBY";
-        _radar_hint = "KEY VAULT: " + _compass;
+        _target_inst = obj_caesar_key_pedestal;
+        _target_lbl  = "KEY VAULT";
+    } else if (!_ov_done && variable_global_exists("override_prop_inst") && instance_exists(global.override_prop_inst)) {
+        _target_inst = global.override_prop_inst;
+        _target_lbl  = "OVERRIDE ROOM";
+    } else if (!_pw_done && variable_global_exists("breaker_prop_inst") && instance_exists(global.breaker_prop_inst)) {
+        _target_inst = global.breaker_prop_inst;
+        _target_lbl  = "BREAKER ROOM";
     } else if (instance_exists(obj_dungeon_goal)) {
-        var _dx = obj_dungeon_goal.x - x;
-        var _dy = obj_dungeon_goal.y - y;
+        _target_inst = obj_dungeon_goal;
+        _target_lbl  = "ELEVATOR";
+    }
+
+    if (_target_inst != noone) {
+        var _dx = _target_inst.x - x;
+        var _dy = _target_inst.y - y;
         var _vdir = (_dy < -40) ? "NORTH" : ((_dy > 40) ? "SOUTH" : "");
         var _hdir = (_dx < -40) ? "WEST"  : ((_dx > 40) ? "EAST"  : "");
         var _compass = (_vdir != "" && _hdir != "") ? (_vdir + "-" + _hdir) : (_vdir + _hdir);
         if (_compass == "") _compass = "NEARBY";
-        _radar_hint = "ELEVATOR: " + _compass;
+        _radar_hint = _target_lbl + ": " + _compass;
     }
 
     if (prop_type == TILE_PROP_PC && has_clue) {

@@ -4,10 +4,24 @@ var _gui_w = display_get_gui_width();
 var _gui_h = display_get_gui_height();
 vn_stage_acc += 0.12;
 
+var _is_cam_cutscene = instance_exists(obj_dungeon_generator)
+    && variable_global_exists("cam_pan_phase")
+    && (global.cam_pan_phase != "off");
+
 // 1. Cinematic dimmed backdrop behind the Visual Novel stage
-draw_set_alpha(0.72);
-draw_set_color(make_color_rgb(4, 7, 14));
-draw_rectangle(0, 0, _gui_w, _gui_h, false);
+//    (When panning to a dungeon objective room, keep the upper viewport clear so the player can see the room!)
+if (_is_cam_cutscene) {
+    draw_set_alpha(0.14);
+    draw_set_color(make_color_rgb(4, 7, 14));
+    draw_rectangle(0, 0, _gui_w, vn_panel_y1 - 6, false);
+
+    draw_set_alpha(0.76);
+    draw_rectangle(0, vn_panel_y1 - 6, _gui_w, _gui_h, false);
+} else {
+    draw_set_alpha(0.72);
+    draw_set_color(make_color_rgb(4, 7, 14));
+    draw_rectangle(0, 0, _gui_w, _gui_h, false);
+}
 
 // Subtle top letterbox bar for cinematic VN framing
 draw_set_alpha(0.85);
@@ -16,6 +30,67 @@ draw_rectangle(0, 0, _gui_w, 22, false);
 draw_set_alpha(0.45);
 draw_set_color(make_color_rgb(45, 75, 115));
 draw_line(0, 22, _gui_w, 22);
+
+// Draw Objective Room Callout Banner & Target Reticle during Dungeon Camera Pans
+if (_is_cam_cutscene && variable_global_exists("cam_pan_label") && global.cam_pan_label != "") {
+    var _pan_col = variable_global_exists("cam_pan_col") ? global.cam_pan_col : c_aqua;
+    var _pan_sub = variable_global_exists("cam_pan_sublabel") ? global.cam_pan_sublabel : "";
+    var _pulse_p = 0.5 + 0.5 * sin(current_time / 160);
+
+    draw_set_font(fnt_dialogue);
+    draw_set_halign(fa_center);
+    draw_set_valign(fa_middle);
+
+    var _bw = max(290, string_width(global.cam_pan_label) * 0.90 + 44);
+    var _bh = (_pan_sub != "") ? 34 : 22;
+    var _bx1 = (_gui_w * 0.5) - _bw * 0.5;
+    var _by1 = 26;
+    var _bx2 = (_gui_w * 0.5) + _bw * 0.5;
+    var _by2 = _by1 + _bh;
+
+    draw_set_alpha(0.92);
+    draw_set_color(make_color_rgb(10, 16, 28));
+    draw_rectangle(_bx1, _by1, _bx2, _by2, false);
+    draw_set_alpha(0.95);
+    draw_set_color(_pan_col);
+    draw_rectangle(_bx1, _by1, _bx2, _by2, true);
+    draw_rectangle(_bx1 + 2, _by1 + 2, _bx2 - 2, _by2 - 2, true);
+
+    draw_set_alpha(1.0);
+    draw_set_color(_pan_col);
+    draw_text_transformed(_gui_w * 0.5, _by1 + 11, global.cam_pan_label, 0.86, 0.86, 0);
+
+    if (_pan_sub != "") {
+        draw_set_color(c_white);
+        draw_text_transformed(_gui_w * 0.5, _by1 + 25, _pan_sub, 0.72, 0.72, 0);
+    }
+
+    // Pulsing target bracket & downward pointer over the focused room at viewport center
+    var _ret_cx = _gui_w * 0.5;
+    var _ret_cy = 136;
+    var _ret_r  = 30 + _pulse_p * 5;
+    var _bob_y  = sin(current_time / 150) * 3;
+
+    draw_set_alpha(0.65 + _pulse_p * 0.30);
+    draw_set_color(_pan_col);
+    // Corner brackets around target object
+    draw_line(_ret_cx - _ret_r, _ret_cy - _ret_r, _ret_cx - _ret_r + 10, _ret_cy - _ret_r);
+    draw_line(_ret_cx - _ret_r, _ret_cy - _ret_r, _ret_cx - _ret_r, _ret_cy - _ret_r + 10);
+    draw_line(_ret_cx + _ret_r, _ret_cy - _ret_r, _ret_cx + _ret_r - 10, _ret_cy - _ret_r);
+    draw_line(_ret_cx + _ret_r, _ret_cy - _ret_r, _ret_cx + _ret_r, _ret_cy - _ret_r + 10);
+    draw_line(_ret_cx - _ret_r, _ret_cy + _ret_r, _ret_cx - _ret_r + 10, _ret_cy + _ret_r);
+    draw_line(_ret_cx - _ret_r, _ret_cy + _ret_r, _ret_cx - _ret_r, _ret_cy + _ret_r - 10);
+    draw_line(_ret_cx + _ret_r, _ret_cy + _ret_r, _ret_cx + _ret_r - 10, _ret_cy + _ret_r);
+    draw_line(_ret_cx + _ret_r, _ret_cy + _ret_r, _ret_cx + _ret_r, _ret_cy + _ret_r - 10);
+
+    // Downward pointer arrow above target
+    var _arr_y = _ret_cy - _ret_r - 6 + _bob_y;
+    draw_triangle(_ret_cx - 6, _arr_y - 7, _ret_cx + 6, _arr_y - 7, _ret_cx, _arr_y, false);
+
+    draw_set_alpha(1.0);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+}
 
 // Advance typing + lip-sync counters first so portrait & stage animations are current this frame
 #region TYPE 0: TYPING UPDATE (runs before stage & portrait draw)
@@ -124,12 +199,13 @@ if (_partner_idx != -1) {
 // 3. Draw Large Visual Novel Character Sprites on Left & Right Stage
 // ---------------------------------------------------------------------------
 var _stage_feet_y = vn_panel_y1 + 4;
-var _left_cx      = (_partner_spr != -1) ? 148 : 136;
-var _right_cx     = 492;
+var _left_cx      = _is_cam_cutscene ? 68  : ((_partner_spr != -1) ? 148 : 136);
+var _right_cx     = _is_cam_cutscene ? 572 : 492;
+var _stage_mult   = _is_cam_cutscene ? 0.74 : 1.0;
 
 // --- LEFT STAGE: JACK ---
 var _jack_spr   = spr_jack_idle;
-var _jack_scale = _is_jack_speaking ? 4.8 : 4.1;
+var _jack_scale = (_is_jack_speaking ? 4.8 : 4.1) * _stage_mult;
 var _jack_col   = _is_jack_speaking ? c_white : make_color_rgb(105, 118, 142);
 var _jack_alpha = _is_jack_speaking ? 1.0 : 0.82;
 var _jack_bob   = (_is_jack_speaking && _talking) ? (abs(sin(current_time / 75)) * -4) : 0;
@@ -138,7 +214,7 @@ if (_is_jack_speaking) {
 	// Soft cyan stage spotlight behind Jack when speaking
 	draw_set_alpha(0.14);
 	draw_set_color(c_aqua);
-	draw_circle(_left_cx, _stage_feet_y - 52, 54, false);
+	draw_circle(_left_cx, _stage_feet_y - 52 * _stage_mult, 54 * _stage_mult, false);
 }
 
 var _j_anim  = scr_dir_idle_anim(_jack_spr, "down", vn_stage_acc, 0);
@@ -150,7 +226,7 @@ draw_sprite_ext(_jack_spr, _j_frame, _j_dx, _j_dy, _jack_scale, _jack_scale, 0, 
 // --- RIGHT STAGE: CONVERSATION PARTNER NPC (if present) ---
 if (_partner_spr != -1) {
 	var _npc_speaking = !_is_jack_speaking;
-	var _npc_scale    = _npc_speaking ? 4.8 : 4.1;
+	var _npc_scale    = (_npc_speaking ? 4.8 : 4.1) * _stage_mult;
 	var _npc_col      = _npc_speaking ? c_white : make_color_rgb(105, 118, 142);
 	var _npc_alpha    = _npc_speaking ? 1.0 : 0.82;
 	var _npc_bob      = (_npc_speaking && _talking) ? (abs(sin(current_time / 75)) * -4) : 0;
@@ -159,7 +235,7 @@ if (_partner_spr != -1) {
 		// Soft amber/gold stage spotlight behind NPC when speaking
 		draw_set_alpha(0.14);
 		draw_set_color(make_color_rgb(255, 200, 55));
-		draw_circle(_right_cx, _stage_feet_y - 52, 54, false);
+		draw_circle(_right_cx, _stage_feet_y - 52 * _stage_mult, 54 * _stage_mult, false);
 	}
 
 	var _n_anim  = scr_dir_idle_anim(_partner_spr, "down", vn_stage_acc, 0);

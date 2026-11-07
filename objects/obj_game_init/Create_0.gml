@@ -104,5 +104,12 @@ if (!variable_global_exists("controls_hint_visible"))  global.controls_hint_visi
 // --- DIALOGUE TUTORIAL ---
 if (!variable_global_exists("e_dialogue_intro_shown")) global.e_dialogue_intro_shown = false;
 
+// --- 3-CHAPTER x 10-FLOOR DUNGEON PROGRESSION ---
+if (!variable_global_exists("dungeon_chapter"))    global.dungeon_chapter    = 1; // 1 = Caesar, 2 = Vigenere, 3 = Atbash
+if (!variable_global_exists("chapter_floor"))      global.chapter_floor      = 1; // 1..10 within current chapter
+if (!variable_global_exists("vigenere_unlocked"))  global.vigenere_unlocked  = false;
+if (!variable_global_exists("atbash_unlocked"))    global.atbash_unlocked    = false;
+if (!variable_global_exists("chapter_best_floor")) global.chapter_best_floor = [1, 1, 1];
+
 // Lock GUI to 640x360 (2x visual scale, matching the main menu) from the first room onward
 display_set_gui_size(640, 360);

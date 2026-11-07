@@ -134,7 +134,8 @@ function scr_template_caesar_key() {
 
 // ---------------------------------------------------------------------------
 /// @function scr_template_caesar_locked()
-/// @description 9x9 High-Security Mainframe Server Room (ROOM_CAESAR_LOCKED).
+/// @description 9x9 High-Security Control Room (ROOM_CAESAR_LOCKED)
+///              containing the Red Lockdown Override Console (15) at center.
 // ---------------------------------------------------------------------------
 function scr_template_caesar_locked() {
     return [
@@ -142,11 +143,31 @@ function scr_template_caesar_locked() {
         [ 1,  7,  0,  0,  5,  0,  0,  7,  1],
         [ 1,  0,  1,  0,  5,  0,  1,  0,  1],
         [ 1,  0,  7,  5,  5,  5,  7,  0,  1],
-        [ 1,  5,  5,  5,  5,  5,  5,  5,  1],
+        [ 1,  5,  5,  5, 15,  5,  5,  5,  1],
         [ 1,  0,  7,  5,  5,  5,  7,  0,  1],
         [ 1,  0,  1,  0,  5,  0,  1,  0,  1],
         [ 1,  7, 10,  0,  5,  0,  0,  7,  1],
         [ 1,  1,  1,  1,  1,  1,  1,  1,  1],
+    ];
+}
+
+
+// ---------------------------------------------------------------------------
+/// @function scr_template_power_room()
+/// @description 7x7 Control Break / Electrical Breaker Room (ROOM_POWER)
+///              containing the High-Voltage Breaker Panel (16) at center.
+// ---------------------------------------------------------------------------
+function scr_template_power_room() {
+    return [
+        [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+        [-1,  1,  1,  9,  1,  9,  1,  1, -1],
+        [-1,  1,  7,  0,  5,  0,  7,  1, -1],
+        [-1,  1,  8,  5,  5,  5, 10,  1, -1],
+        [-1,  1,  5,  5, 16,  5,  5,  1, -1],
+        [-1,  1, 10,  5,  5,  5,  8,  1, -1],
+        [-1,  1,  7,  0,  5,  0,  7,  1, -1],
+        [-1,  1,  1,  1,  1,  1,  1,  1, -1],
+        [-1, -1, -1, -1, -1, -1, -1, -1, -1],
     ];
 }
 
@@ -244,6 +265,7 @@ function scr_get_template(room_type) {
         case ROOM_END:           return scr_template_end();
         case ROOM_CAESAR_KEY:    return scr_template_caesar_key();
         case ROOM_CAESAR_LOCKED: return scr_template_caesar_locked();
+        case ROOM_POWER:         return scr_template_power_room();
         case ROOM_HOLDING:       return scr_template_compact_office();
         case ROOM_NORMAL:
             var _roll = irandom(2);

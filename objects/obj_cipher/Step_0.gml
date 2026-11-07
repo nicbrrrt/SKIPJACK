@@ -1,6 +1,10 @@
+/// @description obj_cipher — Step Event
+/// Handles slot navigation, letter shifting/typing, and answer validation
+/// across Caesar, Vigenere, and Atbash locks.
+
 if (variable_global_exists("is_paused") && global.is_paused) exit;
 
-// In standalone (non-battle) mode, allow ESC to close the cipher overlay
+// In standalone (non-battle) mode, allow ESC to close the cipher overlay without opening Pause Menu
 if (!instance_exists(obj_battle) && keyboard_check_pressed(vk_escape)) {
     global.esc_block_frames = 2;
     keyboard_clear(vk_escape);
@@ -19,29 +23,28 @@ if (keyboard_check_pressed(vk_left)) {
     audio_play_sound(select1, 10, false);
 }
 
-// Change letters with UP/DOWN arrows (starts from the slot's encrypted letter so each tap shifts ±1!)
+// Change letters with UP/DOWN arrows
 if (keyboard_check_pressed(vk_up)) {
-    var _enc_ch = string_char_at(encrypted, current_slot + 1);
+    var _enc_ch  = string_char_at(encrypted, current_slot + 1);
     var _base_ch = (player_input[current_slot] == "") ? _enc_ch : player_input[current_slot];
     var new_index = (ord(_base_ch) - ord("A") + 1) mod 26;
     player_input[current_slot] = chr(ord("A") + new_index);
     audio_play_sound(choose(select1, select2, select3, select4, select5), 10, false);
-    show_debug_message("CIPHER: Slot " + string(current_slot) + " changed to: " + player_input[current_slot]);
 }
 
 if (keyboard_check_pressed(vk_down)) {
-    var _enc_ch = string_char_at(encrypted, current_slot + 1);
+    var _enc_ch  = string_char_at(encrypted, current_slot + 1);
     var _base_ch = (player_input[current_slot] == "") ? _enc_ch : player_input[current_slot];
     var new_index = (ord(_base_ch) - ord("A") - 1 + 26) mod 26;
     player_input[current_slot] = chr(ord("A") + new_index);
     audio_play_sound(choose(select1, select2, select3, select4, select5), 10, false);
-    show_debug_message("CIPHER: Slot " + string(current_slot) + " changed to: " + player_input[current_slot]);
 }
 
 // Also allow direct A-Z typing
 for (var k = ord("A"); k <= ord("Z"); k++) {
     if (keyboard_check_pressed(k)) {
         player_input[current_slot] = chr(k);
+        audio_play_sound(select1, 8, false);
     }
 }
 
@@ -51,22 +54,19 @@ if (keyboard_check_pressed(vk_enter)) {
     for (var i = 0; i < letters_len; i++) {
         answer += player_input[i];
     }
-    
+
     if (answer == plaintext) {
-        // --- SUCCESS SEQUENCE ---
-        if (success_timer == 0) { // Only trigger once
+        if (success_timer == 0) {
             text_color = c_lime;
-            status_msg = "ACCESS GRANTED";
+            status_msg = is_final_exam ? "FINAL EXAM LOCK CRACKED!" : "ACCESS GRANTED";
             audio_play_sound(snd_player_packet_win, 10, false);
-            success_timer = 60; // Wait 1 second (60 frames) before closing
+            success_timer = 60;
         }
     } else {
-        // --- SMART COACHING FAILURE SEQUENCE ---
         shake_timer = 10;
         text_color  = c_red;
 
-        var _wrong_dir_word = scr_caesar_encode(encrypted, -key);
-        var _correct_slots  = 0;
+        var _correct_slots = 0;
         for (var _ci = 0; _ci < letters_len; _ci++) {
             if (player_input[_ci] == string_char_at(plaintext, _ci + 1)) {
                 _correct_slots++;
@@ -75,29 +75,29 @@ if (keyboard_check_pressed(vk_enter)) {
 
         if (is_holding_lock) {
             if (_correct_slots > 0) {
-                status_msg = string(_correct_slots) + "/4 letters match!";
+                status_msg = string(_correct_slots) + "/" + string(letters_len) + " letters match!";
                 text_color = c_orange;
             } else {
                 status_msg = "Check the Math Equation in the Cell!";
             }
         } else if (!instance_exists(obj_battle) && !(variable_global_exists("has_dungeon_cipher_key") && global.has_dungeon_cipher_key)) {
-            status_msg = "Find the Shift Key in the Gold Vault first!";
-        } else if (answer == _wrong_dir_word) {
-            var _k_dir = (key > 0) ? ("+" + string(key)) : string(key);
-            status_msg = "Wrong direction! Shift by " + _k_dir + "!";
-            text_color = c_orange;
+            status_msg = "Calibrate the Key in the Gold Vault first!";
         } else if (_correct_slots > 0) {
             status_msg = string(_correct_slots) + "/" + string(letters_len) + " letters match!";
             text_color = c_orange;
+        } else if (chapter_mode == CHAPTER_VIGENERE) {
+            status_msg = "Shift each slot by its Keyword letter (+0..+5)!";
+        } else if (chapter_mode == CHAPTER_ATBASH) {
+            status_msg = "Swap each letter with its Mirror opposite (A<->Z)!";
         } else {
             var _k_hint = (key > 0) ? ("+" + string(key)) : string(key);
-            status_msg = "Try shifting each letter by " + _k_hint + "!";
+            status_msg = "Shift each letter by " + _k_hint + "!";
         }
 
         audio_play_sound(wrong1, 10, false);
         if (instance_exists(obj_battle) && obj_battle.fight_anim == "idle") {
             with (obj_battle) {
-                fight_anim = "enemy_attack";
+                fight_anim  = "enemy_attack";
                 fight_timer = 0;
             }
         }
@@ -108,17 +108,15 @@ if (keyboard_check_pressed(vk_enter)) {
 if (success_timer > 0) {
     success_timer--;
     if (success_timer <= 0) {
-        show_debug_message("CIPHER SUCCESS!");
         if (instance_exists(obj_battle)) {
             with (obj_battle) {
                 fight_pending = (cipher_mode == "packet") ? "cipher_ok_packet" : "cipher_ok_first";
                 if (fight_anim == "idle") {
-                    fight_anim = "player_attack";
+                    fight_anim  = "player_attack";
                     fight_timer = 0;
                 }
             }
         } else {
-            // Standalone dungeon mode: unlock the Caesar-locked doorway that triggered this puzzle
             var _tx = target_door_x;
             var _ty = target_door_y;
             var _unlocked_elevator = false;
@@ -128,11 +126,10 @@ if (success_timer > 0) {
                         _unlocked_elevator = true;
                     }
                     locked = false;
-                    x = -10000;
-                    y = -10000;
+                    x      = -10000;
+                    y      = -10000;
                 }
             }
-            // Also check distance to extraction elevator goal as a fallback
             if (!_unlocked_elevator && instance_exists(obj_dungeon_goal)) {
                 if (point_distance(_tx, _ty, obj_dungeon_goal.x, obj_dungeon_goal.y) <= 110) {
                     _unlocked_elevator = true;
@@ -146,13 +143,11 @@ if (success_timer > 0) {
     }
 }
 
-// Reduce shake over time
 if (shake_timer > 0) shake_timer--;
 
-// DEBUG: Press 'P' to auto-solve (Only for testing!)
+// DEBUG: Press 'P' to auto-solve
 if (keyboard_check_pressed(ord("P"))) {
     for (var i = 0; i < letters_len; i++) {
         player_input[i] = string_char_at(plaintext, i + 1);
     }
-    show_debug_message("DEBUG: Cipher auto-filled.");
 }

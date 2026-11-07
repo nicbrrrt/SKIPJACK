@@ -195,8 +195,10 @@ var _popup_open = instance_exists(obj_textbox)
                || instance_exists(obj_dungeon_quiz)
                || instance_exists(obj_dungeon_victory)
                || (instance_exists(obj_codex_manager) && obj_codex_manager.is_open)
-               || (variable_global_exists("pc_screen_open") && global.pc_screen_open)
+               || (variable_global_exists("pc_screen_open")    && global.pc_screen_open)
                || (variable_global_exists("key_analyzer_open") && global.key_analyzer_open)
+               || (variable_global_exists("override_ui_open")  && global.override_ui_open)
+               || (variable_global_exists("breaker_ui_open")   && global.breaker_ui_open)
                || (instance_exists(obj_kyle) && obj_kyle.gui_open)
                || (instance_exists(obj_hallway_poster) && obj_hallway_poster.is_open);
 

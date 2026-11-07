@@ -1,14 +1,9 @@
 /// @description obj_dungeon_generator — Create Event
-/// Apartment / Corporate Office Floor Generator:
-///   1. Places ROOM_START (Reception Lobby) at (0, 5).
-///   2. Generates a connected Hallway Spine (ROOM_HALLWAY chunks) across the grid.
-///   3. Places ROOM_END (Extraction Elevator) at the far end of the Hallway Spine
-///      behind a Caesar Cipher Lock (TILE_LOCK_CAESAR).
-///   4. Branches individual rooms off the sides of the Hallway Spine:
-///        - 1 ROOM_CAESAR_KEY (locked by TILE_LOCK_QUIZ, contains Caesar Key)
-///        - 1-2 ROOM_CAESAR_LOCKED (locked by TILE_LOCK_CAESAR)
-///        - 3-5 ROOM_NORMAL (varied office/apartment rooms with TILE_DOOR)
-///      Rooms only connect to the Hallway Spine (never directly to adjacent rooms).
+/// Curriculum-Driven Corporate Office Floor Generator (3 Chapters x 10 Floors):
+///   - Floors 1-3: Guided Onboarding ("Hand-Holding" Tutorials; no drones on Flr 1-2)
+///   - Floors 4-6: Core Duolingo-Style Practice
+///   - Floors 7-9: Autonomous Mastery Practice (Training Wheels Off)
+///   - Floor 10:   Chapter Final Exam
 
 // ---- Seed RNG so every generated dungeon floor is unique ----
 randomize();
@@ -18,48 +13,76 @@ if (!instance_exists(obj_music_controller)) {
     instance_create_depth(0, 0, 0, obj_music_controller);
 }
 
-// ---- Roll a fresh Caesar shift key & Cyber Incident Case for this dungeon floor ----
+// ---- Resolve Chapter (1..3) & Floor (1..10) Curriculum ----
+if (!variable_global_exists("dungeon_chapter")) {
+    global.dungeon_chapter = CHAPTER_CAESAR;
+}
+if (!variable_global_exists("chapter_floor")) {
+    global.chapter_floor = 1;
+}
+global.chapter_floor    = clamp(global.chapter_floor, 1, CHAPTER_MAX_FLOORS);
+global.dungeons_cleared = global.chapter_floor - 1;
+
+curriculum              = scr_get_floor_curriculum(global.dungeon_chapter, global.chapter_floor);
+global.floor_curriculum = curriculum;
+
+// ---- Roll Chapter Cipher Key & Cyber Incident Case for this floor ----
 global.dungeon_cipher_key     = scr_roll_cipher_key();
+global.dungeon_vigenere_key   = scr_roll_vigenere_keyword(global.chapter_floor);
 global.has_dungeon_cipher_key = false;
+global.lockdown_overridden    = false;
+global.power_restored         = false;
 global.lockdown_lifted        = false;
+global.override_ui_open       = false;
+global.breaker_ui_open        = false;
+global.override_prop_inst     = noone;
+global.breaker_prop_inst      = noone;
+global.cam_pan_phase          = "off";
+global.cam_pan_mode           = "";
+global.cam_pan_targets        = [];
 scr_roll_holding_key_and_equation();
-if (!variable_global_exists("dungeons_cleared")) {
-    global.dungeons_cleared = 0;
-}
-if (!variable_global_exists("case_start_offset")) {
-    global.case_start_offset = irandom(6);
-}
-global.floor_case_index = (global.case_start_offset + global.dungeons_cleared) mod 7;
-global.floor_case       = scr_get_floor_incident_case(global.floor_case_index);
-global.clues_found      = 0;
-global.clues_needed     = 2;
-global.pc_screen_open   = false;
-global.pc_screen_title  = "";
-global.pc_screen_body   = "";
-global.pc_screen_radar  = "";
-global.pc_screen_badge  = "";
-global.player_in_locker = false;
-global.active_locker_id = noone;
-global.holding_room_x   = 0;
-global.holding_room_y   = 0;
-global.holding_room_col = 0;
-global.holding_room_row = 0;
+scr_init_facility_puzzles();
+
+// Floor 1 always teaches the Chapter's Cipher Keyword (Case 0: CAESAR / VIGENERE / ATBASH),
+// and Floors 2..10 progress through Cases 1..9 so all 10 floors have a unique topic!
+global.floor_case_index  = (global.chapter_floor - 1) mod 10;
+global.floor_case        = scr_get_floor_incident_case(global.floor_case_index);
+global.clues_found       = 0;
+global.clues_needed      = curriculum.clues_needed;
+global.pc_screen_open    = false;
+global.pc_screen_title   = "";
+global.pc_screen_body    = "";
+global.pc_screen_radar   = "";
+global.pc_screen_badge   = "";
+global.player_in_locker  = false;
+global.active_locker_id  = noone;
+global.holding_room_x    = 0;
+global.holding_room_y    = 0;
+global.holding_room_col  = 0;
+global.holding_room_row  = 0;
+global.floor_mentor_inst = noone;
 
 // Ensure generator draws the room fog overlay above tiles/goal (20..50) and below Jack (-y)
 visible = true;
 depth   = 10;
 
-// ---- Instance variables exposed for spawner & fog system ----
+// ---- Instance variables exposed for spawner, HUD & fog system ----
 logic_map       = [];    // 2D array [col][row] of ROOM_* constants
-room_fog_alpha  = [];    // 2D array [col][row] of fog alpha (0 = lit, 0.90 = darkened)
+room_fog_alpha  = [];    // 2D array [col][row] of fog alpha (0 = lit, 0.88 = darkened)
 room_discovered = [];    // 2D array [col][row]: 0 = hidden, 1 = radar-detected, 2 = visited
 path_list       = [];    // All active chunks [col, row] (hallways + rooms)
 door_links      = [];    // Explicit doorway connections: [c1, r1, c2, r2, door_tile_type]
 ambient_sparks  = [];    // Floating digital dust / spark particles in active room
-siren_timer     = 0;
-gen_complete    = false;
-active_col      = 0;
-active_row      = 0;
+siren_timer             = 0;
+banner_timer            = 210;   // Shows the Floor Intent Banner for ~3.5 seconds
+intro_pending           = (array_length(curriculum.mentor_intro) > 0);
+cutscene_clues_shown    = false;
+cutscene_key_shown      = false;
+cutscene_override_shown = false;
+cutscene_power_shown    = false;
+gen_complete            = false;
+active_col              = 0;
+active_row              = 0;
 
 // ===========================================================================
 // Step 1 — Initialise the logic map & fog alpha grid
@@ -107,19 +130,17 @@ logic_map[_hc][_hr] = ROOM_HALLWAY;
 array_push(path_list, [_hc, _hr]);
 array_push(door_links, [_start_col, _start_row, _hc, _hr, TILE_DOOR]);
 
-var _hallway_spine = [[_hc, _hr]];
-var _target_hall_len = irandom_range(4, 6);
+var _hallway_spine   = [[_hc, _hr]];
+var _target_hall_len = irandom_range(curriculum.hall_min, curriculum.hall_max);
 
 // Walk the hallway spine (mostly RIGHT with occasional UP/DOWN turns, keeping room for side rooms)
 for (var _s = 1; _s < _target_hall_len; _s++) {
-    // Weight RIGHT higher so the hallway feels like a long building corridor
     var _cand_dirs = [
         [ 1,  0],
         [ 1,  0],
         [ 0, -1],
         [ 0,  1],
     ];
-    // Shuffle candidate directions
     for (var _i = 3; _i > 0; _i--) {
         var _j = irandom(_i);
         var _tmp = _cand_dirs[_i];
@@ -131,13 +152,11 @@ for (var _s = 1; _s < _target_hall_len; _s++) {
     for (var _d = 0; _d < 4; _d++) {
         var _nc = _hc + _cand_dirs[_d][0];
         var _nr = _hr + _cand_dirs[_d][1];
-        // Keep hallway within rows 2..7 and cols 1..7 so side rooms always fit on the grid
         if (_nc >= 1 && _nc <= LOGIC_GRID_W - 3 && _nr >= 2 && _nr <= LOGIC_GRID_H - 3) {
             if (logic_map[_nc][_nr] == ROOM_NONE) {
                 logic_map[_nc][_nr] = ROOM_HALLWAY;
                 array_push(path_list, [_nc, _nr]);
                 array_push(_hallway_spine, [_nc, _nr]);
-                // Seamless open hallway connection between adjacent hallway segments
                 array_push(door_links, [_hc, _hr, _nc, _nr, TILE_HALL_OPEN]);
                 _hc = _nc;
                 _hr = _nr;
@@ -153,7 +172,7 @@ for (var _s = 1; _s < _target_hall_len; _s++) {
 // Step 3 — Place ROOM_END (Extraction Elevator) at the end of the Hallway Spine
 // ===========================================================================
 var _end_dirs = [
-    [ 1,  0], // Prefer placing the elevator straight ahead at the right end of the hall
+    [ 1,  0],
     [ 0, -1],
     [ 0,  1],
     [-1,  0],
@@ -169,7 +188,6 @@ for (var _hi = array_length(_hallway_spine) - 1; _hi >= 0 && !_end_placed; _hi--
             if (logic_map[_ec][_er] == ROOM_NONE) {
                 logic_map[_ec][_er] = ROOM_END;
                 array_push(path_list, [_ec, _er]);
-                // Guard the Elevator entrance with a Caesar Cipher Lock so the player must find the Key!
                 array_push(door_links, [_ehc, _ehr, _ec, _er, TILE_LOCK_CAESAR]);
                 _end_placed = true;
                 break;
@@ -181,12 +199,12 @@ for (var _hi = array_length(_hallway_spine) - 1; _hi >= 0 && !_end_placed; _hi--
 // ===========================================================================
 // Step 4 — Branch Apartment / Office Rooms off the sides of the Hallway Spine
 // ===========================================================================
-var _side_candidates = []; // Each entry: [hall_col, hall_row, room_col, room_row]
+var _side_candidates = [];
 var _all_4_dirs = [
-    [ 0, -1], // Top side of hallway
-    [ 0,  1], // Bottom side of hallway
-    [-1,  0], // Left side of hallway
-    [ 1,  0], // Right side of hallway
+    [ 0, -1],
+    [ 0,  1],
+    [-1,  0],
+    [ 1,  0],
 ];
 
 var _hall_len = array_length(_hallway_spine);
@@ -194,7 +212,6 @@ hallway_waypoints = [];
 for (var _hi = 0; _hi < _hall_len; _hi++) {
     var _sc = _hallway_spine[_hi][0];
     var _sr = _hallway_spine[_hi][1];
-    // Store exact center-tile top-left (tile 4,4 = +64,+64 so +8,+8 is exact chunk center 72,72)
     array_push(hallway_waypoints, [
         _sc * CHUNK_SIZE * TILE_SIZE + 4 * TILE_SIZE,
         _sr * CHUNK_SIZE * TILE_SIZE + 4 * TILE_SIZE
@@ -205,7 +222,6 @@ for (var _hi = 0; _hi < _hall_len; _hi++) {
         var _rr = _sr + _all_4_dirs[_d][1];
         if (_rc >= 0 && _rc < LOGIC_GRID_W && _rr >= 0 && _rr < LOGIC_GRID_H) {
             if (logic_map[_rc][_rr] == ROOM_NONE) {
-                // Temporarily mark reserved so we don't add duplicates to _side_candidates
                 logic_map[_rc][_rr] = -2;
                 array_push(_side_candidates, [_sc, _sr, _rc, _rr]);
             }
@@ -228,7 +244,7 @@ for (var _i = array_length(_side_candidates) - 1; _i > 0; _i--) {
     _side_candidates[_j] = _tmp;
 }
 
-var _max_side_rooms = min(array_length(_side_candidates), irandom_range(5, 7));
+var _max_side_rooms = min(array_length(_side_candidates), curriculum.side_rooms);
 for (var _i = 0; _i < _max_side_rooms; _i++) {
     var _h_col = _side_candidates[_i][0];
     var _h_row = _side_candidates[_i][1];
@@ -239,30 +255,32 @@ for (var _i = 0; _i < _max_side_rooms; _i++) {
     var _dtype = TILE_DOOR;
 
     if (_i == 0) {
-        // First side room is ALWAYS the Caesar Key Vault (locked by a Cybersecurity Question)
+        // Stage 1: Key Vault (locked by a Cybersecurity Question)
         _rtype = ROOM_CAESAR_KEY;
         _dtype = TILE_LOCK_QUIZ;
     } else if (_i == 1) {
-        // Second side room is the Security Holding Cell / Brig (locked by its own Caesar Cipher key!)
-        _rtype = ROOM_HOLDING;
+        // Stage 2: Security Control Room (locked by a Cipher Door, contains the Lockdown Override Console)
+        _rtype = ROOM_CAESAR_LOCKED;
         _dtype = TILE_LOCK_CAESAR;
     } else if (_i == 2) {
-        // Third side room is a Caesar Cipher-Locked Mainframe Room
-        _rtype = ROOM_CAESAR_LOCKED;
+        // Stage 3: Control Break / Electrical Breaker Room (sealed during lockdown; unlocks when Override Button is pressed!)
+        _rtype = ROOM_POWER;
+        _dtype = TILE_LOCK_CAESAR;
+    } else if (_i == 3 && curriculum.spawn_drone) {
+        // When drones are active (Floors 3..10), include the Security Holding Cell / Brig
+        _rtype = ROOM_HOLDING;
         _dtype = TILE_LOCK_CAESAR;
     }
 
     logic_map[_r_col][_r_row] = _rtype;
     array_push(path_list, [_r_col, _r_row]);
-    // Connect this room ONLY to its hallway segment (never to adjacent rooms!)
     array_push(door_links, [_h_col, _h_row, _r_col, _r_row, _dtype]);
 }
 
 gen_complete = true;
 show_debug_message(
-    "[obj_dungeon_generator] Apartment/Office Hallway Floor generated: " +
-    string(_hall_len) + " hallway segments, " +
-    string(_max_side_rooms) + " side rooms + Start + Elevator."
+    "[obj_dungeon_generator] Ch." + string(global.dungeon_chapter) +
+    " Floor " + string(global.chapter_floor) + "/10 (" + curriculum.phase_name + ") generated."
 );
 
 // ===========================================================================
