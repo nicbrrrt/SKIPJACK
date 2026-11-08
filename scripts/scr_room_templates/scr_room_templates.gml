@@ -114,6 +114,82 @@ function scr_template_normal() {
 
 
 // ---------------------------------------------------------------------------
+/// @function scr_template_long_office()
+/// @description 9x5 Long Narrow Horizontal Office / Bullpen Corridor.
+// ---------------------------------------------------------------------------
+function scr_template_long_office() {
+    return [
+        [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+        [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+        [ 1,  1,  9,  1,  1,  1,  9,  1,  1],
+        [ 1,  7,  8,  0,  5, 10,  8,  7,  1],
+        [ 1,  5,  5,  5,  5,  5,  5,  5,  1],
+        [ 1, 10,  0,  8,  5,  0,  8,  7,  1],
+        [ 1,  1,  1,  1,  1,  1,  1,  1,  1],
+        [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+        [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    ];
+}
+
+
+// ---------------------------------------------------------------------------
+/// @function scr_template_tall_office()
+/// @description 5x9 Tall Vertical Data / Archive Gallery Room.
+// ---------------------------------------------------------------------------
+function scr_template_tall_office() {
+    return [
+        [-1, -1,  1,  1,  9,  1,  1, -1, -1],
+        [-1, -1,  1,  7,  5,  7,  1, -1, -1],
+        [-1, -1,  1,  8,  5, 10,  1, -1, -1],
+        [-1, -1,  1,  0,  5,  0,  1, -1, -1],
+        [-1, -1,  1,  5,  5,  5,  1, -1, -1],
+        [-1, -1,  1, 10,  5,  0,  1, -1, -1],
+        [-1, -1,  1,  8,  5,  8,  1, -1, -1],
+        [-1, -1,  1,  7,  5,  7,  1, -1, -1],
+        [-1, -1,  1,  1,  1,  1,  1, -1, -1],
+    ];
+}
+
+
+// ---------------------------------------------------------------------------
+/// @function scr_template_conference_room()
+/// @description 9x7 Executive Conference / Briefing Boardroom.
+// ---------------------------------------------------------------------------
+function scr_template_conference_room() {
+    return [
+        [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+        [ 1,  1,  9,  1,  9,  1,  9,  1,  1],
+        [ 1,  0,  8,  0,  5,  0,  8, 10,  1],
+        [ 1,  0,  7,  5,  5,  5,  7,  0,  1],
+        [ 1,  5,  5,  5,  5,  5,  5,  5,  1],
+        [ 1,  0,  7,  5,  5,  5,  7,  0,  1],
+        [ 1, 10,  8,  0,  5,  0,  8,  0,  1],
+        [ 1,  1,  1,  1,  1,  1,  1,  1,  1],
+        [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    ];
+}
+
+
+// ---------------------------------------------------------------------------
+/// @function scr_template_l_suite()
+/// @description Asymmetric L-Shaped Corner Suite / Cubicle Wing.
+// ---------------------------------------------------------------------------
+function scr_template_l_suite() {
+    return [
+        [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+        [-1,  1,  9,  1,  1,  1, -1, -1, -1],
+        [-1,  1,  7,  0,  5,  1, -1, -1, -1],
+        [-1,  1,  8,  5,  5,  1,  1,  1, -1],
+        [-1,  1,  0,  5,  5,  5,  7,  1, -1],
+        [-1,  1, 10,  5,  5,  0,  8,  1, -1],
+        [-1,  1,  7,  8,  5, 10,  7,  1, -1],
+        [-1,  1,  1,  1,  1,  1,  1,  1, -1],
+        [-1, -1, -1, -1, -1, -1, -1, -1, -1],
+    ];
+}
+
+
+// ---------------------------------------------------------------------------
 /// @function scr_template_caesar_key()
 /// @description 7x7 Reinforced IT Security Key Vault (ROOM_CAESAR_KEY).
 // ---------------------------------------------------------------------------
@@ -200,7 +276,20 @@ function scr_template_end() {
 // ---------------------------------------------------------------------------
 function scr_carve_door_connections(t, top_tile, bottom_tile, left_tile, right_tile) {
     // --- TOP CONNECTION ---
-    if (top_tile != TILE_WALL) {
+    if (top_tile == TILE_ROOM_MERGE) {
+        // Wide 5-tile seamless open room merger (cols 2..6, walls at cols 1 & 7)
+        for (var _r = 0; _r <= 4; _r++) {
+            t[_r][1] = TILE_WALL;
+            t[_r][7] = TILE_WALL;
+            for (var _c = 2; _c <= 6; _c++) {
+                if (_r <= 2 || t[_r][_c] == TILE_VOID || t[_r][_c] == TILE_WALL || t[_r][_c] == TILE_PROP_BOARD) {
+                    t[_r][_c] = (_c >= 3 && _c <= 5) ? TILE_CARPET : TILE_FLOOR;
+                }
+            }
+        }
+        if (t[5][1] == TILE_VOID) t[5][1] = TILE_WALL;
+        if (t[5][7] == TILE_VOID) t[5][7] = TILE_WALL;
+    } else if (top_tile != TILE_WALL) {
         for (var _r = 0; _r <= 3; _r++) {
             if (t[_r][2] == TILE_VOID) t[_r][2] = TILE_WALL;
             if (t[_r][6] == TILE_VOID) t[_r][6] = TILE_WALL;
@@ -212,7 +301,19 @@ function scr_carve_door_connections(t, top_tile, bottom_tile, left_tile, right_t
     }
 
     // --- BOTTOM CONNECTION ---
-    if (bottom_tile != TILE_WALL) {
+    if (bottom_tile == TILE_ROOM_MERGE) {
+        for (var _r = 4; _r <= 8; _r++) {
+            t[_r][1] = TILE_WALL;
+            t[_r][7] = TILE_WALL;
+            for (var _c = 2; _c <= 6; _c++) {
+                if (_r >= 6 || t[_r][_c] == TILE_VOID || t[_r][_c] == TILE_WALL || t[_r][_c] == TILE_PROP_BOARD) {
+                    t[_r][_c] = (_c >= 3 && _c <= 5) ? TILE_CARPET : TILE_FLOOR;
+                }
+            }
+        }
+        if (t[3][1] == TILE_VOID) t[3][1] = TILE_WALL;
+        if (t[3][7] == TILE_VOID) t[3][7] = TILE_WALL;
+    } else if (bottom_tile != TILE_WALL) {
         for (var _r = 5; _r <= 8; _r++) {
             if (t[_r][2] == TILE_VOID) t[_r][2] = TILE_WALL;
             if (t[_r][6] == TILE_VOID) t[_r][6] = TILE_WALL;
@@ -224,7 +325,19 @@ function scr_carve_door_connections(t, top_tile, bottom_tile, left_tile, right_t
     }
 
     // --- LEFT CONNECTION ---
-    if (left_tile != TILE_WALL) {
+    if (left_tile == TILE_ROOM_MERGE) {
+        for (var _c = 0; _c <= 4; _c++) {
+            t[1][_c] = TILE_WALL;
+            t[7][_c] = TILE_WALL;
+            for (var _r = 2; _r <= 6; _r++) {
+                if (_c <= 2 || t[_r][_c] == TILE_VOID || t[_r][_c] == TILE_WALL || t[_r][_c] == TILE_PROP_BOARD) {
+                    t[_r][_c] = (_r >= 3 && _r <= 5) ? TILE_CARPET : TILE_FLOOR;
+                }
+            }
+        }
+        if (t[1][5] == TILE_VOID) t[1][5] = TILE_WALL;
+        if (t[7][5] == TILE_VOID) t[7][5] = TILE_WALL;
+    } else if (left_tile != TILE_WALL) {
         for (var _c = 0; _c <= 3; _c++) {
             if (t[2][_c] == TILE_VOID) t[2][_c] = TILE_WALL;
             if (t[6][_c] == TILE_VOID) t[6][_c] = TILE_WALL;
@@ -236,7 +349,19 @@ function scr_carve_door_connections(t, top_tile, bottom_tile, left_tile, right_t
     }
 
     // --- RIGHT CONNECTION ---
-    if (right_tile != TILE_WALL) {
+    if (right_tile == TILE_ROOM_MERGE) {
+        for (var _c = 4; _c <= 8; _c++) {
+            t[1][_c] = TILE_WALL;
+            t[7][_c] = TILE_WALL;
+            for (var _r = 2; _r <= 6; _r++) {
+                if (_c >= 6 || t[_r][_c] == TILE_VOID || t[_r][_c] == TILE_WALL || t[_r][_c] == TILE_PROP_BOARD) {
+                    t[_r][_c] = (_r >= 3 && _r <= 5) ? TILE_CARPET : TILE_FLOOR;
+                }
+            }
+        }
+        if (t[1][3] == TILE_VOID) t[1][3] = TILE_WALL;
+        if (t[7][3] == TILE_VOID) t[7][3] = TILE_WALL;
+    } else if (right_tile != TILE_WALL) {
         for (var _c = 5; _c <= 8; _c++) {
             if (t[2][_c] == TILE_VOID) t[2][_c] = TILE_WALL;
             if (t[6][_c] == TILE_VOID) t[6][_c] = TILE_WALL;
@@ -255,8 +380,9 @@ function scr_carve_door_connections(t, top_tile, bottom_tile, left_tile, right_t
 /// @function scr_get_template(room_type)
 /// @description Returns a 9x9 template array for the given room type.
 ///              ROOM_HALLWAY returns the narrow 3-tile corridor template;
-///              ROOM_NORMAL randomly selects between Compact Office (7x7),
-///              Wide Briefing Room (9x7), and Full Server Room (9x9).
+///              ROOM_NORMAL randomly selects across 7 distinct corporate
+///              room shapes & sizes (Compact 7x7, Wide 9x7, Long 9x5, Tall 5x9,
+///              Conference Boardroom, L-Shaped Corner Suite, and Full 9x9).
 // ---------------------------------------------------------------------------
 function scr_get_template(room_type) {
     switch (room_type) {
@@ -268,9 +394,13 @@ function scr_get_template(room_type) {
         case ROOM_POWER:         return scr_template_power_room();
         case ROOM_HOLDING:       return scr_template_compact_office();
         case ROOM_NORMAL:
-            var _roll = irandom(2);
+            var _roll = irandom(6);
             if (_roll == 0) return scr_template_compact_office();
             if (_roll == 1) return scr_template_wide_office();
+            if (_roll == 2) return scr_template_long_office();
+            if (_roll == 3) return scr_template_tall_office();
+            if (_roll == 4) return scr_template_conference_room();
+            if (_roll == 5) return scr_template_l_suite();
             return scr_template_normal();
         default:
             return scr_template_normal();

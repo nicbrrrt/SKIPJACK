@@ -10,7 +10,23 @@ var _pwr_on = (variable_global_exists("power_restored")      && global.power_res
            || (variable_global_exists("lockdown_lifted")     && global.lockdown_lifted);
 
 if (prop_type == TILE_PROP_PC) {
-    if (has_clue) {
+    if (is_scrapped) {
+        // =========================================================
+        // SCRAPPED / DISMANTLED TERMINAL CHASSIS
+        // =========================================================
+        draw_set_alpha(0.88);
+        draw_set_color(make_color_rgb(20, 22, 28));
+        draw_rectangle(x + 1, y + 4, x + 14, y + 14, false);
+        draw_set_color(make_color_rgb(55, 60, 72));
+        draw_rectangle(x + 1, y + 4, x + 14, y + 14, true);
+
+        // Exposed copper & cyan wires on gutted desk
+        draw_set_color(make_color_rgb(210, 120, 45));
+        draw_line(x + 4, y + 8, x + 9, y + 11);
+        draw_set_color(c_aqua);
+        draw_point(x + 10, y + 7);
+        draw_point(x + 6, y + 11);
+    } else if (has_clue) {
         // =========================================================
         // CLUE TERMINAL (Visually distinct Gold/Cyan Forensic Desk)
         // =========================================================
@@ -18,7 +34,7 @@ if (prop_type == TILE_PROP_PC) {
 
         // Subtle golden/emerald screen light pool on floor
         draw_set_alpha(0.06 + 0.04 * _pulse);
-        draw_set_color(talked_once ? c_lime : make_color_rgb(255, 210, 45));
+        draw_set_color(is_fried ? c_red : (talked_once ? c_lime : make_color_rgb(255, 210, 45)));
         draw_circle(_cx, y + 10, 11, false);
 
         // Forensic Gold-Trimmed Desk Base
@@ -26,39 +42,69 @@ if (prop_type == TILE_PROP_PC) {
         draw_set_color(make_color_rgb(55, 45, 22));
         draw_rectangle(x, y + 3, x + 15, y + 15, false);
         draw_set_alpha(0.65);
-        draw_set_color(talked_once ? c_lime : make_color_rgb(255, 205, 40));
+        draw_set_color(is_fried ? c_red : (talked_once ? c_lime : make_color_rgb(255, 205, 40)));
         draw_rectangle(x, y + 3, x + 15, y + 15, true);
 
         // Animated Computer Terminal with highlight tint
         draw_set_alpha(1.0);
         var _frame = floor(current_time / 140 + sub_img) mod sprite_get_number(spr_computer);
-        draw_sprite_ext(spr_computer, _frame, _cx, _by, 0.80, 0.70, 0, make_color_rgb(255, 250, 210), 1.0);
+        var _tint  = is_fried ? make_color_rgb(255, 100, 100) : make_color_rgb(255, 250, 210);
+        draw_sprite_ext(spr_computer, _frame, _cx, _by, 0.80, 0.70, 0, _tint, 1.0);
 
         // Subtle floating Clue Terminal indicator above monitor
         var _bob = sin(current_time / 170 + x) * 1.2;
         draw_set_alpha(0.38);
-        draw_set_color(talked_once ? c_lime : make_color_rgb(255, 205, 35));
+        draw_set_color(is_fried ? c_red : (talked_once ? c_lime : make_color_rgb(255, 205, 35)));
         draw_rectangle(_cx - 3, y - 11 + _bob, _cx + 3, y - 5 + _bob, false);
         draw_set_alpha(0.45);
         draw_set_color(c_black);
         draw_rectangle(_cx - 3, y - 11 + _bob, _cx + 3, y - 5 + _bob, true);
+    } else if (is_server_rack) {
+        // =========================================================
+        // HIGH-YIELD PROTOTYPE SERVER TERMINAL (+3 Scrap in Encrypted Decoy Rooms!)
+        // =========================================================
+        var _spulse = 0.5 + 0.5 * sin(current_time / 140 + x);
+        draw_set_alpha(0.10 + 0.05 * _spulse);
+        draw_set_color(is_fried ? c_red : make_color_rgb(225, 85, 255));
+        draw_circle(_cx, y + 10, 12, false);
+
+        draw_set_alpha(0.95);
+        draw_set_color(make_color_rgb(38, 20, 48));
+        draw_rectangle(x, y + 3, x + 15, y + 15, false);
+        draw_set_color(is_fried ? c_red : make_color_rgb(235, 110, 255));
+        draw_rectangle(x, y + 3, x + 15, y + 15, true);
+
+        var _sframe = floor(current_time / 120 + sub_img) mod sprite_get_number(spr_computer);
+        var _stint  = is_fried ? make_color_rgb(255, 95, 95) : make_color_rgb(245, 195, 255);
+        draw_sprite_ext(spr_computer, _sframe, _cx, _by, 0.80, 0.72, 0, _stint, 1.0);
     } else {
         // =========================================================
-        // STANDARD DECORATIVE OFFICE PC (Muted, non-interactive)
+        // STANDARD CORPORATE PC (Right-Click with Wrench to Scrap!)
         // =========================================================
         draw_set_alpha(0.06);
-        draw_set_color(make_color_rgb(65, 140, 180));
+        draw_set_color(is_fried ? c_red : make_color_rgb(65, 140, 180));
         draw_circle(_cx, y + 10, 9, false);
 
         // Standard Dark Slate Desk Base
         draw_set_alpha(0.90);
         draw_set_color(make_color_rgb(28, 34, 46));
         draw_rectangle(x + 1, y + 4, x + 14, y + 14, false);
-        draw_set_color(make_color_rgb(55, 64, 82));
+        draw_set_color(is_fried ? c_red : make_color_rgb(55, 64, 82));
         draw_rectangle(x + 1, y + 4, x + 14, y + 14, true);
 
-        // Dimmed static/slow monitor
-        draw_sprite_ext(spr_computer, 0, _cx, _by, 0.72, 0.62, 0, make_color_rgb(150, 160, 175), 0.90);
+        // Monitor
+        var _c_tint = is_fried ? make_color_rgb(255, 90, 90) : make_color_rgb(165, 180, 195);
+        draw_sprite_ext(spr_computer, 0, _cx, _by, 0.72, 0.62, 0, _c_tint, 0.92);
+    }
+
+    // Draw sizzling red/orange sparks if Anti-Tamper fried the terminal's circuits!
+    if (is_fried && !is_scrapped) {
+        draw_set_alpha(0.85);
+        draw_set_color((current_time mod 240 < 120) ? c_red : c_orange);
+        var _sx1 = _cx + irandom_range(-4, 4);
+        var _sy1 = y + 4 + irandom_range(-3, 3);
+        draw_line(_sx1 - 2, _sy1, _sx1 + 2, _sy1);
+        draw_line(_sx1, _sy1 - 2, _sx1, _sy1 + 2);
     }
 }
 else if (prop_type == TILE_PROP_CHAIR) {
@@ -190,67 +236,116 @@ else if (prop_type == TILE_PROP_BREAKER) {
 }
 else if (prop_type == TILE_PROP_DRONE) {
     var _cy      = y + 8;
-    var _hover_y = _lifted ? 0 : (sin(hover_t) * 2.5);
+    var _hover_y = (_lifted || is_scrapped) ? 0 : (sin(hover_t) * 2.5);
 
-    // =========================================================
-    // REAL-TIME 2D RAYCAST FLASHLIGHT BEAM (Wraps around corners & walls!)
-    // =========================================================
-    if (!_lifted) {
-        var _base_dir  = point_direction(0, 0, patrol_vx, patrol_vy);
-        var _scan_dir  = _base_dir + sin(hover_t * 0.90) * 18;
-        var _max_dist  = 94;
-        var _half_fov  = 32;
-        var _num_rays  = 24;
-
-        // Subtle flashlight glow around the drone lens itself
-        draw_set_alpha(0.08);
-        draw_set_color(make_color_rgb(255, 210, 120));
-        draw_circle(_cx, _cy, 10, false);
-
-        // Outer Raycast Flashlight Fan (clips against walls & spills into open doorway alcoves!)
-        draw_primitive_begin(pr_trianglefan);
-        draw_vertex_color(_cx, _cy, make_color_rgb(255, 235, 165), 0.42);
-
-        for (var _ri = 0; _ri <= _num_rays; _ri++) {
-            var _ang = (_scan_dir - _half_fov) + (_ri / _num_rays) * (_half_fov * 2);
-            var _vx  = lengthdir_x(1, _ang);
-            var _vy  = lengthdir_y(1, _ang);
-            var _hit_d = _max_dist;
-
-            for (var _d = 8; _d <= _max_dist; _d += 4) {
-                if (position_meeting(_cx + _vx * _d, _cy + _vy * _d, obj_dungeon_wall)) {
-                    _hit_d = _d;
-                    break;
-                }
-            }
-
-            var _rx = _cx + _vx * _hit_d;
-            var _ry = _cy + _vy * _hit_d;
-            draw_vertex_color(_rx, _ry, make_color_rgb(255, 65, 55), 0.14);
-        }
-        draw_primitive_end();
+    if (is_scrapped) {
+        // Dismantled Security Bot Shell on the floor
+        draw_set_alpha(0.40);
+        draw_set_color(c_black);
+        draw_ellipse(x + 2, y + 9, x + 14, y + 15, false);
+        draw_set_alpha(0.85);
+        draw_sprite_ext(drone_spr, 0, _cx, y + 9, 0.38, 0.32, 22, make_color_rgb(90, 95, 110), 0.85);
     } else {
-        // Powered-down standby ring
-        draw_set_alpha(0.25);
-        draw_set_color(c_lime);
-        draw_circle(_cx, y + 10, 9, false);
-    }
+        // =========================================================
+        // REAL-TIME 2D RAYCAST FLASHLIGHT BEAM (Wraps around corners & walls!)
+        // =========================================================
+        if (!_lifted && !grapple_active) {
+            var _base_dir  = point_direction(0, 0, patrol_vx, patrol_vy);
+            var _scan_dir  = _base_dir + sin(hover_t * 0.90) * 18;
+            var _watcher   = scr_has_active_statue(0); // Blind Watcher Bust shrinks the beam
+            var _max_dist  = _watcher ? 66 : 94;
+            var _half_fov  = _watcher ? 22 : 32;
+            var _num_rays  = 24;
 
-    // Draw Rogue Virus / Security Drone sprite centered in the hallway
-    var _dframe = _lifted ? 0 : (floor(current_time / 120) mod max(1, sprite_get_number(drone_spr)));
-    var _dtint  = _lifted ? make_color_rgb(150, 220, 175) : c_white;
-    draw_sprite_ext(drone_spr, _dframe, _cx, y + 6 + _hover_y, 0.42, 0.42, 0, _dtint, 1.0);
+            // Subtle flashlight glow around the drone lens itself
+            draw_set_alpha(0.08);
+            draw_set_color(make_color_rgb(255, 210, 120));
+            draw_circle(_cx, _cy, 10, false);
+
+            // Outer Raycast Flashlight Fan (clips against walls & spills into open doorway alcoves!)
+            draw_primitive_begin(pr_trianglefan);
+            draw_vertex_color(_cx, _cy, make_color_rgb(255, 235, 165), 0.42);
+
+            for (var _ri = 0; _ri <= _num_rays; _ri++) {
+                var _ang = (_scan_dir - _half_fov) + (_ri / _num_rays) * (_half_fov * 2);
+                var _vx  = lengthdir_x(1, _ang);
+                var _vy  = lengthdir_y(1, _ang);
+                var _hit_d = _max_dist;
+
+                for (var _d = 8; _d <= _max_dist; _d += 4) {
+                    if (position_meeting(_cx + _vx * _d, _cy + _vy * _d, obj_dungeon_wall)) {
+                        _hit_d = _d;
+                        break;
+                    }
+                }
+
+                var _rx = _cx + _vx * _hit_d;
+                var _ry = _cy + _vy * _hit_d;
+                draw_vertex_color(_rx, _ry, make_color_rgb(255, 65, 55), 0.14);
+            }
+            draw_primitive_end();
+        } else {
+            // Powered-down or Grappled standby ring
+            draw_set_alpha(0.28);
+            draw_set_color(grapple_active ? c_yellow : c_lime);
+            draw_circle(_cx, y + 10, 9, false);
+        }
+
+        // Draw Rogue Virus / Security Drone sprite centered in the hallway
+        var _dframe = _lifted ? 0 : (floor(current_time / 120) mod max(1, sprite_get_number(drone_spr)));
+        var _dtint  = is_fried ? make_color_rgb(255, 95, 95) : (_lifted ? make_color_rgb(150, 220, 175) : c_white);
+        var _gx_off = grapple_active ? irandom_range(-2, 2) : 0;
+        var _gy_off = grapple_active ? irandom_range(-2, 2) : 0;
+        draw_set_alpha(1.0);
+        draw_sprite_ext(drone_spr, _dframe, _cx + _gx_off, y + 6 + _hover_y + _gy_off, 0.42, 0.42, 0, _dtint, 1.0);
+
+        // =========================================================
+        // SPAM [E] APPREHEND STRUGGLE BAR ABOVE SECURITY BOT
+        // =========================================================
+        if (grapple_active) {
+            var _bw  = 38;
+            var _bh  = 6;
+            var _bx1 = _cx - _bw * 0.5;
+            var _by1 = y - 22;
+            var _fill = clamp(grapple_meter, 0, 1);
+
+            draw_set_alpha(0.92);
+            draw_set_color(c_black);
+            draw_rectangle(_bx1 - 1, _by1 - 1, _bx1 + _bw + 1, _by1 + _bh + 1, false);
+            draw_set_color(merge_color(c_red, c_lime, _fill));
+            draw_rectangle(_bx1, _by1, _bx1 + _bw * _fill, _by1 + _bh, false);
+            draw_set_color(c_white);
+            draw_rectangle(_bx1 - 1, _by1 - 1, _bx1 + _bw + 1, _by1 + _bh + 1, true);
+        }
+    }
 }
 
-// Subtle floating [E] indicator directly over the prop when Jack is within range
-if (player_near) {
+// Subtle floating [E] / [RMB] indicator directly over the prop when Jack is within range
+if (player_near && !grapple_active) {
     var _ey = (prop_type == TILE_PROP_NPC) ? (y - 24) : (y - 16);
     draw_set_alpha(0.55);
     draw_set_color(make_color_rgb(10, 16, 26));
     draw_rectangle(_cx - 6, _ey - 4, _cx + 6, _ey + 4, false);
     draw_set_alpha(0.65);
-    draw_set_color(c_aqua);
+    draw_set_color(is_fried ? c_orange : c_aqua);
     draw_rectangle(_cx - 6, _ey - 4, _cx + 6, _ey + 4, true);
+}
+
+// Floating world-space status text (+1 SCRAP, CIRCUITS FRIED, etc.)
+if (scrap_pop_timer > 0 && scrap_pop_text != "") {
+    var _p_alpha = clamp(scrap_pop_timer / 25, 0, 1);
+    var _float_y = y - 18 - (1 - (scrap_pop_timer / 95)) * 10;
+    draw_set_font(fnt_dialogue);
+    draw_set_halign(fa_center);
+    draw_set_valign(fa_middle);
+    draw_set_alpha(_p_alpha);
+    draw_set_color(c_black);
+    draw_text_transformed(_cx + 1, _float_y + 1, scrap_pop_text, 0.42, 0.42, 0);
+    draw_set_color(is_fried ? make_color_rgb(255, 110, 75) : c_lime);
+    draw_text_transformed(_cx, _float_y, scrap_pop_text, 0.42, 0.42, 0);
+    draw_set_font(fnt_default);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
 }
 
 draw_set_color(c_white);

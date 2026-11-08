@@ -169,6 +169,13 @@ function scr_dungeon_spawn(logic_map, path_list) {
                                 _pr.has_clue = true;
                             }
                         } else if (tile_val == TILE_PROP_PC) {
+                            if (room_type == ROOM_NORMAL && instance_exists(obj_dungeon_generator)
+                                && variable_instance_exists(obj_dungeon_generator, "room_is_encrypted")
+                                && obj_dungeon_generator.room_is_encrypted[logic_col][logic_row])
+                            {
+                                // Encrypted Decoy Rooms contain High-Yield Prototype Servers (+3 Scrap, +1 Rare Core)!
+                                _pr.is_server_rack = true;
+                            }
                             array_push(pc_list, _pr);
                         }
                         break;
@@ -253,11 +260,11 @@ function scr_dungeon_spawn(logic_map, path_list) {
             var _spawn_drone = (variable_global_exists("floor_curriculum") && variable_struct_exists(global.floor_curriculum, "spawn_drone"))
                 ? global.floor_curriculum.spawn_drone
                 : true;
-            if (hall_seq == 2 && _spawn_drone) {
+            if ((hall_seq == 2 || (hall_seq == 5 && variable_global_exists("chapter_floor") && global.chapter_floor >= 4)) && _spawn_drone) {
                 var _hall_drone = instance_create_layer(world_x + 4 * TILE_SIZE, world_y + 4 * TILE_SIZE, layer_name, obj_dungeon_prop);
                 _hall_drone.prop_type      = TILE_PROP_DRONE;
-                _hall_drone.wp_index       = 1;
-                _hall_drone.wp_dir         = 1;
+                _hall_drone.wp_index       = (hall_seq == 5) ? 4 : 1;
+                _hall_drone.wp_dir         = (hall_seq == 5) ? -1 : 1;
                 _hall_drone.myName         = "Security Drone";
                 _hall_drone.myPortrait     = spr_jack_portrait;
                 _hall_drone.myPortraitTalk = spr_jack_portrait;
@@ -351,6 +358,17 @@ function scr_dungeon_spawn(logic_map, path_list) {
         with (obj_door_caesar_lock) {
             if (point_distance(draw_x + 8, draw_y + 8, _bx, _by) <= 85) {
                 is_breaker_door = true;
+            }
+        }
+    }
+
+    // Mark both sides of the Extraction Elevator Room's doorway threshold as is_elevator_door = true
+    if (instance_exists(obj_dungeon_goal)) {
+        var _gx = obj_dungeon_goal.x;
+        var _gy = obj_dungeon_goal.y;
+        with (obj_door_caesar_lock) {
+            if (point_distance(draw_x + 8, draw_y + 8, _gx, _gy) <= 85) {
+                is_elevator_door = true;
             }
         }
     }

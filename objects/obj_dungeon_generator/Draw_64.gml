@@ -14,6 +14,18 @@ var _gui_w = display_get_gui_width();
 var _gui_h = display_get_gui_height();
 
 // =========================================================
+// WRENCH SABOTAGE / MAINFRAME SEVER ENCRYPTION UI
+// =========================================================
+if (variable_global_exists("scrap_ui_open") && global.scrap_ui_open) {
+    scr_draw_scrap_sever_ui(_gui_w, _gui_h);
+    draw_set_font(fnt_default);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+    draw_set_color(c_white);
+    exit;
+}
+
+// =========================================================
 // LOCKDOWN OVERRIDE CONSOLE UI (Option A2: Reverse-Shift Encrypt)
 // =========================================================
 if (variable_global_exists("override_ui_open") && global.override_ui_open) {
@@ -167,13 +179,13 @@ if (_curr.phase_name == "PRACTICE")   _phase_col = make_color_rgb(255, 210, 55);
 if (_curr.phase_name == "MASTERY")    _phase_col = make_color_rgb(255, 145, 50);
 if (_curr.phase_name == "FINAL EXAM") _phase_col = make_color_rgb(255, 85, 160);
 
-// Top-left status bar
+// Top-left status bar (expanded to show Wrench Scrap & HR 3-Property Limit)
 draw_set_alpha(0.82);
 draw_set_color(make_color_rgb(10, 14, 22));
-draw_rectangle(8, 8, 268, 78, false);
+draw_rectangle(8, 8, 268, 94, false);
 draw_set_alpha(1.0);
 draw_set_color(_phase_col);
-draw_rectangle(8, 8, 268, 78, true);
+draw_rectangle(8, 8, 268, 94, true);
 
 // Line 1: Chapter, Floor X/10 & Phase Badge
 draw_set_color(c_white);
@@ -222,6 +234,24 @@ var _s3_txt   = _pwr_done ? "[x]3.POWER"    : "[ ]3.POWER";
 draw_set_color((_has_key && _ov_done && _pwr_done) ? c_lime : make_color_rgb(185, 210, 235));
 draw_text_transformed(15, 66, _s1_txt + "  " + _s2_txt + "  " + _s3_txt, 0.72, 0.72, 0);
 
+// Line 5: Wrench Scrap Counter & HR 3-Property Limit Tracker
+var _scrp_cur = variable_global_exists("scrap_count")    ? global.scrap_count    : 0;
+var _hr_cur   = variable_global_exists("hr_scrap_count") ? global.hr_scrap_count : 0;
+var _hr_lim   = variable_global_exists("hr_scrap_limit") ? global.hr_scrap_limit : 3;
+var _hr_col   = (_hr_cur > _hr_lim)
+    ? ((current_time mod 400 < 220) ? make_color_rgb(255, 75, 75) : c_yellow)
+    : ((_hr_cur == _hr_lim) ? make_color_rgb(255, 205, 55) : c_lime);
+var _hr_lbl   = (_hr_cur > _hr_lim)
+    ? ("HR: " + string(_hr_cur) + "/" + string(_hr_lim) + " [INTERN DUTY!]")
+    : ("HR LIMIT: " + string(_hr_cur) + "/" + string(_hr_lim) + ((_hr_cur == _hr_lim) ? " [MAX]" : " [SAFE]"));
+
+draw_set_color(c_aqua);
+draw_text_transformed(15, 82, "SCRAP: " + string(_scrp_cur), 0.78, 0.78, 0);
+draw_set_halign(fa_right);
+draw_set_color(_hr_col);
+draw_text_transformed(262, 82, _hr_lbl, 0.74, 0.74, 0);
+draw_set_halign(fa_left);
+
 // =========================================================
 // FLOOR INTENT BANNER (Top-Right / Center-Right on Floor Start)
 // =========================================================
@@ -253,12 +283,12 @@ if (banner_timer > 0) {
 // FLOOR BLUEPRINT RADAR (MINIMAP) — Below Top-Left HUD
 // =========================================================
 if (variable_instance_exists(id, "room_discovered")) {
-    var _map_x = 8;
-    var _map_y = 84;
-    var _cell_sz = 9;
-    var _cell_step = 12;
-    var _map_w = LOGIC_GRID_W * _cell_step + 12;
-    var _map_h = LOGIC_GRID_H * _cell_step + 24;
+    var _map_x     = 8;
+    var _map_y     = 100;
+    var _cell_sz   = 7;
+    var _cell_step = 9;
+    var _map_w     = LOGIC_GRID_W * _cell_step + 12;
+    var _map_h     = LOGIC_GRID_H * _cell_step + 22;
 
     draw_set_alpha(0.76);
     draw_set_color(make_color_rgb(8, 13, 22));
@@ -268,12 +298,12 @@ if (variable_instance_exists(id, "room_discovered")) {
     draw_rectangle(_map_x, _map_y, _map_x + _map_w, _map_y + _map_h, true);
 
     draw_set_color(make_color_rgb(120, 210, 245));
-    draw_text(_map_x + 6, _map_y + 9, "BLUEPRINT RADAR");
+    draw_text_transformed(_map_x + 6, _map_y + 9, "BLUEPRINT RADAR", 0.78, 0.78, 0);
 
-    var _grid_ox = _map_x + 8;
-    var _grid_oy = _map_y + 18;
+    var _grid_ox = _map_x + 7;
+    var _grid_oy = _map_y + 17;
 
-    // 1. Draw Doorway Links between discovered rooms
+    // 1. Draw Doorway & Merged-Room Links between discovered rooms
     if (variable_instance_exists(id, "door_links")) {
         var _n_links = array_length(door_links);
         for (var _li = 0; _li < _n_links; _li++) {
@@ -291,12 +321,14 @@ if (variable_instance_exists(id, "room_discovered")) {
                 if (_dtype == TILE_LOCK_QUIZ) {
                     draw_set_color(make_color_rgb(255, 205, 45));
                 } else if (_dtype == TILE_LOCK_CAESAR) {
-                    draw_set_color(make_color_rgb(255, 75, 135));
+                    var _is_brk = (logic_map[_c1][_r1] == ROOM_POWER || logic_map[_c2][_r2] == ROOM_POWER);
+                    draw_set_color(_is_brk ? c_aqua : make_color_rgb(255, 75, 135));
                 } else {
                     draw_set_color(make_color_rgb(75, 155, 190));
                 }
                 draw_set_alpha(0.85);
-                draw_line_width(_lx1, _ly1, _lx2, _ly2, 2);
+                var _lw = (_dtype == TILE_ROOM_MERGE) ? 4 : 2;
+                draw_line_width(_lx1, _ly1, _lx2, _ly2, _lw);
             }
         }
     }
@@ -330,6 +362,12 @@ if (variable_instance_exists(id, "room_discovered")) {
             if (_rtype == ROOM_HOLDING)       _rcol = make_color_rgb(255, 130, 35);
             if (_rtype == ROOM_END)           _rcol = make_color_rgb(70, 245, 220);
 
+            // All unvisited Encrypted-Door rooms display with the SAME magenta mystery color on the radar
+            // so the player must unlock and enter them to discover which one is the Elevator Room!
+            if (_disc < 2 && variable_instance_exists(id, "room_is_encrypted") && room_is_encrypted[_c][_r]) {
+                _rcol = make_color_rgb(235, 65, 120);
+            }
+
             if (_disc == 2) {
                 draw_set_alpha(0.80);
                 draw_set_color(_rcol);
@@ -354,6 +392,30 @@ if (variable_instance_exists(id, "room_discovered")) {
             }
         }
     }
+
+    // 3. Compact Floor Salvage Tasks Card below Blueprint Radar
+    var _tk_y1   = _map_y + _map_h + 6;
+    var _tk_y2   = _tk_y1 + 48;
+    var _tk_w    = 196;
+    var _t1_done = (_hr_cur >= 3);
+    var _t2_done = ((variable_global_exists("task_bots_scrapped") && global.task_bots_scrapped > 0)
+                 || (variable_global_exists("task_servers_scrapped") && global.task_servers_scrapped > 0));
+
+    draw_set_alpha(0.78);
+    draw_set_color(make_color_rgb(8, 14, 22));
+    draw_rectangle(_map_x, _tk_y1, _map_x + _tk_w, _tk_y2, false);
+    draw_set_alpha(0.90);
+    draw_set_color((_t1_done && _t2_done) ? c_lime : make_color_rgb(65, 130, 165));
+    draw_rectangle(_map_x, _tk_y1, _map_x + _tk_w, _tk_y2, true);
+
+    draw_set_color(make_color_rgb(255, 210, 65));
+    draw_text_transformed(_map_x + 6, _tk_y1 + 9, "SALVAGE TASKS [RMB=WRENCH]", 0.68, 0.68, 0);
+
+    draw_set_color(_t1_done ? c_lime : make_color_rgb(190, 215, 235));
+    draw_text_transformed(_map_x + 6, _tk_y1 + 24, (_t1_done ? "[x] " : "[ ] ") + "Scrap 3 Assets (" + string(min(3, _hr_cur)) + "/3 Quota)", 0.66, 0.66, 0);
+
+    draw_set_color(_t2_done ? c_lime : make_color_rgb(190, 215, 235));
+    draw_text_transformed(_map_x + 6, _tk_y1 + 38, (_t2_done ? "[x] " : "[ ] ") + "Scrap Bot [E] or Decoy Server", 0.66, 0.66, 0);
 }
 draw_set_alpha(1.0);
 
@@ -404,13 +466,35 @@ if (instance_exists(obj_jack)) {
 
     if (_prompt == "") {
         with (obj_dungeon_prop) {
+            if (grapple_active) {
+                _prompt = "[ SPAM E! ]  APPREHENDING SECURITY BOT — FILL THE METER TO SEVER UPLINK!";
+                _pcol   = (current_time mod 240 < 120) ? c_yellow : c_lime;
+                break;
+            }
             if (player_near) {
                 if (prop_type == TILE_PROP_NPC) {
                     _prompt = "[E] Talk to " + myName;
                     _pcol   = make_color_rgb(100, 235, 155);
                 } else if (prop_type == TILE_PROP_PC) {
-                    _prompt = "[E] Inspect Corporate Terminal";
-                    _pcol   = c_aqua;
+                    if (is_holding_clue) {
+                        _prompt = "[E] Inspect Holding Cell Terminal";
+                        _pcol   = c_aqua;
+                    } else if (is_fried) {
+                        _prompt = "[RMB / R] Fix Fried Circuits (-1 Scrap) & Wrench Scrap";
+                        _pcol   = make_color_rgb(255, 130, 65);
+                    } else if (has_clue && !is_scrapped) {
+                        _prompt = "[E] Inspect Clue   |   [RMB / R] Wrench Scrap (+1 Scrap)";
+                        _pcol   = c_aqua;
+                    } else if (has_clue && is_scrapped) {
+                        _prompt = "[E] Inspect Clue Terminal (Hardware Scrapped)";
+                        _pcol   = c_aqua;
+                    } else if (is_server_rack) {
+                        _prompt = "[RMB / R] Wrench Scrap Prototype Server (+3 Scrap, +1 Core!)";
+                        _pcol   = make_color_rgb(235, 110, 255);
+                    } else {
+                        _prompt = "[RMB / R] Wrench Scrap Corporate Terminal (+1 Scrap)";
+                        _pcol   = make_color_rgb(100, 235, 175);
+                    }
                 } else if (prop_type == TILE_PROP_PAPER) {
                     _prompt = "[E] Read Dropped Memo";
                     _pcol   = make_color_rgb(255, 220, 110);
@@ -422,11 +506,22 @@ if (instance_exists(obj_jack)) {
                     _prompt = _ov_done ? "[E] Lockdown Override Active (Alarms & Drones Off)" : "[E] Use Lockdown Override Console (Encrypt 2-Letter Signal)";
                     _pcol   = _ov_done ? c_lime : make_color_rgb(255, 95, 115);
                 } else if (prop_type == TILE_PROP_BREAKER) {
-                    _prompt = _pwr_done ? "[E] Power Breaker Restored (Lights & Elevator Online)" : "[E] Inspect Floor Power Breaker Panel (3-Fuse Check)";
+                    var _brk_rep = (variable_global_exists("breaker_repaired") && global.breaker_repaired);
+                    _prompt = _pwr_done
+                        ? "[E] Power Breaker Restored (Lights & Elevator Online)"
+                        : (_brk_rep ? "[E] Inspect Floor Power Breaker Panel (3-Fuse Check)" : "[E] Repair Fried Power Breaker (Requires 2 Scrap)");
                     _pcol   = _pwr_done ? c_lime : c_aqua;
                 } else if (prop_type == TILE_PROP_DRONE) {
-                    _prompt = "[E] Inspect Rebooted Drone";
-                    _pcol   = c_lime;
+                    if (is_fried) {
+                        _prompt = "[E / RMB] Fix Bot Circuits (-1 Scrap) & Wrench Scrap (+3 Scrap!)";
+                        _pcol   = make_color_rgb(255, 130, 65);
+                    } else if (can_sneak_ambush && !_ov_done) {
+                        _prompt = "[E] SNEAK AMBUSH SECURITY BOT! (Spam [E] -> +3 Scrap, +1 Core!)";
+                        _pcol   = make_color_rgb(255, 215, 55);
+                    } else {
+                        _prompt = "[E] Inspect Sleeping Bot   |   [RMB / R] Wrench Scrap Bot (+3 Scrap)";
+                        _pcol   = c_lime;
+                    }
                 }
                 break;
             }

@@ -271,6 +271,13 @@ for (var i = 0; i < letters_len; i++) {
 }
 
 // --- 5. GUIDED TUTORIAL CALLOUT (Floors 1-3) OR STATUS FEEDBACK ---
+// Firewall Trace Timer (dungeon door locks only)
+if (cipher_timer_max > 0 && success_timer == 0) {
+    scr_draw_trace_timer(center_x, _py2 - 64, 280, cipher_timer, cipher_timer_max);
+    draw_set_font(fnt_dialogue);
+    draw_set_halign(fa_center);
+    draw_set_valign(fa_middle);
+}
 if (status_msg != "") {
     draw_set_color(text_color);
     draw_text_transformed(center_x, _py2 - 42, status_msg, 0.88, 0.88, 0);

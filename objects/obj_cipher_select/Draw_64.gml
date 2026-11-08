@@ -34,6 +34,15 @@ draw_set_valign(fa_middle);
 draw_set_color(c_white);
 draw_text_transformed(48, 23, "< MENU", 0.85, 0.85, 0);
 
+// Top-left Homeroom button
+var _home_hov = (_mx >= 92 && _mx <= 198 && _my >= 12 && _my <= 34);
+draw_set_color(_home_hov ? make_color_rgb(65, 45, 25) : make_color_rgb(34, 24, 16));
+draw_rectangle(92, 12, 198, 34, false);
+draw_set_color(_home_hov ? c_yellow : make_color_rgb(205, 150, 90));
+draw_rectangle(92, 12, 198, 34, true);
+draw_set_color(_home_hov ? c_yellow : make_color_rgb(245, 215, 175));
+draw_text_transformed(145, 23, "[H] HOMEROOM", 0.78, 0.78, 0);
+
 // Top-right Demo Unlock All Toggle
 var _all_unlocked = (variable_global_exists("unlock_all_ciphers") && global.unlock_all_ciphers);
 draw_set_color(demo_unlock_hover ? make_color_rgb(40, 58, 40) : make_color_rgb(18, 26, 38));

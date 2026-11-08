@@ -32,12 +32,21 @@ if (unlock_anim_timer > 0) {
     exit;
 }
 
-// --- 1. Back Button (Top-Left) ---
+// --- 1. Back Button (Top-Left) & Homeroom Preview Button ---
 var back_hover = (mx >= 12 && mx <= 84 && my >= 12 && my <= 34);
 if (back_hover && mouse_check_button_pressed(mb_left) && !instance_exists(obj_transition)) {
     audio_play_sound(snd_button_click, 10, false);
     room_goto(rm_menu);
     exit;
+}
+
+var home_hover = (mx >= 92 && mx <= 198 && my >= 12 && my <= 34);
+if ((home_hover && mouse_check_button_pressed(mb_left)) || keyboard_check_pressed(ord("H"))) {
+    if (!instance_exists(obj_transition)) {
+        audio_play_sound(snd_button_click, 10, false);
+        room_goto(rm_homeroom);
+        exit;
+    }
 }
 
 // --- 2. Panelist Demo Unlock Toggle (Top-Right) ---

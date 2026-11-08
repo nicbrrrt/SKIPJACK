@@ -31,6 +31,7 @@
 #macro TILE_PROP_LOCKER   14   // Corporate hallway locker that Jack can hide inside
 #macro TILE_PROP_OVERRIDE 15   // Red Lockdown Override Console (in ROOM_CAESAR_LOCKED)
 #macro TILE_PROP_BREAKER  16   // High-Voltage Power Breaker Panel (in ROOM_POWER)
+#macro TILE_ROOM_MERGE    17   // Seamless wide interior merge between two chunks of a long multi-chunk room
 
 // ---------------------------------------------------------------------------
 // Logic-map room type identifiers (used in obj_dungeon_generator's grid)
@@ -54,8 +55,8 @@
 // ---------------------------------------------------------------------------
 // Logic grid dimensions (number of room slots, not pixels)
 // ---------------------------------------------------------------------------
-#macro LOGIC_GRID_W 10  // Logic map width  in room-slots
-#macro LOGIC_GRID_H 10  // Logic map height in room-slots
+#macro LOGIC_GRID_W 14  // Logic map width  in room-slots (14 * 144 = 2016 px)
+#macro LOGIC_GRID_H 12  // Logic map height in room-slots (12 * 144 = 1728 px)
 
 // ---------------------------------------------------------------------------
 // Path-length constraints
@@ -96,9 +97,11 @@ function scr_get_floor_curriculum(_chapter, _floor_num) {
 
     var _phase_name       = "PRACTICE";
     var _phase_badge      = "[PRACTICE]";
-    var _hall_min         = 4;
-    var _hall_max         = 5;
-    var _side_rooms       = 5;
+    var _hall_min         = 7;
+    var _hall_max         = 9;
+    var _side_rooms       = 10;
+    var _encrypted_decoys = 2;
+    var _room_extensions  = 4;
     var _spawn_drone      = true;
     var _drone_speed      = 0.92;
     var _clues_needed     = 2;
@@ -108,51 +111,63 @@ function scr_get_floor_curriculum(_chapter, _floor_num) {
     var _objective_title  = "";
     var _mentor_intro     = [];
 
-    // 1. Determine Phase & Layout Parameters
+    // 1. Determine Phase & Layout Parameters (Longer hallways, more filler & encrypted decoy rooms)
     if (_flr == 1) {
-        _phase_name   = "TUTORIAL";
-        _phase_badge  = "[TUTORIAL 1/3]";
-        _hall_min     = 3;
-        _hall_max     = 4;
-        _side_rooms   = 4;
-        _spawn_drone  = false; // Safe onboarding floor — no security drone!
-        _clues_needed = 1;
-        _guided_ui    = true;
+        _phase_name       = "TUTORIAL";
+        _phase_badge      = "[TUTORIAL 1/3]";
+        _hall_min         = 6;
+        _hall_max         = 7;
+        _side_rooms       = 8;
+        _encrypted_decoys = 2; // 2 extra encrypted rooms so player explores all encrypted doors to find Elevator!
+        _room_extensions  = 3; // Multi-chunk long rooms & annex filler rooms
+        _spawn_drone      = true;  // Slow patrol bot so player can practice sneaking behind & apprehending!
+        _drone_speed      = 0.65;
+        _clues_needed     = 1;
+        _guided_ui        = true;
     } else if (_flr == 2) {
-        _phase_name   = "TUTORIAL";
-        _phase_badge  = "[TUTORIAL 2/3]";
-        _hall_min     = 4;
-        _hall_max     = 4;
-        _side_rooms   = 4;
-        _spawn_drone  = false; // Focus on second cipher concept without drone pressure
-        _clues_needed = 1;
-        _guided_ui    = true;
+        _phase_name       = "TUTORIAL";
+        _phase_badge      = "[TUTORIAL 2/3]";
+        _hall_min         = 6;
+        _hall_max         = 8;
+        _side_rooms       = 9;
+        _encrypted_decoys = 2;
+        _room_extensions  = 4;
+        _spawn_drone      = true;
+        _drone_speed      = 0.68;
+        _clues_needed     = 1;
+        _guided_ui        = true;
     } else if (_flr == 3) {
-        _phase_name   = "TUTORIAL";
-        _phase_badge  = "[TUTORIAL 3/3]";
-        _hall_min     = 4;
-        _hall_max     = 5;
-        _side_rooms   = 5;
-        _spawn_drone  = true;  // Introduce hallway drone & hiding lockers!
-        _drone_speed  = 0.72;
-        _clues_needed = 2;
-        _guided_ui    = true;
+        _phase_name       = "TUTORIAL";
+        _phase_badge      = "[TUTORIAL 3/3]";
+        _hall_min         = 7;
+        _hall_max         = 8;
+        _side_rooms       = 10;
+        _encrypted_decoys = 2;
+        _room_extensions  = 4;
+        _spawn_drone      = true;  // Introduce hallway drone & hiding lockers!
+        _drone_speed      = 0.72;
+        _clues_needed     = 2;
+        _guided_ui        = true;
     } else if (_flr <= 6) {
-        _phase_name   = "PRACTICE";
-        _phase_badge  = "[PRACTICE " + string(_flr) + "/10]";
-        _hall_min     = 4;
-        _hall_max     = 5;
-        _side_rooms   = 5;
-        _spawn_drone  = true;
-        _drone_speed  = 0.92;
-        _clues_needed = 2;
-        _guided_ui    = false;
+        _phase_name       = "PRACTICE";
+        _phase_badge      = "[PRACTICE " + string(_flr) + "/10]";
+        _hall_min         = 8;
+        _hall_max         = 10;
+        _side_rooms       = 11;
+        _encrypted_decoys = 3;
+        _room_extensions  = 5;
+        _spawn_drone      = true;
+        _drone_speed      = 0.92;
+        _clues_needed     = 2;
+        _guided_ui        = false;
     } else if (_flr <= 9) {
         _phase_name       = "MASTERY";
         _phase_badge      = "[MASTERY " + string(_flr) + "/10]";
-        _hall_min         = 5;
-        _hall_max         = 6;
-        _side_rooms       = 6;
+        _hall_min         = 9;
+        _hall_max         = 11;
+        _side_rooms       = 12;
+        _encrypted_decoys = 3;
+        _room_extensions  = 6;
         _spawn_drone      = true;
         _drone_speed      = 1.05;
         _clues_needed     = 2;
@@ -161,9 +176,11 @@ function scr_get_floor_curriculum(_chapter, _floor_num) {
     } else {
         _phase_name       = "FINAL EXAM";
         _phase_badge      = "[FINAL EXAM 10/10]";
-        _hall_min         = 5;
-        _hall_max         = 6;
-        _side_rooms       = 6;
+        _hall_min         = 10;
+        _hall_max         = 12;
+        _side_rooms       = 13;
+        _encrypted_decoys = 3;
+        _room_extensions  = 6;
         _spawn_drone      = true;
         _drone_speed      = 1.08;
         _clues_needed     = 2;
@@ -280,6 +297,8 @@ function scr_get_floor_curriculum(_chapter, _floor_num) {
         hall_min:         _hall_min,
         hall_max:         _hall_max,
         side_rooms:       _side_rooms,
+        encrypted_decoys: _encrypted_decoys,
+        room_extensions:  _room_extensions,
         spawn_drone:      _spawn_drone,
         drone_speed:      _drone_speed,
         clues_needed:     _clues_needed,
@@ -886,7 +905,17 @@ function scr_draw_override_console_ui(_gui_w, _gui_h) {
     draw_set_color(_both_filled ? c_lime : make_color_rgb(160, 120, 130));
     draw_text_transformed(_btn_cx, _btn_cy + 11, _both_filled ? "[PRESS ENTER!]" : "(Encrypt 2-Letter Code)", 0.75, 0.75, 0);
 
-    // 5. Status / Tutorial Callout & Footer
+    // 5. Trace Timer, Status / Tutorial Callout & Footer
+    if (!variable_global_exists("override_timer_max") || global.override_timer_max <= 0) {
+        global.override_timer_max = scr_get_cipher_timer_frames("sever");
+        global.override_timer     = global.override_timer_max;
+    }
+    if (global.override_win_t <= 0) {
+        scr_draw_trace_timer(_cx, _y2 - 62, 300, global.override_timer, global.override_timer_max);
+        draw_set_font(fnt_dialogue);
+        draw_set_halign(fa_center);
+        draw_set_valign(fa_middle);
+    }
     if (global.override_msg != "") {
         draw_set_color(global.override_col);
         draw_text_transformed(_cx, _y2 - 40, global.override_msg, 0.88, 0.88, 0);
@@ -915,8 +944,25 @@ function scr_draw_override_console_ui(_gui_w, _gui_h) {
         global.esc_block_frames = 2;
         keyboard_clear(vk_escape);
         global.override_ui_open = false;
+        global.override_timer_max = 0; // re-arm the Trace Timer next time the console opens
         audio_play_sound(snd_button_click, 10, false);
         return;
+    }
+
+    // Trace Timer countdown (frozen while the pause menu is open)
+    if (!(variable_global_exists("is_paused") && global.is_paused)) {
+        global.override_timer--;
+        if (global.override_timer <= 0) {
+            global.floor_cipher_fails++;
+            global.override_input     = ["", ""];
+            global.override_slot      = 0;
+            global.override_shake     = 12;
+            global.override_col       = c_orange;
+            global.override_msg       = "TRACE TIMEOUT! Signal expired — encrypt it again, faster!";
+            global.override_timer     = global.override_timer_max;
+            audio_play_sound(wrong1, 10, false);
+            return;
+        }
     }
 
     if (keyboard_check_pressed(vk_right)) {
@@ -1112,7 +1158,30 @@ function scr_draw_power_breaker_ui(_gui_w, _gui_h) {
     }
 
     // 5. Guided Tutorial Hint (Floors 1-3) & Status Footer
-    if (global.breaker_msg != "") {
+    var _repaired = (variable_global_exists("breaker_repaired") && global.breaker_repaired);
+    var _cur_scrp = variable_global_exists("scrap_count") ? global.scrap_count : 0;
+
+    if (!_repaired) {
+        // Draw Fried Breaker Relay Overlay Banner across lower half of panel
+        draw_set_alpha(0.94);
+        draw_set_color(make_color_rgb(36, 16, 22));
+        draw_rectangle(_x1 + 18, _y2 - 66, _x2 - 18, _y2 - 26, false);
+        draw_set_alpha(1.0);
+        draw_set_color((_cur_scrp >= 2) ? c_lime : make_color_rgb(255, 95, 75));
+        draw_rectangle(_x1 + 18, _y2 - 66, _x2 - 18, _y2 - 26, true);
+
+        if (_cur_scrp >= 2) {
+            draw_set_color(c_lime);
+            draw_text_transformed(_cx, _y2 - 53, "BREAKER RELAY FRIED BY LOCKDOWN!  (Your Scrap: " + string(_cur_scrp) + " / 2)", 0.84, 0.84, 0);
+            draw_set_color(c_white);
+            draw_text_transformed(_cx, _y2 - 36, "[ PRESS SPACE / ENTER TO INSTALL 2 SCRAP & REPAIR BREAKER ]", 0.82, 0.82, 0);
+        } else {
+            draw_set_color(make_color_rgb(255, 185, 65));
+            draw_text_transformed(_cx, _y2 - 53, "BREAKER RELAY FRIED!  Requires 2 Scrap to Repair  (Your Scrap: " + string(_cur_scrp) + " / 2)", 0.84, 0.84, 0);
+            draw_set_color(c_white);
+            draw_text_transformed(_cx, _y2 - 36, "Right-Click [RMB] Office Terminals or Ambush a Patrol Bot [E] to get Scrap!", 0.78, 0.78, 0);
+        }
+    } else if (global.breaker_msg != "") {
         draw_set_color(global.breaker_col);
         draw_text_transformed(_cx, _y2 - 40, global.breaker_msg, 0.88, 0.88, 0);
     } else if (_guided && _has_key) {
@@ -1126,7 +1195,9 @@ function scr_draw_power_breaker_ui(_gui_w, _gui_h) {
     }
 
     draw_set_color(make_color_rgb(150, 170, 195));
-    draw_text_transformed(_cx, _y2 - 16, "[LEFT/RIGHT] Select   |   [UP/DOWN/SPACE] Flip Switch   |   [ENTER] Restore Power   |   [ESC] Back", 0.76, 0.76, 0);
+    draw_text_transformed(_cx, _y2 - 14, _repaired
+        ? "[LEFT/RIGHT] Select   |   [UP/DOWN/SPACE] Flip Switch   |   [ENTER] Restore Power   |   [ESC] Back"
+        : "[SPACE / ENTER] Repair Breaker (-2 Scrap)   |   [ESC] Back to Floor", 0.76, 0.76, 0);
 
     // --- 6. INPUT HANDLING ---
     if (global.breaker_win_t > 0) {
@@ -1142,6 +1213,23 @@ function scr_draw_power_breaker_ui(_gui_w, _gui_h) {
         keyboard_clear(vk_escape);
         global.breaker_ui_open = false;
         audio_play_sound(snd_button_click, 10, false);
+        return;
+    }
+
+    // Require 2 Scrap to repair the fried breaker relay before flipping switches!
+    if (!_repaired) {
+        if (keyboard_check_pressed(vk_space) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(ord("E"))) {
+            if (_cur_scrp >= 2) {
+                global.scrap_count     -= 2;
+                global.breaker_repaired = true;
+                global.breaker_col      = c_lime;
+                global.breaker_msg      = "BREAKER REPAIRED (-2 SCRAP)! Now flip the 2 valid Fuses ON!";
+                audio_play_sound(snd_correct_ping, 10, false);
+            } else {
+                global.breaker_shake = 10;
+                audio_play_sound(wrong1, 10, false);
+            }
+        }
         return;
     }
 
@@ -1239,5 +1327,491 @@ function scr_trigger_dungeon_camera_cutscene(_lines, _targets) {
     global.e_dialogue_intro_shown = true;
     create_textevent(_lines, _spk_arr);
 }
+
+
+// ---------------------------------------------------------------------------
+/// @function scr_init_floor_salvage_tasks()
+/// @description Initializes per-floor HR Property Limit counters & Salvage Tasks
+///              that incentivize Wrench Scrapping while tempting players near
+///              the 3-Property HR Write-Off Limit.
+// ---------------------------------------------------------------------------
+function scr_init_floor_salvage_tasks() {
+    scr_statue_ensure_globals();
+    if (!variable_global_exists("legal_fund"))          global.legal_fund          = 0;
+    if (!variable_global_exists("intern_duty_flagged")) global.intern_duty_flagged = false;
+
+    // Performance Tracker (resets every floor / workday)
+    global.floor_cipher_fails     = 0;
+    global.floor_times_busted     = 0;
+    global.surge_shield_used      = false;
+    global.override_timer_max     = 0;
+    global.phone_ui_open          = false;
+    global.shelf_ui_open          = false;
+    global.elevator_room_found    = false;
+
+    global.hr_scrap_count         = 0;
+    global.hr_scrap_limit         = 3;
+    global.breaker_repaired       = false;
+    global.scrap_ui_open          = false;
+    global.bot_grapple_active     = false;
+    global.task_bots_scrapped     = 0;
+    global.task_servers_scrapped  = 0;
+    global.floor_scrap_collected  = 0;
+}
+
+
+// ---------------------------------------------------------------------------
+/// @function scr_open_scrap_sever_ui(_prop_inst)
+/// @description Opens the Chapter-Adaptive Mainframe Sever Encryption UI when
+///              Jack right-clicks a Terminal with his Wrench or apprehends a
+///              Security Bot from behind ([E] mash).
+///              Anytime-playable: rolls a local 2-letter Node ID & local key!
+// ---------------------------------------------------------------------------
+function scr_open_scrap_sever_ui(_prop_inst) {
+    if (!instance_exists(_prop_inst)) return;
+
+    var _ch    = variable_global_exists("dungeon_chapter") ? global.dungeon_chapter : CHAPTER_CAESAR;
+    var _pairs = ["TX", "ND", "SV", "PC", "IO", "DB", "RT", "GW", "LK", "FW", "OS", "VM"];
+    var _plain = _pairs[irandom(array_length(_pairs) - 1)];
+
+    var _c1 = string_char_at(_plain, 1);
+    var _c2 = string_char_at(_plain, 2);
+    var _t1 = _c1;
+    var _t2 = _c2;
+    var _s1 = 0;
+    var _s2 = 0;
+    var _local_caesar = choose(-4, -3, -2, -1, 1, 2, 3, 4);
+    var _v_keys       = ["BC", "CD", "DE", "BD", "CE", "DB", "EC", "CB"];
+    var _local_vig    = _v_keys[irandom(array_length(_v_keys) - 1)];
+
+    if (_ch == CHAPTER_ATBASH) {
+        _t1 = scr_atbash_decode(_c1);
+        _t2 = scr_atbash_decode(_c2);
+    } else if (_ch == CHAPTER_VIGENERE) {
+        var _vk1 = string_char_at(_local_vig, 1);
+        var _vk2 = string_char_at(_local_vig, 2);
+        _s1 = ord(_vk1) - ord("A");
+        _s2 = ord(_vk2) - ord("A");
+        _t1 = scr_caesar_encode(_c1, _s1);
+        _t2 = scr_caesar_encode(_c2, _s2);
+    } else {
+        _s1 = _local_caesar;
+        _s2 = _local_caesar;
+        _t1 = scr_caesar_encode(_c1, _s1);
+        _t2 = scr_caesar_encode(_c2, _s2);
+    }
+
+    var _is_bot = (_prop_inst.prop_type == TILE_PROP_DRONE);
+    var _is_srv = (variable_instance_exists(_prop_inst, "is_server_rack") && _prop_inst.is_server_rack);
+
+    global.scrap_ui_open       = true;
+    global.scrap_target_inst   = _prop_inst;
+    global.scrap_is_bot        = _is_bot;
+    global.scrap_is_server     = _is_srv;
+    global.scrap_ui_yield      = (_is_bot || _is_srv) ? 3 : 1;
+    global.scrap_ui_rare       = (_is_bot || _is_srv) ? 1 : 0;
+    global.scrap_plain         = _plain;
+    global.scrap_target        = _t1 + _t2;
+    global.scrap_shifts        = [_s1, _s2];
+    global.scrap_local_key     = _local_caesar;
+    global.scrap_vig_key       = _local_vig;
+    global.scrap_input         = ["", ""];
+    global.scrap_slot          = 0;
+    global.scrap_msg           = "";
+    global.scrap_col           = c_white;
+    global.scrap_shake         = 0;
+    global.scrap_win_t         = 0;
+    global.scrap_fail_t        = 0;
+    global.scrap_timer_max     = scr_get_cipher_timer_frames("sever");
+    global.scrap_timer         = global.scrap_timer_max;
+}
+
+
+// ---------------------------------------------------------------------------
+/// @function scr_scrap_sever_fail(_timeout)
+/// @description Handles a wrong encryption or a Trace Timer timeout while severing.
+///              - Copper Surge Totem (statue #2) absorbs the FIRST shock each floor
+///                (UI stays open, timer resets).
+///              - Otherwise the Anti-Tamper Protocol fries the device (1 Scrap to fix).
+/// @returns {Bool} true if the device was fried (UI closing), false if the shield absorbed it.
+// ---------------------------------------------------------------------------
+function scr_scrap_sever_fail(_timeout) {
+    global.floor_cipher_fails++;
+    global.scrap_shake = 14;
+
+    if (scr_has_active_statue(2) && !global.surge_shield_used) {
+        global.surge_shield_used = true;
+        global.scrap_col   = make_color_rgb(80, 225, 235);
+        global.scrap_msg   = _timeout
+            ? "TIMEOUT! COPPER SURGE TOTEM ABSORBED THE SHOCK — timer reset!"
+            : "WRONG CODE! COPPER SURGE TOTEM ABSORBED THE SHOCK — try again!";
+        global.scrap_timer = global.scrap_timer_max;
+        audio_play_sound(snd_select, 10, false);
+        audio_play_sound(wrong1, 9, false);
+        return false;
+    }
+
+    global.scrap_col    = make_color_rgb(255, 75, 65);
+    global.scrap_msg    = _timeout
+        ? "TRACE TIMEOUT! ANTI-TAMPER TRIGGERED — Circuits Fried! (1 Scrap [RMB] to Fix)"
+        : "ANTI-TAMPER TRIGGERED! Circuits Fried — Spend 1 Scrap [RMB] to Fix!";
+    global.scrap_fail_t = 65;
+    global.cam_shake_timer = 10;
+    global.cam_shake_mag   = 4;
+    audio_play_sound(snd_error, 10, false);
+    audio_play_sound(wrong1, 9, false);
+
+    if (instance_exists(global.scrap_target_inst)) {
+        global.scrap_target_inst.is_fried        = true;
+        global.scrap_target_inst.grapple_active  = false;
+        global.scrap_target_inst.zap_cd          = 90;
+        global.scrap_target_inst.scrap_pop_timer = 110;
+        global.scrap_target_inst.scrap_pop_text  = "CIRCUITS FRIED! (1 SCRAP TO FIX)";
+    }
+    return true;
+}
+
+
+// ---------------------------------------------------------------------------
+/// @function scr_draw_scrap_sever_ui(_gui_w, _gui_h)
+/// @description Renders and updates the Wrench Sabotage / Mainframe Sever
+///              Encryption UI:
+///              - Correct Encryption: Severs connection, dismantles hardware,
+///                awards Scrap (+1 or +3), and increments HR Property Counter.
+///              - Wrong Encryption: Triggers Anti-Tamper Protocol, frying the
+///                device's circuits (`is_fried = true`) so it costs 1 Scrap to fix!
+// ---------------------------------------------------------------------------
+function scr_draw_scrap_sever_ui(_gui_w, _gui_h) {
+    if (!variable_global_exists("scrap_plain")) {
+        global.scrap_ui_open = false;
+        return;
+    }
+
+    if (global.scrap_shake > 0) global.scrap_shake--;
+    var _sx = (global.scrap_shake > 0) ? irandom_range(-4, 4) : 0;
+    var _sy = (global.scrap_shake > 0) ? irandom_range(-4, 4) : 0;
+    var _cx = (_gui_w * 0.5) + _sx;
+    var _cy = (_gui_h * 0.5) + _sy;
+
+    var _ch      = variable_global_exists("dungeon_chapter")  ? global.dungeon_chapter  : CHAPTER_CAESAR;
+    var _curr    = variable_global_exists("floor_curriculum") ? global.floor_curriculum : scr_get_floor_curriculum(1, 4);
+    var _guided  = _curr.guided_ui;
+    var _hide_sh = _curr.hide_shift_match;
+    var _hr_cur  = variable_global_exists("hr_scrap_count")   ? global.hr_scrap_count   : 0;
+    var _hr_lim  = variable_global_exists("hr_scrap_limit")   ? global.hr_scrap_limit   : 3;
+
+    // 1. Dark Backdrop & Panel
+    draw_set_alpha(0.86);
+    draw_set_color(c_black);
+    draw_rectangle(0, 0, _gui_w, _gui_h, false);
+
+    var _pw = 548;
+    var _ph = 286;
+    var _x1 = _cx - _pw * 0.5;
+    var _y1 = _cy - _ph * 0.5;
+    var _x2 = _cx + _pw * 0.5;
+    var _y2 = _cy + _ph * 0.5;
+
+    var _theme_col = global.scrap_is_bot
+        ? make_color_rgb(255, 165, 45)
+        : (global.scrap_is_server ? make_color_rgb(235, 95, 255) : make_color_rgb(80, 225, 165));
+    if (global.scrap_fail_t > 0) _theme_col = make_color_rgb(255, 60, 60);
+
+    draw_set_alpha(0.96);
+    draw_set_color(make_color_rgb(14, 20, 28));
+    draw_rectangle(_x1, _y1, _x2, _y2, false);
+    draw_set_alpha(1.0);
+    draw_set_color(_theme_col);
+    draw_rectangle(_x1, _y1, _x2, _y2, true);
+    draw_rectangle(_x1 + 3, _y1 + 3, _x2 - 3, _y2 - 3, true);
+
+    draw_set_font(fnt_dialogue);
+    draw_set_halign(fa_center);
+    draw_set_valign(fa_middle);
+
+    // 2. Title & HR Write-Off Risk Sub-Banner
+    var _hdr_txt = "WRENCH SABOTAGE — SEVER TERMINAL UPLINK";
+    if (global.scrap_is_bot)    _hdr_txt = "BOT APPREHENDED! — SEVER DRONE TELEMETRY";
+    if (global.scrap_is_server) _hdr_txt = "PROTOTYPE SERVER — SEVER HIGH-YIELD UPLINK";
+
+    draw_set_color(_theme_col);
+    draw_text_transformed(_cx, _y1 + 18, _hdr_txt, 1.0, 1.0, 0);
+
+    var _at_risk = (_hr_cur >= _hr_lim);
+    var _hr_txt  = _at_risk
+        ? ("HR WARNING (" + string(_hr_cur) + "/" + string(_hr_lim) + "): Scrapping this exceeds 3/3 limit -> FLAGS INTERN BABYSITTING DUTY! (+" + string(global.scrap_ui_yield) + " Scrap)")
+        : ("HR PROPERTY ALLOWANCE: " + string(_hr_cur) + " / " + string(_hr_lim) + " Scrapped (Safe Write-Off)   •   YIELD: +" + string(global.scrap_ui_yield) + " SCRAP");
+    draw_set_color(_at_risk ? make_color_rgb(255, 95, 95) : make_color_rgb(255, 215, 75));
+    draw_text_transformed(_cx, _y1 + 36, _hr_txt, 0.75, 0.75, 0);
+
+    // 3. Chapter Encryption Instruction Pill
+    var _pill_y = _y1 + 58;
+    draw_set_color(make_color_rgb(22, 30, 44));
+    draw_rectangle(_cx - 210, _pill_y - 10, _cx + 210, _pill_y + 10, false);
+    draw_set_color(c_aqua);
+    draw_rectangle(_cx - 210, _pill_y - 10, _cx + 210, _pill_y + 10, true);
+
+    if (_ch == CHAPTER_VIGENERE) {
+        var _vk  = global.scrap_vig_key;
+        var _vs1 = global.scrap_shifts[0];
+        var _vs2 = global.scrap_shifts[1];
+        draw_set_color(c_white);
+        draw_text_transformed(_cx, _pill_y, "ENCRYPT NODE '" + global.scrap_plain + "' (Vigenere Key '" + _vk + "'):  Slot 1 (+" + string(_vs1) + "), Slot 2 (+" + string(_vs2) + ")", 0.78, 0.78, 0);
+    } else if (_ch == CHAPTER_ATBASH) {
+        draw_set_color(c_white);
+        draw_text_transformed(_cx, _pill_y, "ENCRYPT NODE '" + global.scrap_plain + "':  Reflect across Atbash Mirror (A <-> Z, B <-> Y)", 0.80, 0.80, 0);
+    } else {
+        var _lk     = global.scrap_local_key;
+        var _lk_str = (_lk > 0) ? ("+" + string(_lk)) : string(_lk);
+        draw_set_color(c_white);
+        draw_text_transformed(_cx, _pill_y, "ENCRYPT NODE '" + global.scrap_plain + "':  Caesar Shift by " + _lk_str + "  (Wrong Code Fries Circuits!)", 0.80, 0.80, 0);
+    }
+
+    // 4. Visual A-Z Ruler (or 2-Row Mirror Guide in Chapter 3)
+    var _strip_y    = _y1 + 92;
+    var _cell_w     = 20;
+    var _strip_w    = 26 * _cell_w;
+    var _strip_x1   = _cx - _strip_w * 0.5;
+    var _slot_idx   = global.scrap_slot;
+    var _src_ch     = string_char_at(global.scrap_plain, _slot_idx + 1);
+    var _src_idx    = ord(_src_ch) - ord("A");
+    var _usr_ch     = global.scrap_input[_slot_idx];
+    var _usr_idx    = (_usr_ch != "") ? (ord(_usr_ch) - ord("A")) : -1;
+    var _target_ch  = string_char_at(global.scrap_target, _slot_idx + 1);
+    var _target_idx = ord(_target_ch) - ord("A");
+
+    draw_set_color(make_color_rgb(20, 26, 40));
+    draw_rectangle(_strip_x1 - 5, _strip_y - 14, _strip_x1 + _strip_w + 5, _strip_y + 14, false);
+    draw_set_color(make_color_rgb(80, 105, 140));
+    draw_rectangle(_strip_x1 - 5, _strip_y - 14, _strip_x1 + _strip_w + 5, _strip_y + 14, true);
+
+    for (var _a = 0; _a < 26; _a++) {
+        var _lx     = _strip_x1 + _a * _cell_w + _cell_w * 0.5;
+        var _ch_lbl = chr(ord("A") + _a);
+
+        if (_a == _usr_idx) {
+            draw_set_color(c_lime);
+            draw_rectangle(_lx - 9, _strip_y - 12, _lx + 9, _strip_y + 12, false);
+            draw_set_color(c_black);
+            draw_text(_lx, _strip_y, _ch_lbl);
+        } else if (_a == _src_idx) {
+            draw_set_color(make_color_rgb(255, 195, 45));
+            draw_rectangle(_lx - 9, _strip_y - 12, _lx + 9, _strip_y + 12, false);
+            draw_set_color(c_black);
+            draw_text(_lx, _strip_y, _ch_lbl);
+        } else if (_guided && _a == _target_idx) {
+            draw_set_color(c_lime);
+            draw_rectangle(_lx - 9, _strip_y - 12, _lx + 9, _strip_y + 12, true);
+            draw_rectangle(_lx - 8, _strip_y - 11, _lx + 8, _strip_y + 11, true);
+            draw_text(_lx, _strip_y, _ch_lbl);
+        } else {
+            draw_set_color(make_color_rgb(165, 180, 205));
+            draw_text_transformed(_lx, _strip_y, _ch_lbl, 0.85, 0.85, 0);
+        }
+    }
+
+    // 5. Two Node Encryption Slots + Wrench Scrap Action Button
+    var _slots_y = _y1 + 174;
+    for (var _i = 0; _i < 2; _i++) {
+        var _scx  = (_cx - 115) + _i * 82;
+        var _pch  = string_char_at(global.scrap_plain, _i + 1);
+        var _u_ch = global.scrap_input[_i];
+
+        draw_set_color((_i == _slot_idx) ? make_color_rgb(255, 210, 55) : make_color_rgb(175, 190, 210));
+        draw_text(_scx, _slots_y - 40, _pch);
+        draw_set_color(c_gray);
+        draw_text_transformed(_scx, _slots_y - 26, "v", 0.72, 0.72, 0);
+
+        if (_i == _slot_idx) {
+            draw_sprite(spr_slot_active, 0, _scx, _slots_y);
+        } else {
+            draw_sprite(spr_slot, 0, _scx, _slots_y);
+        }
+
+        if (_u_ch != "") {
+            draw_set_color(c_white);
+            draw_text(_scx, _slots_y, _u_ch);
+
+            if (_ch == CHAPTER_ATBASH) {
+                var _ok_m = (_u_ch == scr_atbash_decode(_pch));
+                draw_set_color((!_hide_sh && _ok_m) ? c_lime : make_color_rgb(170, 190, 215));
+                draw_text_transformed(_scx, _slots_y + 30, _pch + "<->" + _u_ch, 0.75, 0.75, 0);
+            } else {
+                var _diff = (ord(_u_ch) - ord(_pch) + 26) mod 26;
+                if (_diff > 13) _diff -= 26;
+                var _d_str = (_diff > 0) ? ("+" + string(_diff)) : string(_diff);
+                var _ok_sh = (!_hide_sh && _diff == global.scrap_shifts[_i]);
+                draw_set_color(_ok_sh ? c_lime : make_color_rgb(170, 190, 215));
+                draw_text_transformed(_scx, _slots_y + 30, _d_str, 0.85, 0.85, 0);
+            }
+        } else {
+            draw_set_color(c_gray);
+            draw_text(_scx, _slots_y, "?");
+        }
+    }
+
+    draw_set_color(c_gray);
+    draw_text(_cx + 12, _slots_y, "->");
+
+    var _both_filled = (global.scrap_input[0] != "" && global.scrap_input[1] != "");
+    var _btn_cx      = _cx + 118;
+    var _btn_cy      = _slots_y;
+    var _btn_pulse   = 0.5 + 0.5 * sin(current_time / 180);
+
+    draw_set_color(_both_filled ? make_color_rgb(20, 75, 52) : make_color_rgb(24, 30, 38));
+    draw_roundrect(_btn_cx - 76, _btn_cy - 30, _btn_cx + 76, _btn_cy + 30, false);
+    draw_set_color(_both_filled ? merge_color(c_lime, c_yellow, _btn_pulse * 0.4) : make_color_rgb(75, 95, 115));
+    draw_roundrect(_btn_cx - 76, _btn_cy - 30, _btn_cx + 76, _btn_cy + 30, true);
+
+    draw_set_color(_both_filled ? c_white : c_gray);
+    draw_text_transformed(_btn_cx, _btn_cy - 8, "SEVER & SCRAP", 0.80, 0.80, 0);
+    draw_set_color(_both_filled ? c_lime : make_color_rgb(145, 160, 175));
+    draw_text_transformed(_btn_cx, _btn_cy + 11, _both_filled ? "[PRESS ENTER!]" : "(+" + string(global.scrap_ui_yield) + " Scrap)", 0.76, 0.76, 0);
+
+    // 6. Trace Timer, Status / Anti-Tamper Warning & Footer
+    if (global.scrap_win_t <= 0 && global.scrap_fail_t <= 0) {
+        scr_draw_trace_timer(_cx, _y2 - 62, 300, global.scrap_timer, global.scrap_timer_max);
+        draw_set_font(fnt_dialogue);
+        draw_set_halign(fa_center);
+        draw_set_valign(fa_middle);
+    }
+    if (global.scrap_msg != "") {
+        draw_set_color(global.scrap_col);
+        draw_text_transformed(_cx, _y2 - 40, global.scrap_msg, 0.84, 0.84, 0);
+    } else if (_guided) {
+        draw_set_color(c_lime);
+        draw_text_transformed(
+            _cx, _y2 - 40,
+            "GUIDE: Shift '" + _src_ch + "' -> '" + _target_ch + "' (Green box on ruler), then press [ENTER] to Wrench Scrap!",
+            0.78, 0.78, 0
+        );
+    } else {
+        draw_set_color(make_color_rgb(255, 185, 75));
+        draw_text_transformed(_cx, _y2 - 40, "CAUTION: Entering a wrong encryption triggers Anti-Tamper and FRIES the circuits!", 0.76, 0.76, 0);
+    }
+
+    draw_set_color(make_color_rgb(150, 170, 195));
+    draw_text_transformed(_cx, _y2 - 15, "[ARROWS / A-Z] Select & Shift   |   [ENTER] Sever & Scrap   |   [ESC] Cancel Safely", 0.78, 0.78, 0);
+
+    // --- 7. INPUT & OUTCOME HANDLING ---
+    if (global.scrap_win_t > 0) {
+        global.scrap_win_t--;
+        if (global.scrap_win_t <= 0) {
+            global.scrap_ui_open = false;
+        }
+        return;
+    }
+
+    if (global.scrap_fail_t > 0) {
+        global.scrap_fail_t--;
+        if (global.scrap_fail_t <= 0) {
+            global.scrap_ui_open = false;
+        }
+        return;
+    }
+
+    if (keyboard_check_pressed(vk_escape)) {
+        global.esc_block_frames = 2;
+        keyboard_clear(vk_escape);
+        global.scrap_ui_open = false;
+        if (instance_exists(global.scrap_target_inst) && global.scrap_is_bot) {
+            // If player cancels out of severing an apprehended bot, push the bot back briefly so they can move away
+            global.scrap_target_inst.zap_cd = 75;
+        }
+        audio_play_sound(snd_button_click, 10, false);
+        return;
+    }
+
+    // Trace Timer countdown (frozen while the pause menu is open)
+    if (!(variable_global_exists("is_paused") && global.is_paused)) {
+        global.scrap_timer--;
+        if (global.scrap_timer <= 0) {
+            scr_scrap_sever_fail(true);
+            return;
+        }
+    }
+
+    if (keyboard_check_pressed(vk_right)) {
+        global.scrap_slot = 1;
+        audio_play_sound(select1, 10, false);
+    }
+    if (keyboard_check_pressed(vk_left)) {
+        global.scrap_slot = 0;
+        audio_play_sound(select1, 10, false);
+    }
+
+    if (keyboard_check_pressed(vk_up)) {
+        var _bch = (global.scrap_input[_slot_idx] == "") ? _src_ch : global.scrap_input[_slot_idx];
+        var _ni  = (ord(_bch) - ord("A") + 1) mod 26;
+        global.scrap_input[_slot_idx] = chr(ord("A") + _ni);
+        global.scrap_msg = "";
+        audio_play_sound(choose(select1, select2, select3), 10, false);
+    }
+    if (keyboard_check_pressed(vk_down)) {
+        var _bch = (global.scrap_input[_slot_idx] == "") ? _src_ch : global.scrap_input[_slot_idx];
+        var _ni  = (ord(_bch) - ord("A") - 1 + 26) mod 26;
+        global.scrap_input[_slot_idx] = chr(ord("A") + _ni);
+        global.scrap_msg = "";
+        audio_play_sound(choose(select1, select2, select3), 10, false);
+    }
+
+    for (var _k = ord("A"); _k <= ord("Z"); _k++) {
+        if (keyboard_check_pressed(_k)) {
+            global.scrap_input[_slot_idx] = chr(_k);
+            global.scrap_msg = "";
+            audio_play_sound(select1, 8, false);
+        }
+    }
+
+    if (keyboard_check_pressed(vk_enter)) {
+        if (!_both_filled) {
+            global.scrap_shake = 8;
+            global.scrap_col   = c_orange;
+            global.scrap_msg   = "Fill both Node Encryption slots before severing!";
+            audio_play_sound(wrong1, 10, false);
+            return;
+        }
+
+        var _ans = global.scrap_input[0] + global.scrap_input[1];
+        if (_ans == global.scrap_target) {
+            // SUCCESS! Sever connection, dismantle prop, award Scrap & increment HR Counter!
+            var _yield = global.scrap_ui_yield;
+            var _rare  = global.scrap_ui_rare;
+            global.scrap_count           += _yield;
+            global.floor_scrap_collected += _yield;
+            global.rare_cores            += _rare;
+            global.hr_scrap_count        += 1;
+
+            if (global.scrap_is_bot)    global.task_bots_scrapped++;
+            if (global.scrap_is_server) global.task_servers_scrapped++;
+
+            var _over_limit = (global.hr_scrap_count > global.hr_scrap_limit);
+            if (_over_limit) {
+                global.intern_duty_flagged = true;
+            }
+
+            if (instance_exists(global.scrap_target_inst)) {
+                global.scrap_target_inst.is_scrapped     = true;
+                global.scrap_target_inst.is_fried        = false;
+                global.scrap_target_inst.grapple_active  = false;
+                global.scrap_target_inst.scrap_pop_timer = 95;
+                global.scrap_target_inst.scrap_pop_text  = (_rare > 0)
+                    ? ("+" + string(_yield) + " SCRAP  +1 CORE!")
+                    : ("+" + string(_yield) + " SCRAP!");
+            }
+
+            global.scrap_col   = _over_limit ? make_color_rgb(255, 110, 95) : c_lime;
+            global.scrap_msg   = _over_limit
+                ? ("SCRAPPED (+" + string(_yield) + " Scrap)!  HR LIMIT EXCEEDED (" + string(global.hr_scrap_count) + "/3) -> INTERN DUTY FLAGGED!")
+                : ("UPLINK SEVERED & SCRAPPED!  +" + string(_yield) + " Scrap  (HR Limit: " + string(global.hr_scrap_count) + "/3)");
+            global.scrap_win_t = 55;
+            audio_play_sound(snd_objective_complete, 10, false);
+        } else {
+            // WRONG ENCRYPTION -> Copper Surge Totem shield (once per floor) or ANTI-TAMPER fries the circuits!
+            scr_scrap_sever_fail(false);
+        }
+    }
+}
+
 
 

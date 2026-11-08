@@ -111,5 +111,28 @@ if (!variable_global_exists("vigenere_unlocked"))  global.vigenere_unlocked  = f
 if (!variable_global_exists("atbash_unlocked"))    global.atbash_unlocked    = false;
 if (!variable_global_exists("chapter_best_floor")) global.chapter_best_floor = [1, 1, 1];
 
+// --- WRENCH SCRAPPING, HR PROPERTY LIMIT & SALVAGE TASKS ---
+if (!variable_global_exists("has_wrench"))          global.has_wrench          = true;
+if (!variable_global_exists("scrap_count"))         global.scrap_count         = 0;     // Current Scrap in Jack's pouch (confiscated if caught by Bot!)
+if (!variable_global_exists("rare_cores"))          global.rare_cores          = 0;     // High-tier cores from Security Bots & Encrypted Decoy Servers
+if (!variable_global_exists("legal_fund"))          global.legal_fund          = 0;     // Cash earned from Salvage Quotas (for lawyer/intern bills)
+if (!variable_global_exists("hr_scrap_count"))      global.hr_scrap_count      = 0;     // Company properties scrapped on current floor
+if (!variable_global_exists("hr_scrap_limit"))      global.hr_scrap_limit      = 3;     // Max safe HR write-off limit per floor (4+ flags Intern Duty!)
+if (!variable_global_exists("intern_duty_flagged")) global.intern_duty_flagged = false; // Flagged when hr_scrap_count > hr_scrap_limit
+if (!variable_global_exists("breaker_repaired"))    global.breaker_repaired    = false; // Costs 2 Scrap to repair the Power Breaker relay per floor
+if (!variable_global_exists("scrap_ui_open"))       global.scrap_ui_open       = false; // Mainframe Sever Encryption UI state
+if (!variable_global_exists("bot_grapple_active"))  global.bot_grapple_active  = false; // True while mashing [E] to apprehend a Security Bot
+
+// --- HOMEROOM STATUES, PAYCHECK & MECHANIC (WALL TELEPHONE) ---
+if (!variable_global_exists("player_cash"))       global.player_cash       = 250;                    // Banked paycheck money ($)
+if (!variable_global_exists("statues_owned"))     global.statues_owned     = [false, false, false];  // Delivered to the Homeroom
+if (!variable_global_exists("statues_pending"))   global.statues_pending   = [false, false, false];  // Ordered by phone; delivered after 1 floor (1 workday)
+if (!variable_global_exists("equipped_statues"))  global.equipped_statues  = [-1, -1, -1];           // Statue ID on each of the 3 Homeroom pedestals
+if (!variable_global_exists("phone_ui_open"))     global.phone_ui_open     = false;
+if (!variable_global_exists("shelf_ui_open"))     global.shelf_ui_open     = false;
+if (!variable_global_exists("floor_cipher_fails")) global.floor_cipher_fails = 0;   // Wrong codes + timeouts this floor (Performance Tracker)
+if (!variable_global_exists("floor_times_busted")) global.floor_times_busted = 0;   // Times caught by a Security Bot this floor
+if (!variable_global_exists("surge_shield_used"))  global.surge_shield_used  = false; // Copper Surge Totem shield spent this floor
+
 // Lock GUI to 640x360 (2x visual scale, matching the main menu) from the first room onward
 display_set_gui_size(640, 360);

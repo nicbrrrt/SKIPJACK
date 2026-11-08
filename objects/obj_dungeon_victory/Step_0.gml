@@ -20,9 +20,21 @@ switch (phase) {
         screen_alpha = 1;
 
         if (phase_timer >= 20) {
-            // Confirm next floor / next chapter: E, Enter, or Space
+            // Page 0 -> Paystub; Page 1 -> confirm next floor / next chapter: E, Enter, or Space
             if (keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space)) {
-                next_action = "next_dungeon";
+                audio_play_sound(snd_button_click, 10, false);
+                if (page == 0) {
+                    page        = 1;
+                    phase_timer = 0; // brief lockout so the paystub isn't skipped by a double-press
+                } else {
+                    next_action = "next_dungeon";
+                    phase        = "fade_out";
+                    phase_timer  = 0;
+                }
+            }
+            // Visit the Homeroom (Wall Telephone & Statue Display Table) between workdays
+            else if (page == 1 && keyboard_check_pressed(ord("H"))) {
+                next_action = "homeroom";
                 phase       = "fade_out";
                 phase_timer = 0;
                 audio_play_sound(snd_button_click, 10, false);
@@ -63,6 +75,19 @@ switch (phase) {
                     global.dungeons_cleared = global.chapter_floor - 1;
                     room_restart();
                 }
+            } else if (next_action == "homeroom") {
+                // Advance the floor / chapter exactly like "next_dungeon", then rest in the Homeroom
+                if (is_final_exam) {
+                    if (chapter_num < CHAPTER_ATBASH) {
+                        global.dungeon_chapter  = chapter_num + 1;
+                        global.chapter_floor    = 1;
+                        global.dungeons_cleared = 0;
+                    }
+                } else {
+                    global.chapter_floor    = min(CHAPTER_MAX_FLOORS, cleared_floor + 1);
+                    global.dungeons_cleared = global.chapter_floor - 1;
+                }
+                room_goto(rm_homeroom);
             } else {
                 room_goto(rm_cipher_select);
             }

@@ -9,16 +9,10 @@ var _y2 = _y1 + 15;
 if (locked) {
     var _pulse = 0.5 + 0.5 * sin(anim_t * 0.12);
 
-    var _overridden = (variable_global_exists("lockdown_overridden") && global.lockdown_overridden);
-    var _powered    = (variable_global_exists("power_restored")      && global.power_restored);
-    var _elev_gated = (is_elevator_door && (!_overridden || !_powered));
-
-    // Gate background fill
+    // Gate background fill (All Encrypted Doors look identical so player must explore them to find the Elevator!)
     draw_set_alpha(0.92);
     if (is_breaker_door) {
         draw_set_color(make_color_rgb(16, 32, 46));
-    } else if (_elev_gated) {
-        draw_set_color(make_color_rgb(32, 22, 18));
     } else {
         draw_set_color(make_color_rgb(55, 12, 32));
     }
@@ -28,8 +22,6 @@ if (locked) {
     draw_set_alpha(0.85 + _pulse * 0.15);
     if (is_breaker_door) {
         draw_set_color(make_color_rgb(65, 200, 255));
-    } else if (_elev_gated) {
-        draw_set_color(make_color_rgb(255, 130, 40));
     } else {
         draw_set_color(make_color_rgb(255, 65, 125));
     }
@@ -40,8 +32,6 @@ if (locked) {
     // Center lock node
     if (is_breaker_door) {
         draw_set_color((unseal_anim_t > 0 && (unseal_anim_t mod 4 < 2)) ? c_lime : make_color_rgb(255, 80, 95));
-    } else if (_elev_gated) {
-        draw_set_color(make_color_rgb(255, 200, 90));
     } else {
         draw_set_color(make_color_rgb(255, 160, 210));
     }

@@ -13,6 +13,21 @@ if (!instance_exists(obj_battle) && keyboard_check_pressed(vk_escape)) {
     exit;
 }
 
+// Firewall Trace Timer: counts down while the player is solving (dungeon door locks only)
+if (cipher_timer_max > 0 && success_timer == 0) {
+    cipher_timer--;
+    if (cipher_timer <= 0) {
+        if (!is_holding_lock) global.floor_cipher_fails++;
+        global.cam_shake_timer = 10;
+        global.cam_shake_mag   = 4;
+        audio_play_sound(snd_error, 10, false);
+        global.e_dialogue_intro_shown = true;
+        create_textevent(["TRACE COMPLETE! The firewall locked the panel out. I'll have to try again—faster this time!"], [obj_jack.id]);
+        instance_destroy();
+        exit;
+    }
+}
+
 // Move between slots with LEFT/RIGHT arrows
 if (keyboard_check_pressed(vk_right)) {
     current_slot = min(current_slot + 1, letters_len - 1);
@@ -65,6 +80,7 @@ if (keyboard_check_pressed(vk_enter)) {
     } else {
         shake_timer = 10;
         text_color  = c_red;
+        if (!instance_exists(obj_battle) && !is_holding_lock) global.floor_cipher_fails++;
 
         var _correct_slots = 0;
         for (var _ci = 0; _ci < letters_len; _ci++) {
@@ -136,7 +152,29 @@ if (success_timer > 0) {
                 }
             }
             if (_unlocked_elevator) {
+                global.elevator_room_found = true;
+            }
+            if (_unlocked_elevator
+                && (variable_global_exists("lockdown_overridden") && global.lockdown_overridden)
+                && (variable_global_exists("power_restored")      && global.power_restored))
+            {
                 global.lockdown_lifted = true;
+            }
+
+            // Un-encrypt and discover the room chunk directly behind this unlocked door
+            if (instance_exists(obj_dungeon_generator)) {
+                var _gen    = obj_dungeon_generator;
+                var _chk_px = CHUNK_SIZE * TILE_SIZE;
+                for (var _c = 0; _c < LOGIC_GRID_W; _c++) {
+                    for (var _r = 0; _r < LOGIC_GRID_H; _r++) {
+                        var _rx = _c * _chk_px + 72;
+                        var _ry = _r * _chk_px + 72;
+                        if (point_distance(_tx, _ty, _rx, _ry) <= 110) {
+                            _gen.room_is_encrypted[_c][_r] = false;
+                            _gen.room_discovered[_c][_r]   = max(_gen.room_discovered[_c][_r], 1);
+                        }
+                    }
+                }
             }
         }
         instance_destroy();

@@ -199,6 +199,9 @@ var _popup_open = instance_exists(obj_textbox)
                || (variable_global_exists("key_analyzer_open") && global.key_analyzer_open)
                || (variable_global_exists("override_ui_open")  && global.override_ui_open)
                || (variable_global_exists("breaker_ui_open")   && global.breaker_ui_open)
+               || (variable_global_exists("scrap_ui_open")     && global.scrap_ui_open)
+               || (variable_global_exists("phone_ui_open")     && global.phone_ui_open)
+               || (variable_global_exists("shelf_ui_open")     && global.shelf_ui_open)
                || (instance_exists(obj_kyle) && obj_kyle.gui_open)
                || (instance_exists(obj_hallway_poster) && obj_hallway_poster.is_open);
 
@@ -240,7 +243,8 @@ if (inspect_flash_timer > 0) inspect_flash_timer--;
 
 // --- TOOLTIP SYSTEM (all gameplay rooms) ---
 var _in_gameplay = (room == rm_hallway   || room == rm_level_1
-                 || room == rm_level_2   || room == rm_cutscene_lab);
+                 || room == rm_level_2   || room == rm_cutscene_lab
+                 || room == rm_homeroom);
 
 if (_in_gameplay && !global.is_paused) {
 

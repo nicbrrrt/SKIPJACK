@@ -1,7 +1,10 @@
 /// @description obj_dungeon_goal — Draw Event
 /// Renders a Corporate Extraction Elevator Cab at the center of ROOM_END.
 
-var _pulse = 0.5 + 0.5 * sin(anim_timer * 0.1);
+var _pulse      = 0.5 + 0.5 * sin(anim_timer * 0.1);
+var _overridden = (variable_global_exists("lockdown_overridden") && global.lockdown_overridden);
+var _powered    = (variable_global_exists("power_restored")      && global.power_restored);
+var _online     = (_overridden && _powered);
 
 // 1. Elevator Cab Inner Floor Mat & Caution Border
 draw_set_alpha(0.85);
@@ -30,7 +33,7 @@ draw_rectangle(x + 16, y - 20, x + 22, y + 20, true);
 // 3. Digital Floor Indicator Display above Elevator Cab
 draw_set_color(make_color_rgb(10, 16, 24));
 draw_rectangle(x - 12, y - 24, x + 12, y - 20, false);
-draw_set_color(merge_color(c_aqua, c_lime, _pulse));
+draw_set_color(_online ? merge_color(c_aqua, c_lime, _pulse) : merge_color(c_red, c_orange, _pulse));
 // Upward indicator dots
 draw_circle(x - 5, y - 22, 1.5, false);
 draw_circle(x,     y - 22, 1.5, false);
@@ -39,26 +42,26 @@ draw_circle(x + 5, y - 22, 1.5, false);
 // 4. Elevator Call/Floor Control Panel (right cab wall)
 draw_set_color(make_color_rgb(22, 28, 38));
 draw_rectangle(x + 17, y - 6, x + 21, y + 8, false);
-draw_set_color(c_lime);
+draw_set_color(_online ? c_lime : make_color_rgb(80, 90, 100));
 draw_circle(x + 19, y - 2, 1.2, false);
-draw_set_color(c_red);
+draw_set_color(_online ? make_color_rgb(80, 90, 100) : c_red);
 draw_circle(x + 19, y + 3, 1.2, false);
 
 // 5. Center Extraction Pad & Upward Chevron inside Elevator
 draw_set_alpha(0.35 + _pulse * 0.25);
-draw_set_color(c_aqua);
+draw_set_color(_online ? c_aqua : c_red);
 draw_circle(x, y, 11 + _pulse * 2, false);
 
 draw_set_alpha(0.95);
-draw_set_color(make_color_rgb(14, 34, 52));
+draw_set_color(_online ? make_color_rgb(14, 34, 52) : make_color_rgb(44, 14, 22));
 draw_circle(x, y, 9, false);
 
 draw_set_alpha(1.0);
-draw_set_color(merge_color(c_aqua, c_lime, _pulse));
+draw_set_color(_online ? merge_color(c_aqua, c_lime, _pulse) : merge_color(c_red, c_orange, _pulse));
 draw_circle(x, y, 9, true);
 
 // Up-arrow chevron in center of elevator pad
-draw_set_color(c_lime);
+draw_set_color(_online ? c_lime : make_color_rgb(255, 95, 110));
 draw_line_width(x - 4, y + 2, x, y - 4, 2);
 draw_line_width(x, y - 4, x + 4, y + 2, 2);
 draw_line_width(x, y - 3, x, y + 5, 2);

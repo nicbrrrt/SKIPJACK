@@ -23,6 +23,25 @@ clues_req   = variable_global_exists("clues_needed")         ? global.clues_need
 floor_key   = variable_global_exists("dungeon_cipher_key")   ? global.dungeon_cipher_key   : 3;
 vig_key     = variable_global_exists("dungeon_vigenere_key") ? global.dungeon_vigenere_key : "CAB";
 
+// Evaluate Floor Salvage Tasks & HR Property Limit Status
+hr_scrapped   = variable_global_exists("hr_scrap_count")   ? global.hr_scrap_count   : 0;
+hr_limit      = variable_global_exists("hr_scrap_limit")   ? global.hr_scrap_limit   : 3;
+hr_violation  = (hr_scrapped > hr_limit);
+task1_done    = (hr_scrapped >= 3);
+task2_done    = ((variable_global_exists("task_bots_scrapped") && global.task_bots_scrapped > 0)
+              || (variable_global_exists("task_servers_scrapped") && global.task_servers_scrapped > 0));
+bonus_scrap   = (task1_done ? 2 : 0) + (task2_done ? 2 : 0);
+bonus_cash    = 0; // Salvage payouts are now part of the itemized Corporate Paycheck below
+
+if (bonus_scrap > 0) global.scrap_count += bonus_scrap;
+
+// Corporate Paycheck (Performance Tracker) + 1-workday statue deliveries from the Homeroom Mechanic
+scr_statue_ensure_globals();
+paycheck           = scr_calc_floor_paycheck(task1_done, task2_done, hr_violation);
+global.player_cash += paycheck.total;
+delivered_statues  = scr_deliver_pending_statues();
+page               = 0; // 0 = Incident Debrief, 1 = Paystub & Deliveries
+
 // Unlock next Chapter if Floor 10 Final Exam was just passed!
 if (is_final_exam) {
     if (chapter_num == CHAPTER_CAESAR) {

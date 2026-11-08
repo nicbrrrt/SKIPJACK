@@ -12,8 +12,10 @@ var _any_ui_busy = instance_exists(obj_textbox)
     || instance_exists(obj_textevent)
     || (variable_global_exists("pc_screen_open")    && global.pc_screen_open)
     || (variable_global_exists("key_analyzer_open") && global.key_analyzer_open)
-    || (variable_global_exists("override_ui_open")  && global.override_ui_open)
-    || (variable_global_exists("breaker_ui_open")   && global.breaker_ui_open)
+    || (variable_global_exists("override_ui_open")   && global.override_ui_open)
+    || (variable_global_exists("breaker_ui_open")    && global.breaker_ui_open)
+    || (variable_global_exists("scrap_ui_open")      && global.scrap_ui_open)
+    || (variable_global_exists("bot_grapple_active") && global.bot_grapple_active)
     || instance_exists(obj_cipher)
     || instance_exists(obj_dungeon_quiz)
     || instance_exists(obj_dungeon_victory);
@@ -44,30 +46,51 @@ if (intro_pending && siren_timer >= 12 && instance_exists(obj_jack) && !_any_ui_
     intro_pending = false;
     var _m_lines  = curriculum.mentor_intro;
 
+    var _start_cx = instance_exists(obj_jack) ? obj_jack.x : 72;
+    var _start_cy = instance_exists(obj_jack) ? (obj_jack.y - 12) : 72;
+
+    // Find the first real pink encrypted door instance on this floor
+    var _enc_tx = _key_tx;
+    var _enc_ty = _key_ty;
+    with (obj_door_caesar_lock) {
+        if (!is_breaker_door && !is_holding_door) {
+            _enc_tx = draw_x + 8;
+            _enc_ty = draw_y + 8;
+            break;
+        }
+    }
+
     if (curriculum.guided_ui) {
-        // Guided Tutorial Floors (Floors 1-3): Pan across the key objective rooms as Kyle explains each step!
+        // Guided Tutorial Floors (Floors 1-3):
+        // Page 0: Camera stays on Jack & Kyle in the Start Room!
+        // Page 1: Pan to Gold Key Vault
+        // Page 2: Pan to real Pink Encrypted Door
+        // Page 3: Pan to Cyan Power Breaker Room
+        // Page 4: Pan back toward Jack & Kyle for Elevator / Drone wrap-up
         var _lesson_intro = (array_length(_m_lines) > 0) ? _m_lines[0] : "Welcome to the floor! Let me show you how this sector works.";
         var _tour_lines = [
-            _lesson_intro + " First, inspect Clue Terminals [E] and unlock this Gold Key Vault room to get the floor's Cipher Key!",
-            "Second, take that Key to this Security Control Room, decode its lock, and press the Red Lockdown Override Button!",
-            "Third, overriding the lockdown unseals this Power Breaker Room—flip the 2 matching fuses inside to restore floor power!",
+            _lesson_intro + " Let's review our 4-step emergency recovery protocol for this sector.",
+            "Step 1: Inspect Clue Terminals [E] in the offices to gather clues, then unlock this Gold Key Vault room to calibrate the floor's Cipher Key!",
+            "Step 2: Use that Cipher Key to decode these Pink Encrypted Doors (shrouded in 100% black fog) to search the rooms and find the Lockdown Override Console!",
+            "Step 3: Overriding the lockdown unseals this Cyan Power Breaker Room—head inside and flip the 2 matching fuses to restore facility power!",
             (global.chapter_floor == 3)
-                ? "Finally, once power is back on, decode this Extraction Elevator! Watch out for the patrol drone—press [E] on blue Hallway Lockers to hide!"
-                : "Finally, once power is back on, head to this Extraction Elevator and decode its lock to clear the floor!"
+                ? "Finally, once power is restored, one of the encrypted doors leads to the Extraction Elevator to clear the floor! Watch out for the patrol drone—press [E] on blue Lockers to hide!"
+                : "Finally, once power is restored, one of the encrypted doors leads to the Extraction Elevator to clear the floor!"
         ];
         var _tour_targets = [
-            { tx: _key_tx, ty: _key_ty, label: "STEP 1: GOLD KEY VAULT ROOM",        sublabel: "Find Clues [E] -> Pass Quiz -> Calibrate Floor Key", col: make_color_rgb(255, 215, 55) },
-            { tx: _ovr_tx, ty: _ovr_ty, label: "STEP 2: LOCKDOWN OVERRIDE ROOM",     sublabel: "Unlock Door -> Encrypt 2-Letter Override Signal",    col: make_color_rgb(255, 80, 95) },
-            { tx: _brk_tx, ty: _brk_ty, label: "STEP 3: POWER BREAKER ROOM",         sublabel: "Unseals After Override -> Flip 2 Valid Fuses [ON]",  col: c_aqua },
-            { tx: _elv_tx, ty: _elv_ty, label: "STEP 4: EXTRACTION ELEVATOR",        sublabel: "Online After Power Restored -> Decode to Clear!",   col: c_lime }
+            { tx: _start_cx, ty: _start_cy, label: "SECTOR BRIEFING",                     sublabel: "Kyle (Security Analyst)",                                  col: c_white },
+            { tx: _key_tx,   ty: _key_ty,   label: "STEP 1: GOLD KEY VAULT ROOM",          sublabel: "Find Clues [E] -> Pass Door Quiz -> Calibrate Floor Key",  col: make_color_rgb(255, 215, 55) },
+            { tx: _enc_tx,   ty: _enc_ty,   label: "STEP 2: SEARCH ENCRYPTED DOORS",       sublabel: "Unlock Pink Encrypted Doors [E] -> Find Lockdown Override", col: make_color_rgb(255, 80, 95) },
+            { tx: _brk_tx,   ty: _brk_ty,   label: "STEP 3: POWER BREAKER ROOM",           sublabel: "Unseals After Override -> Flip 2 Valid Fuses [ON]",         col: c_aqua },
+            { tx: _start_cx, ty: _start_cy, label: "STEP 4: EXTRACTION ELEVATOR SEARCH",   sublabel: "Explore Encrypted Doors to Find Elevator & Clear Sector!", col: c_lime }
         ];
         scr_trigger_dungeon_camera_cutscene(_tour_lines, _tour_targets);
         _pan_active = true;
     } else if (array_length(_m_lines) > 0) {
-        // Final Exam Floor 10 Briefing with Camera Pan from Key Vault to Extraction Elevator
+        // Final Exam Floor 10 Briefing: Start on Jack & Kyle, then pan to Key Vault
         var _exam_targets = [
-            { tx: _key_tx, ty: _key_ty, label: "FINAL EXAM: GOLD KEY VAULT",      sublabel: "Calibrate the Exam Cipher Key", col: make_color_rgb(255, 215, 55) },
-            { tx: _elv_tx, ty: _elv_ty, label: "FINAL EXAM: EXTRACTION ELEVATOR", sublabel: "Complete Override + Power -> Crack 5-Letter Exam Lock!", col: c_lime }
+            { tx: _start_cx, ty: _start_cy, label: "FINAL EXAM: SECTOR BRIEFING", sublabel: "Kyle (Security Analyst)",               col: c_white },
+            { tx: _key_tx,   ty: _key_ty,   label: "FINAL EXAM: GOLD KEY VAULT",  sublabel: "Calibrate the Exam Cipher Key [5 Letters]", col: make_color_rgb(255, 215, 55) }
         ];
         scr_trigger_dungeon_camera_cutscene(_m_lines, _exam_targets);
         _pan_active = true;
@@ -78,6 +101,11 @@ if (intro_pending && siren_timer >= 12 && instance_exists(obj_jack) && !_any_ui_
 // 2. Dynamic Milestone Camera Pans + Mentor VN Pop-Up Dialogues
 // ---------------------------------------------------------------------------
 if (!intro_pending && instance_exists(obj_jack) && !_any_ui_busy && !_pan_active) {
+    var _chunk_sz = CHUNK_SIZE * TILE_SIZE;
+    var _elv_c    = clamp(floor(_elv_tx / _chunk_sz), 0, LOGIC_GRID_W - 1);
+    var _elv_r    = clamp(floor(_elv_ty / _chunk_sz), 0, LOGIC_GRID_H - 1);
+    var _elv_disc = (room_discovered[_elv_c][_elv_r] == 2) || (variable_global_exists("elevator_room_found") && global.elevator_room_found);
+
     // Milestone A (Tutorial Floors 1-3): All Clues Gathered -> Pan to Gold Key Vault
     if (curriculum.guided_ui && !cutscene_clues_shown && global.clues_found >= global.clues_needed && !global.has_dungeon_cipher_key) {
         cutscene_clues_shown = true;
@@ -87,12 +115,14 @@ if (!intro_pending && instance_exists(obj_jack) && !_any_ui_busy && !_pan_active
         );
         _pan_active = true;
     }
-    // Milestone B (Tutorial Floors 1-3): Cipher Key Calibrated -> Pan to Lockdown Override Room
+    // Milestone B (Tutorial Floors 1-3): Cipher Key Calibrated -> Prompt player to search the Encrypted Doors
     else if (curriculum.guided_ui && !cutscene_key_shown && global.has_dungeon_cipher_key && !global.lockdown_overridden) {
         cutscene_key_shown = true;
+        var _jack_cx = obj_jack.x;
+        var _jack_cy = obj_jack.y - 12;
         scr_trigger_dungeon_camera_cutscene(
-            ["Great job calibrating the Floor Key! Next, head to the Security Control Room, unlock its door with the Key, and hit the Red Lockdown Override Button!"],
-            [{ tx: _ovr_tx, ty: _ovr_ty, label: "KEY CALIBRATED! -> NEXT: OVERRIDE ROOM", sublabel: "Unlock Security Room & Encrypt Override Signal [E]", col: make_color_rgb(255, 80, 95) }]
+            ["Great job calibrating the Floor Key! Now you can decode the Pink Encrypted Doors in the hallway—unlock and explore the encrypted rooms to find the Red Lockdown Override Console!"],
+            [{ tx: _jack_cx, ty: _jack_cy, label: "KEY CALIBRATED! -> SEARCH ENCRYPTED DOORS", sublabel: "Decode Pink Encrypted Doors [E] to Find Lockdown Override!", col: make_color_rgb(255, 80, 95) }]
         );
         _pan_active = true;
     }
@@ -105,13 +135,24 @@ if (!intro_pending && instance_exists(obj_jack) && !_any_ui_busy && !_pan_active
         );
         _pan_active = true;
     }
-    // Milestone D (ALL Floors 1-10): Floor Power Restored -> Pan to Extraction Elevator
+    // Milestone D (ALL Floors 1-10): Floor Power Restored -> Pan to Elevator ONLY if already discovered; otherwise keep it hidden!
     else if (!cutscene_power_shown && global.power_restored) {
         cutscene_power_shown = true;
-        scr_trigger_dungeon_camera_cutscene(
-            ["There we go! You've brought power back to the floor! The building lights and Extraction Elevator are now online—head to the Elevator and decode its lock to clear the floor!"],
-            [{ tx: _elv_tx, ty: _elv_ty, label: "POWER RESTORED! -> EXTRACTION ELEVATOR ONLINE", sublabel: "Elevator Powered Up! Decode the Door Lock to Exit [E]", col: c_lime }]
-        );
+        if (_elv_disc) {
+            // Player already found the Elevator Room earlier while exploring encrypted doors -> lift lockdown & pan to it!
+            global.lockdown_lifted = true;
+            scr_trigger_dungeon_camera_cutscene(
+                ["There we go! You've brought power back to the floor! The Extraction Elevator you discovered earlier is now online—head inside the Elevator to clear the floor!"],
+                [{ tx: _elv_tx, ty: _elv_ty, label: "POWER RESTORED! -> EXTRACTION ELEVATOR ONLINE", sublabel: "Elevator Powered Up! Head Inside to Clear the Floor", col: c_lime }]
+            );
+        } else {
+            var _p_tx = obj_jack.x;
+            var _p_ty = obj_jack.y - 12;
+            scr_trigger_dungeon_camera_cutscene(
+                ["There we go! You've brought power back to the floor! The Extraction Elevator is now online behind one of the Pink Encrypted Doors—decode and explore the encrypted rooms to find the Elevator!"],
+                [{ tx: _p_tx, ty: _p_ty, label: "POWER RESTORED! -> SEARCH ENCRYPTED DOORS", sublabel: "Unlock the Remaining Encrypted Doors [E] to Find the Elevator!", col: c_lime }]
+            );
+        }
         _pan_active = true;
     }
 }
@@ -123,10 +164,12 @@ if (instance_exists(obj_jack)) {
     var _new_row = clamp(floor((obj_jack.y - 4) / _chunk_px), 0, LOGIC_GRID_H - 1);
 
     // Play an electronic doorway sensor chime when stepping between a room and the hallway
+    // (Skip doorway chime if stepping between two seamlessly merged chunks of a long room!)
     if (_new_col != active_col || _new_row != active_row) {
-        var _old_type = logic_map[active_col][active_row];
-        var _new_type = logic_map[_new_col][_new_row];
-        if (!(_old_type == ROOM_HALLWAY && _new_type == ROOM_HALLWAY)) {
+        var _old_type   = logic_map[active_col][active_row];
+        var _new_type   = logic_map[_new_col][_new_row];
+        var _border_lnk = scr_get_border_door_type(active_col, active_row, _new_col, _new_row, door_links);
+        if (!(_old_type == ROOM_HALLWAY && _new_type == ROOM_HALLWAY) && _border_lnk != TILE_ROOM_MERGE) {
             var _door_snd = audio_play_sound(snd_button_hover, 2, false);
             audio_sound_gain(_door_snd, 0.45, 0);
             audio_sound_pitch(_door_snd, (_new_type == ROOM_HALLWAY) ? 0.95 : 1.20);
@@ -156,14 +199,25 @@ for (var _i = 0; _i < _total_rooms; _i++) {
     var _is_pan_room = (_pan_active && ((_c == _pan_col && _r == _pan_row)
         || (_rtype == ROOM_HALLWAY && (abs(_c - _pan_col) + abs(_r - _pan_row) <= 1))));
 
-    var _is_lit = _lockdown_lifted
-        || (_c == active_col && _r == active_row)
-        || (_in_hallway && _rtype == ROOM_HALLWAY)
-        || _is_pan_room;
-    var _target_alpha = _is_lit ? 0.0 : 0.88;
+    // Check if this chunk is seamlessly merged (TILE_ROOM_MERGE) with the player's current active chunk
+    var _is_merged_with_active = (scr_get_border_door_type(_c, _r, active_col, active_row, door_links) == TILE_ROOM_MERGE);
 
-    if (_c == active_col && _r == active_row) {
-        room_discovered[_c][_r] = 2; // Visited / Lit
+    // Note: Unvisited Encrypted-Door rooms stay shrouded even if global.lockdown_lifted is true until visited!
+    var _is_encrypted = room_is_encrypted[_c][_r];
+    var _is_lit = (_c == active_col && _r == active_row)
+        || _is_merged_with_active
+        || (_in_hallway && _rtype == ROOM_HALLWAY)
+        || _is_pan_room
+        || (_lockdown_lifted && (!_is_encrypted || room_discovered[_c][_r] == 2));
+
+    // ONLY Encrypted-Door rooms (Elevator Room, Override Room, Encrypted Decoy Rooms) use 100% opaque fog (1.0)!
+    // Once visited (room_discovered == 2), rooms are no longer shrouded in 100% black fog!
+    var _unlit_fog    = (_is_encrypted && room_discovered[_c][_r] < 2) ? 1.0 : 0.88;
+    var _target_alpha = _is_lit ? 0.0 : _unlit_fog;
+
+    if ((_c == active_col && _r == active_row) || _is_merged_with_active) {
+        room_discovered[_c][_r]   = 2; // Visited / Lit
+        room_is_encrypted[_c][_r] = false;
     } else if (_is_pan_room && room_discovered[_c][_r] == 0) {
         room_discovered[_c][_r] = 1; // Revealed on Floor Blueprint Radar after camera pan!
     }

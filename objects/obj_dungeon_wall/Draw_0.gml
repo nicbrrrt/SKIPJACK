@@ -36,7 +36,7 @@ var _pulse = 0.45 + 0.45 * sin((current_time * 0.005) + (x + y) * 0.05);
 draw_set_alpha(_pulse);
 if (room_theme == ROOM_CAESAR_KEY) {
     draw_set_color(make_color_rgb(255, 200, 40));
-} else if (room_theme == ROOM_END) {
+} else if (room_theme == ROOM_END && variable_global_exists("lockdown_lifted") && global.lockdown_lifted) {
     draw_set_color(c_aqua);
 } else {
     draw_set_color(make_color_rgb(255, 45, 55)); // Red corporate lockdown alert strip

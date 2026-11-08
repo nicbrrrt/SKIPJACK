@@ -39,3 +39,13 @@ wp_dir      = 1;
 hover_t     = random(100);
 zap_cd      = 0;
 init_done   = false;
+
+// Wrench Scrapping, Anti-Tamper Circuit Fry & Bot Apprehension state
+is_scrapped      = false; // True once severed & wrenched for Scrap
+is_fried         = false; // True if wrong encryption triggered Anti-Tamper (costs 1 Scrap to fix)
+is_server_rack   = false; // True for High-Yield Prototype Servers inside Encrypted Decoy Rooms (+3 Scrap)
+grapple_active   = false; // True while player is mashing [E] behind this Security Bot
+grapple_meter    = 0.45;  // 0.0 = Bot breaks free & busts Jack; 1.0 = Bot pinned -> Sever Encryption UI
+can_sneak_ambush = false; // True when Jack is behind the bot outside its front vision cone
+scrap_pop_timer  = 0;     // Floating world-space status text timer
+scrap_pop_text   = "";

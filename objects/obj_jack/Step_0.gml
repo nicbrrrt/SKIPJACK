@@ -26,11 +26,15 @@ if (variable_global_exists("player_in_locker") && global.player_in_locker) {
 
 // Freeze during cutscenes, transitions, or active minigames
 if (isInCutscene
-    || (variable_global_exists("cam_pan_phase")    && global.cam_pan_phase != "off")
-    || (variable_global_exists("pc_screen_open")   && global.pc_screen_open)
-    || (variable_global_exists("key_analyzer_open") && global.key_analyzer_open)
-    || (variable_global_exists("override_ui_open")  && global.override_ui_open)
-    || (variable_global_exists("breaker_ui_open")   && global.breaker_ui_open)
+    || (variable_global_exists("cam_pan_phase")      && global.cam_pan_phase != "off")
+    || (variable_global_exists("pc_screen_open")     && global.pc_screen_open)
+    || (variable_global_exists("key_analyzer_open")  && global.key_analyzer_open)
+    || (variable_global_exists("override_ui_open")   && global.override_ui_open)
+    || (variable_global_exists("breaker_ui_open")    && global.breaker_ui_open)
+    || (variable_global_exists("scrap_ui_open")      && global.scrap_ui_open)
+    || (variable_global_exists("phone_ui_open")      && global.phone_ui_open)
+    || (variable_global_exists("shelf_ui_open")      && global.shelf_ui_open)
+    || (variable_global_exists("bot_grapple_active") && global.bot_grapple_active)
     || instance_exists(obj_transition)
     || instance_exists(obj_path)
     || instance_exists(obj_cipher)

@@ -43,6 +43,8 @@ if (!init_done) {
 }
 
 if (variable_global_exists("is_paused") && global.is_paused) exit;
+if (scrap_pop_timer > 0) scrap_pop_timer--;
+
 if (instance_exists(obj_textevent)
     || instance_exists(obj_textbox)
     || (variable_global_exists("cam_pan_phase")     && global.cam_pan_phase != "off")
@@ -50,11 +52,13 @@ if (instance_exists(obj_textevent)
     || (variable_global_exists("key_analyzer_open") && global.key_analyzer_open)
     || (variable_global_exists("override_ui_open")  && global.override_ui_open)
     || (variable_global_exists("breaker_ui_open")   && global.breaker_ui_open)
+    || (variable_global_exists("scrap_ui_open")     && global.scrap_ui_open)
     || instance_exists(obj_cipher)
     || instance_exists(obj_dungeon_quiz)
     || instance_exists(obj_dungeon_victory))
 {
-    player_near = false;
+    player_near      = false;
+    can_sneak_ambush = false;
     exit;
 }
 
@@ -83,15 +87,53 @@ if (prop_type == TILE_PROP_NPC) {
 }
 
 // ---------------------------------------------------------------------------
-// 2. Roaming Rogue Security Drone — Patrols Exact Centerline of Hallway Spine
+// 2. Roaming Rogue Security Drone — Patrols Centerline, Stealth Ambush & Capture
 // ---------------------------------------------------------------------------
+can_sneak_ambush = false;
 if (prop_type == TILE_PROP_DRONE) {
     depth = -(y + 10); // Draws above room fog so you can see the drone & flashlight outside your doorway
-    hover_t += 0.08;
+    if (!is_scrapped) hover_t += 0.08;
     if (zap_cd > 0) zap_cd--;
 
-    if (!_lifted) {
-        if (instance_exists(obj_dungeon_generator) && variable_instance_exists(obj_dungeon_generator, "hallway_waypoints")) {
+    // --- Active Spam [E] Apprehend Struggle Minigame ---
+    if (grapple_active) {
+        global.bot_grapple_active = true;
+        grapple_meter -= 0.0065;
+
+        if (keyboard_check_pressed(ord("E")) || mouse_check_button_pressed(mb_right)) {
+            grapple_meter          = min(1.0, grapple_meter + 0.16);
+            global.cam_shake_timer = 4;
+            global.cam_shake_mag   = 2;
+            audio_play_sound(choose(select1, select2, select3), 8, false);
+        }
+
+        if (grapple_meter >= 1.0) {
+            // Successfully apprehended the Security Bot! Open Sever Encryption UI!
+            grapple_active            = false;
+            global.bot_grapple_active = false;
+            audio_play_sound(snd_correct_ping, 9, false);
+            scr_open_scrap_sever_ui(id);
+            exit;
+        }
+
+        if (grapple_meter <= 0.0) {
+            // Bot broke free from grapple! Trigger capture & confiscate all Scrap!
+            grapple_active            = false;
+            global.bot_grapple_active = false;
+            zap_cd                    = 60;
+            // Force immediate capture below by setting _trigger_bot_capture = true
+        } else {
+            exit;
+        }
+    }
+
+    if (!is_scrapped && !_lifted) {
+        var _trigger_bot_capture = (grapple_meter <= 0.0 && zap_cd == 60);
+        if (_trigger_bot_capture) {
+            grapple_meter = 0.45;
+        }
+
+        if (!_trigger_bot_capture && instance_exists(obj_dungeon_generator) && variable_instance_exists(obj_dungeon_generator, "hallway_waypoints")) {
             var _wps = obj_dungeon_generator.hallway_waypoints;
             var _n_wp = array_length(_wps);
             if (_n_wp >= 2) {
@@ -124,91 +166,125 @@ if (prop_type == TILE_PROP_DRONE) {
             }
         }
 
-        // Raycast Flashlight Vision Check (Wraps around corners & stops at walls!)
+        // Raycast Flashlight Vision Check & Rear Stealth Ambush Check
         var _in_locker = (variable_global_exists("player_in_locker") && global.player_in_locker);
-        if (!_in_locker && zap_cd <= 0 && instance_exists(obj_jack) && instance_exists(obj_dungeon_generator)) {
+        if (!_in_locker && instance_exists(obj_jack) && instance_exists(obj_dungeon_generator)) {
             var _cx = x + 8;
             var _cy = y + 8;
             var _jx = obj_jack.x;
             var _jy = obj_jack.y - 6;
 
             var _dist_to_jack = point_distance(_cx, _cy, _jx, _jy);
-            if (_dist_to_jack <= 92 && obj_jack.bump_timer <= 0) {
-                var _base_dir  = point_direction(0, 0, patrol_vx, patrol_vy);
-                var _scan_dir  = _base_dir + sin(hover_t * 0.90) * 18;
-                var _ang_diff  = abs(angle_difference(point_direction(_cx, _cy, _jx, _jy), _scan_dir));
+            var _base_dir     = point_direction(0, 0, patrol_vx, patrol_vy);
+            var _scan_dir     = _base_dir + sin(hover_t * 0.90) * 18;
+            var _ang_to_jack  = point_direction(_cx, _cy, _jx, _jy);
+            var _ang_diff     = abs(angle_difference(_ang_to_jack, _scan_dir));
 
-                // Caught if inside the 64-degree (±32°) flashlight beam (or touching the drone)
+            // Check if Jack is sneaking behind/beside the bot outside its front vision cone!
+            if (_dist_to_jack <= 28 && _ang_diff > 45) {
+                var _wall_ambush = collision_line(_cx, _cy, _jx, _jy, obj_dungeon_wall, false, true);
+                if (_wall_ambush == noone) {
+                    can_sneak_ambush = true;
+                }
+            }
+
+            // Blind Watcher Bust statue: -30% vision cone (64 -> 44 deg) and shorter flashlight range (92 -> 66 px)
+            var _watcher   = scr_has_active_statue(0);
+            var _vis_range = _watcher ? 66 : 92;
+            var _vis_half  = _watcher ? 22 : 32;
+
+            if (!_trigger_bot_capture && zap_cd <= 0 && _dist_to_jack <= _vis_range && obj_jack.bump_timer <= 0) {
+                // Caught if inside the 64-degree (±32°) front flashlight beam (or bumping into its front arc)
                 // AND there is no wall blocking line-of-sight!
-                if (_ang_diff <= 32 || _dist_to_jack < 11) {
+                if (_ang_diff <= _vis_half || (_dist_to_jack < 10 && _ang_diff <= 45)) {
                     var _wall_hit = collision_line(_cx, _cy, _jx, _jy, obj_dungeon_wall, false, true);
                     if (_wall_hit == noone) {
-                        zap_cd = 60;
-
-                        // 1. Play capture alarm & screen shake (NO damage to Jack!)
-                        global.cam_shake_timer = 14;
-                        global.cam_shake_mag   = 5;
-                        audio_play_sound(snd_error, 10, false);
-                        audio_play_sound(snd_select, 9, false);
-
-                        // 2. Send Jack to the locked Security Holding Room (Brig)
-                        if (variable_global_exists("holding_room_x") && global.holding_room_x > 0) {
-                            obj_jack.x            = global.holding_room_x;
-                            obj_jack.y            = global.holding_room_y;
-                            obj_jack.sprite_index = spr_jack_idle;
-                            obj_jack.bump_timer   = 0;
-                            obj_dungeon_generator.active_col = global.holding_room_col;
-                            obj_dungeon_generator.active_row = global.holding_room_row;
-                            obj_dungeon_generator.room_discovered[global.holding_room_col][global.holding_room_row] = 2;
-                        }
-
-                        // 3. Rotate the Chapter Cipher Key to a new value & reset Key possession
-                        var _old_key = variable_global_exists("dungeon_cipher_key") ? global.dungeon_cipher_key : 1;
-                        var _new_key = scr_roll_cipher_key();
-                        var _guard   = 0;
-                        while (_new_key == _old_key && _guard < 20) {
-                            _new_key = scr_roll_cipher_key();
-                            _guard++;
-                        }
-                        global.dungeon_cipher_key     = _new_key;
-                        global.dungeon_vigenere_key   = scr_roll_vigenere_keyword(variable_global_exists("chapter_floor") ? global.chapter_floor : 4);
-                        global.has_dungeon_cipher_key = false;
-                        scr_roll_holding_key_and_equation();
-                        scr_init_facility_puzzles();
-
-                        with (obj_caesar_key_pedestal) {
-                            collected = false;
-                        }
-
-                        // 4. Re-lock ALL Quiz and Cipher doors across the floor
-                        with (obj_door_quiz_lock) {
-                            locked = true;
-                            x      = draw_x;
-                            y      = draw_y;
-                        }
-                        with (obj_door_caesar_lock) {
-                            locked = true;
-                            x      = draw_x;
-                            y      = draw_y;
-                        }
-
-                        // 5. Notify the player in the Holding Cell
-                        global.e_dialogue_intro_shown = true;
-                        create_textevent([
-                            "BUSTED! The security drone caught me in its beam and locked me in the Holding Cell!",
-                            "Worse—the lockdown protocol just re-locked all the doors and rotated the floor's Cipher Key.",
-                            "I need to check the terminal or note in this cell [E] for a math clue to crack the brig door!"
-                        ], [obj_jack.id, obj_jack.id, obj_jack.id]);
-                        exit;
+                        _trigger_bot_capture = true;
                     }
                 }
+            }
+
+            if (_trigger_bot_capture) {
+                zap_cd = 60;
+
+                // 1. Play capture alarm & screen shake
+                global.cam_shake_timer = 14;
+                global.cam_shake_mag   = 5;
+                audio_play_sound(snd_error, 10, false);
+                audio_play_sound(snd_select, 9, false);
+
+                // 2. Confiscate ALL of Jack's carried Scrap!
+                var _confiscated_scrap = variable_global_exists("scrap_count") ? global.scrap_count : 0;
+                global.scrap_count = 0;
+                global.floor_times_busted++;
+
+                // Reboot scrapped standard office PCs on capture so player can never be soft-locked out of 2 Scrap for the Breaker!
+                with (obj_dungeon_prop) {
+                    if (prop_type == TILE_PROP_PC && !is_server_rack && !is_holding_clue) {
+                        is_scrapped = false;
+                        is_fried    = false;
+                    }
+                }
+
+                // 3. Send Jack to the locked Security Holding Room (Brig)
+                if (variable_global_exists("holding_room_x") && global.holding_room_x > 0) {
+                    obj_jack.x            = global.holding_room_x;
+                    obj_jack.y            = global.holding_room_y;
+                    obj_jack.sprite_index = spr_jack_idle;
+                    obj_jack.bump_timer   = 0;
+                    obj_dungeon_generator.active_col = global.holding_room_col;
+                    obj_dungeon_generator.active_row = global.holding_room_row;
+                    obj_dungeon_generator.room_discovered[global.holding_room_col][global.holding_room_row] = 2;
+                }
+
+                // 4. Rotate the Chapter Cipher Key to a new value & reset Key possession
+                var _old_key = variable_global_exists("dungeon_cipher_key") ? global.dungeon_cipher_key : 1;
+                var _new_key = scr_roll_cipher_key();
+                var _guard   = 0;
+                while (_new_key == _old_key && _guard < 20) {
+                    _new_key = scr_roll_cipher_key();
+                    _guard++;
+                }
+                global.dungeon_cipher_key     = _new_key;
+                global.dungeon_vigenere_key   = scr_roll_vigenere_keyword(variable_global_exists("chapter_floor") ? global.chapter_floor : 4);
+                global.has_dungeon_cipher_key = false;
+                scr_roll_holding_key_and_equation();
+                scr_init_facility_puzzles();
+
+                with (obj_caesar_key_pedestal) {
+                    collected = false;
+                }
+
+                // 5. Re-lock ALL Quiz and Cipher doors across the floor
+                with (obj_door_quiz_lock) {
+                    locked = true;
+                    x      = draw_x;
+                    y      = draw_y;
+                }
+                with (obj_door_caesar_lock) {
+                    locked = true;
+                    x      = draw_x;
+                    y      = draw_y;
+                }
+
+                // 6. Notify the player in the Holding Cell (highlighting confiscated Scrap!)
+                var _scrap_msg = (_confiscated_scrap > 0)
+                    ? ("Worse—the bot confiscated all " + string(_confiscated_scrap) + " of my Scrap, re-locked the doors, and rotated the floor's Cipher Key!")
+                    : "Worse—the lockdown protocol just re-locked all the doors, confiscated my Scrap pouch, and rotated the floor's Cipher Key!";
+                global.e_dialogue_intro_shown = true;
+                create_textevent([
+                    "BUSTED! The security bot caught me and locked me in the Holding Cell!",
+                    _scrap_msg,
+                    "I need to check the terminal or note in this cell [E] for a math clue to crack the brig door!"
+                ], [obj_jack.id, obj_jack.id, obj_jack.id]);
+                exit;
             }
         }
     }
 }
 
 // ---------------------------------------------------------------------------
-// 3. Check Proximity & [E] Interaction for Inspectable Props & Hiding Lockers
+// 3. Check Proximity, [E] Interactions, Right-Click Wrench Scrapping & Bot Ambush
 // ---------------------------------------------------------------------------
 player_near = false;
 if (!instance_exists(obj_jack)) exit;
@@ -227,19 +303,21 @@ if (prop_type == TILE_PROP_LOCKER && variable_global_exists("player_in_locker") 
 
 if (variable_global_exists("player_in_locker") && global.player_in_locker) exit;
 
-// ONLY Clue Computers (has_clue == true), Papers, NPCs, Lockers, Override/Breaker Consoles, or Powered-Down Drones can be interacted with!
-var _can_inspect = (prop_type == TILE_PROP_PC && has_clue)
+// All unscrapped PCs (for Right-Click Wrench Scrapping or [E] Clue Inspection), Papers, NPCs,
+// Lockers, Override/Breaker Consoles, and Ambushable/Powered-Down Drones can be interacted with!
+var _can_inspect = (prop_type == TILE_PROP_PC && (!is_scrapped || has_clue))
                 || (prop_type == TILE_PROP_PAPER)
                 || (prop_type == TILE_PROP_NPC)
                 || (prop_type == TILE_PROP_LOCKER)
                 || (prop_type == TILE_PROP_OVERRIDE)
                 || (prop_type == TILE_PROP_BREAKER)
-                || (prop_type == TILE_PROP_DRONE && _lifted);
+                || (prop_type == TILE_PROP_DRONE && !is_scrapped && (_lifted || can_sneak_ambush));
 
 if (!_can_inspect) exit;
 
+var _interact_rad = (prop_type == TILE_PROP_DRONE) ? 28 : 22;
 var _dist = point_distance(x + 8, y + 8, obj_jack.x, obj_jack.y - 6);
-if (_dist < 22) {
+if (_dist < _interact_rad) {
     // Only highlight the closest inspectable prop to Jack
     var _closest = true;
     var _my_id = id;
@@ -255,7 +333,94 @@ if (_dist < 22) {
     player_near = _closest;
 }
 
+// --- A. RIGHT-CLICK (or [R]) WITH WRENCH TO SCRAP TERMINAL OR BOT ---
+var _wrench_pressed = mouse_check_button_pressed(mb_right) || keyboard_check_pressed(ord("R"));
+if (player_near && _wrench_pressed && !is_scrapped && (prop_type == TILE_PROP_PC || prop_type == TILE_PROP_DRONE)) {
+    if (is_holding_clue) {
+        // Don't scrap the Holding Cell's math clue computer while locked in the brig!
+        scrap_pop_timer = 85;
+        scrap_pop_text  = "NEED THIS TERMINAL TO ESCAPE BRIG [E]!";
+        audio_play_sound(wrong1, 6, false);
+        exit;
+    }
+
+    // If circuits were fried by Anti-Tamper on a previous wrong encryption, spend 1 Scrap to fix!
+    if (is_fried) {
+        var _cur_scrp = variable_global_exists("scrap_count") ? global.scrap_count : 0;
+        if (_cur_scrp >= 1) {
+            global.scrap_count -= 1;
+            is_fried            = false;
+            scrap_pop_timer     = 75;
+            scrap_pop_text      = "-1 SCRAP (CIRCUITS REPAIRED!)";
+            audio_play_sound(snd_correct_ping, 8, false);
+            scr_open_scrap_sever_ui(id);
+        } else {
+            scrap_pop_timer = 95;
+            scrap_pop_text  = "CIRCUITS FRIED! NEED 1 SCRAP TO FIX!";
+            audio_play_sound(wrong1, 8, false);
+        }
+        exit;
+    }
+
+    // If this is a roaming Security Bot that is still active, start the Spam [E] Apprehend struggle first!
+    if (prop_type == TILE_PROP_DRONE && !_lifted) {
+        grapple_active            = true;
+        grapple_meter             = 0.45;
+        global.bot_grapple_active = true;
+        audio_play_sound(snd_select, 8, false);
+        exit;
+    }
+
+    // Safety net: if scrapping an unread Clue Terminal, auto-log its clue first so you never soft-lock the Key Vault!
+    if (prop_type == TILE_PROP_PC && has_clue && !talked_once && !_lifted) {
+        talked_once = true;
+        if (!variable_global_exists("clues_found")) global.clues_found = 0;
+        global.clues_found++;
+    }
+
+    audio_play_sound(snd_select, 8, false);
+    scr_open_scrap_sever_ui(id);
+    exit;
+}
+
+// --- B. [E] KEY INTERACTION (Clues, Lockers, Consoles & Sneak Bot Apprehension!) ---
 if (player_near && keyboard_check_pressed(ord("E"))) {
+    // Sneak behind a Roaming Security Bot + Press [E] -> Apprehend (Spam [E] struggle)!
+    if (prop_type == TILE_PROP_DRONE && !is_scrapped) {
+        if (is_fried) {
+            var _cur_s = variable_global_exists("scrap_count") ? global.scrap_count : 0;
+            if (_cur_s >= 1) {
+                global.scrap_count -= 1;
+                is_fried            = false;
+                scrap_pop_timer     = 75;
+                scrap_pop_text      = "-1 SCRAP (BOT CIRCUITS FIXED!)";
+                audio_play_sound(snd_correct_ping, 8, false);
+                scr_open_scrap_sever_ui(id);
+            } else {
+                scrap_pop_timer = 95;
+                scrap_pop_text  = "BOT FRIED! NEED 1 SCRAP TO FIX!";
+                audio_play_sound(wrong1, 8, false);
+            }
+            exit;
+        }
+        if (!_lifted && can_sneak_ambush) {
+            grapple_active            = true;
+            grapple_meter             = 0.45;
+            global.bot_grapple_active = true;
+            audio_play_sound(snd_select, 8, false);
+            exit;
+        }
+    }
+
+    // If player presses [E] on a standard non-clue PC, remind them to Right-Click with Wrench to scrap!
+    if (prop_type == TILE_PROP_PC && !has_clue) {
+        if (!is_scrapped) {
+            scrap_pop_timer = 85;
+            scrap_pop_text  = is_fried ? "RIGHT-CLICK [RMB] TO FIX (-1 SCRAP)" : "RIGHT-CLICK [RMB] TO WRENCH SCRAP!";
+            audio_play_sound(snd_button_hover, 5, false);
+        }
+        exit;
+    }
     // Entering a Security Hiding Locker
     if (prop_type == TILE_PROP_LOCKER) {
         global.player_in_locker = true;
@@ -277,7 +442,9 @@ if (player_near && keyboard_check_pressed(ord("E"))) {
                 "Next: head to the Power Control Room and flip the Breaker Panel to restore floor power."
             ], [obj_jack.id, obj_jack.id]);
         } else {
-            global.override_ui_open = true;
+            global.override_ui_open   = true;
+            global.override_timer_max = scr_get_cipher_timer_frames("sever");
+            global.override_timer     = global.override_timer_max;
         }
         exit;
     }
@@ -324,15 +491,11 @@ if (player_near && keyboard_check_pressed(ord("E"))) {
     if (!_has_key && instance_exists(obj_caesar_key_pedestal)) {
         _target_inst = obj_caesar_key_pedestal;
         _target_lbl  = "KEY VAULT";
-    } else if (!_ov_done && variable_global_exists("override_prop_inst") && instance_exists(global.override_prop_inst)) {
-        _target_inst = global.override_prop_inst;
-        _target_lbl  = "OVERRIDE ROOM";
-    } else if (!_pw_done && variable_global_exists("breaker_prop_inst") && instance_exists(global.breaker_prop_inst)) {
+    } else if (_ov_done && !_pw_done && variable_global_exists("breaker_prop_inst") && instance_exists(global.breaker_prop_inst)) {
         _target_inst = global.breaker_prop_inst;
         _target_lbl  = "BREAKER ROOM";
-    } else if (instance_exists(obj_dungeon_goal)) {
-        _target_inst = obj_dungeon_goal;
-        _target_lbl  = "ELEVATOR";
+    } else {
+        _radar_hint = "NEXT: SEARCH ENCRYPTED DOORS";
     }
 
     if (_target_inst != noone) {

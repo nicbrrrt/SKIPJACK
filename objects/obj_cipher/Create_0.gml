@@ -96,6 +96,11 @@ success_timer = 0;
 
 show_debug_message("CHEAT SHEET: Answer=" + string(plaintext) + " Enc=" + string(encrypted));
 
+// Firewall Trace Timer (dungeon door locks only; 28s / 40s on Tutorial Floors 1-3; +12s with Chronos CPU Hourglass)
+scr_statue_ensure_globals();
+cipher_timer_max = instance_exists(obj_battle) ? 0 : scr_get_cipher_timer_frames("door");
+cipher_timer     = cipher_timer_max;
+
 if (instance_exists(obj_battle)) {
     audio_play_sound(ms_start, 10, false);
 } else {

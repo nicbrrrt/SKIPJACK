@@ -8,9 +8,14 @@ depth = 20; // Draws above floor tiles (50) and below Jack (-y)
 image_xscale = 0.5;
 image_yscale = 0.5;
 
-anim_timer = 0;
-triggered  = false;
+anim_timer           = 0;
+triggered            = false;
+warn_cd              = 0;
+warned_this_overlap  = false;
 
 if (!variable_global_exists("dungeons_cleared")) {
     global.dungeons_cleared = 0;
+}
+if (!variable_global_exists("elevator_room_found")) {
+    global.elevator_room_found = false;
 }

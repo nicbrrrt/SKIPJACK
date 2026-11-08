@@ -73,21 +73,7 @@ if (locked && instance_exists(obj_jack)) {
                     exit;
                 }
 
-                // 3. Extraction Elevator Door (Also requires Lockdown Override + Power Restored)
-                if (is_elevator_door) {
-                    if (!_overridden) {
-                        audio_play_sound(wrong1, 10, false);
-                        global.e_dialogue_intro_shown = true;
-                        create_textevent(["LOCKDOWN ACTIVE! Step 2: Unlock the Security Control Room and hit the Red Lockdown Override Button first!"], [obj_jack.id]);
-                        exit;
-                    }
-                    if (!_powered) {
-                        audio_play_sound(wrong1, 10, false);
-                        global.e_dialogue_intro_shown = true;
-                        create_textevent(["NO ELEVATOR POWER! Step 3: Head to the Power Control Room and flip the Breaker Panel to restore power!"], [obj_jack.id]);
-                        exit;
-                    }
-                }
+                // 3. Once the player has the Floor Key, ANY Encrypted Door can be decoded to discover what room is behind its 100% opaque fog!
                 instance_create_depth(draw_x, draw_y, -15000, obj_cipher);
             }
         }
