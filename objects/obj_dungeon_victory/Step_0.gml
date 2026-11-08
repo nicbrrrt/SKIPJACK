@@ -87,6 +87,10 @@ switch (phase) {
                     global.chapter_floor    = min(CHAPTER_MAX_FLOORS, cleared_floor + 1);
                     global.dungeons_cleared = global.chapter_floor - 1;
                 }
+                global.cam_pan_phase   = "off";
+                global.cam_pan_mode    = "";
+                global.cam_pan_timer   = 0;
+                global.cam_pan_targets = [];
                 room_goto(rm_homeroom);
             } else {
                 room_goto(rm_cipher_select);

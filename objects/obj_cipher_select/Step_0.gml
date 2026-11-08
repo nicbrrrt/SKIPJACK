@@ -44,6 +44,10 @@ var home_hover = (mx >= 92 && mx <= 198 && my >= 12 && my <= 34);
 if ((home_hover && mouse_check_button_pressed(mb_left)) || keyboard_check_pressed(ord("H"))) {
     if (!instance_exists(obj_transition)) {
         audio_play_sound(snd_button_click, 10, false);
+        global.cam_pan_phase   = "off";
+        global.cam_pan_mode    = "";
+        global.cam_pan_timer   = 0;
+        global.cam_pan_targets = [];
         room_goto(rm_homeroom);
         exit;
     }

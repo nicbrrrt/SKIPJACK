@@ -19,3 +19,13 @@ exit_y        = 384;
 near_phone = false;
 near_table = false;
 near_exit  = false;
+
+// Ensure persistent Jack is positioned inside the homeroom floor
+if (instance_exists(obj_jack)) {
+    obj_jack.x = 616;
+    obj_jack.y = 336;
+    obj_jack.visible = true;
+    obj_jack.isInCutscene = false;
+    obj_jack.bump_timer = 0;
+    obj_jack.sprite_index = spr_jack_idle;
+}
