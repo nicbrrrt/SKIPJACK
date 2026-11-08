@@ -3,6 +3,7 @@ if (room == rm_menu || room == rm_settings || room == rm_cipher_select)
 {
     audio_stop_sound(snd_tutorial_void_music);
     audio_stop_sound(snd_generic_background_music);
+    audio_stop_sound(corporate);
     if (!audio_is_playing(ms_start))
         audio_play_sound(ms_start, 10, true);
 }
@@ -11,14 +12,27 @@ else if (room == rm_tutorial_void)
 {
     audio_stop_sound(ms_start);
     audio_stop_sound(snd_generic_background_music);
+    audio_stop_sound(corporate);
     if (!audio_is_playing(snd_tutorial_void_music))
         audio_play_sound(snd_tutorial_void_music, 10, true);
 }
-// ── Corporate Lockdown Dungeon: play tense background music continuously ─────
+// ── Corporate Lockdown Dungeon: play new short track 'corporate' on loop ─────
 else if (room == dungeon_test)
 {
     audio_stop_sound(ms_start);
     audio_stop_sound(snd_tutorial_void_music);
+    audio_stop_sound(snd_generic_background_music);
+    if (!audio_is_playing(corporate)) {
+        var _bgm = audio_play_sound(corporate, 10, true);
+        audio_sound_gain(_bgm, 0.70, 0);
+    }
+}
+// ── Homeroom: play the cozy original track (snd_generic_background_music) ────
+else if (room == rm_homeroom)
+{
+    audio_stop_sound(ms_start);
+    audio_stop_sound(snd_tutorial_void_music);
+    audio_stop_sound(corporate);
     if (!audio_is_playing(snd_generic_background_music)) {
         var _bgm = audio_play_sound(snd_generic_background_music, 10, true);
         audio_sound_gain(_bgm, 0.65, 0);
@@ -30,6 +44,7 @@ else
     audio_stop_sound(ms_start);
     audio_stop_sound(snd_tutorial_void_music);
     audio_stop_sound(snd_generic_background_music);
+    audio_stop_sound(corporate);
 }
 
 // --- GLOBAL DEBUG TOGGLES ---

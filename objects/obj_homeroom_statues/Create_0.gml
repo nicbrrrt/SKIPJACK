@@ -20,6 +20,10 @@ near_phone = false;
 near_table = false;
 near_exit  = false;
 
+if (!instance_exists(obj_music_controller)) {
+    instance_create_depth(0, 0, 0, obj_music_controller);
+}
+
 // Ensure persistent Jack is positioned inside the homeroom floor
 if (instance_exists(obj_jack)) {
     obj_jack.x = 616;

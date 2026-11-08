@@ -236,6 +236,7 @@
     {"id":{"name":"snd_die","path":"sounds/snd_die/snd_die.yy",},},
     {"id":{"name":"snd_enemy_lose_quiz","path":"sounds/snd_enemy_lose_quiz/snd_enemy_lose_quiz.yy",},},
     {"id":{"name":"snd_error","path":"sounds/snd_error/snd_error.yy",},},
+    {"id":{"name":"corporate","path":"sounds/corporate/corporate.yy",},},
     {"id":{"name":"snd_generic_background_music","path":"sounds/snd_generic_background_music/snd_generic_background_music.yy",},},
     {"id":{"name":"snd_hurt","path":"sounds/snd_hurt/snd_hurt.yy",},},
     {"id":{"name":"snd_moveselect","path":"sounds/snd_moveselect/snd_moveselect.yy",},},
