@@ -47,6 +47,31 @@
 #macro ROOM_POWER          8   // Control Break / Electrical Breaker Room containing the Breaker Panel
 
 // ---------------------------------------------------------------------------
+// Intern Babysitting Ward Constants (Triggered when global.intern_duty_flagged == true)
+// ---------------------------------------------------------------------------
+#macro ROOM_INTERN_NONE      0
+#macro ROOM_INTERN_WORK      1   // Terminal Work Room (10 computer desks)
+#macro ROOM_INTERN_HALL      2   // Connecting Hallway Corridor (fresh air zone)
+#macro ROOM_INTERN_STORAGE   3   // Storage Room (shelves, lockers, water cooler)
+#macro ROOM_INTERN_GLASS     4   // Panoramic Observation Room (2 walls of glass)
+#macro ROOM_INTERN_GREEN     5   // Green Room (Wellness / Soothing Lounge, max 4 interns)
+
+#macro INTERN_STATE_WORK       0 // Seated at computer, working
+#macro INTERN_STATE_BORED      1 // Bored / roaming out to explore
+#macro INTERN_STATE_SEEK_ROOM  2 // Navigating toward target room (avoids hallway)
+#macro INTERN_STATE_MISCHIEF   3 // Interacting with hazard (shaking shelf, cracking glass, etc.)
+#macro INTERN_STATE_TANTRUM    4 // Throwing tantrum (screaming, burning 2x oxygen)
+#macro INTERN_STATE_HELD       5 // Being carried by Jack
+#macro INTERN_STATE_KNOCKED_OUT 6 // Asphyxiated / crushed (needs CPR/revival)
+#macro INTERN_STATE_DEAD       7 // Fallen from glass or suffocated (fatality)
+#macro INTERN_STATE_SOOTHED    8 // Relaxing in Green Room (takes 10-20s, resets boredom)
+#macro INTERN_STATE_TRAPPED    9 // Locked inside locker (hidden, awaiting player struggle pry)
+
+#macro HAZARD_SHELF          0   // Heavy supply shelf (wobbles and tips over)
+#macro HAZARD_LOCKER         1   // Metal locker (rattles, traps intern)
+#macro HAZARD_WATER          2   // Water cooler dispenser (wobbles, splashes)
+
+// ---------------------------------------------------------------------------
 // Spatial configuration
 // ---------------------------------------------------------------------------
 #macro CHUNK_SIZE   9   // Tiles per room chunk (width AND height)

@@ -135,6 +135,9 @@ var _move_y_intent = _key_down  - _key_up;
 var _is_moving     = (_move_x_intent != 0 || _move_y_intent != 0);
 
 var _cur_move_spd = _is_sprinting ? (variable_instance_exists(id, "sprint_speed") ? sprint_speed : 4.2) : move_speed;
+if (variable_global_exists("held_intern_inst") && global.held_intern_inst != noone) {
+    _cur_move_spd *= 0.82; // slightly slower while carrying a baby intern!
+}
 var _cur_anim_spd = (_is_moving && _is_sprinting) ? (anim_speed * 1.65) : anim_speed;
 
 var _target_anim_start;

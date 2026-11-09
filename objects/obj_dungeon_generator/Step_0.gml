@@ -3,6 +3,7 @@
 /// triggers guided camera pan cutscenes & mentor pop-up dialogues,
 /// updates fog-of-war alpha, and reveals rooms on the Floor Blueprint Radar.
 
+if (variable_instance_exists(id, "is_intern_mode") && is_intern_mode) exit;
 if (!gen_complete) exit;
 
 siren_timer++;

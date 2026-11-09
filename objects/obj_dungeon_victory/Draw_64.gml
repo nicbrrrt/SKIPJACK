@@ -233,7 +233,9 @@ if (phase == "display" && phase_timer >= 20) {
         draw_set_color(c_lime);
         var _btn_txt = (page == 0)
             ? "[ PRESS E / ENTER FOR YOUR PAYSTUB ]"
-            : ("[ E / ENTER ] FLOOR " + string(cleared_floor + 1) + " / 10      [ H ] HOMEROOM");
+            : ((variable_global_exists("intern_duty_flagged") && global.intern_duty_flagged)
+                ? "[ E / ENTER ] REPORT TO INTERN WARD (3-MIN SHIFT)      [ H ] HOMEROOM"
+                : ("[ E / ENTER ] FLOOR " + string(cleared_floor + 1) + " / 10      [ H ] HOMEROOM"));
         if (is_final_exam && page == 1) {
             _btn_txt = (chapter_num < CHAPTER_ATBASH)
                 ? ("[ E / ENTER ] START CHAPTER " + string(chapter_num + 1) + "      [ H ] HOMEROOM")

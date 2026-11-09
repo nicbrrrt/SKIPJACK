@@ -8,6 +8,15 @@
 // ---- Seed RNG so every generated dungeon floor is unique ----
 randomize();
 
+// ---- Check if player is on Intern Babysitting Duty ----
+is_intern_mode = (variable_global_exists("intern_duty_flagged") && global.intern_duty_flagged);
+if (is_intern_mode) {
+    visible      = false;
+    gen_complete = true;
+    scr_spawn_intern_ward();
+    exit;
+}
+
 // Ensure music controller is active so dungeon BGM plays continuously across floors
 if (!instance_exists(obj_music_controller)) {
     instance_create_depth(0, 0, 0, obj_music_controller);

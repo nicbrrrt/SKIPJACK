@@ -53,6 +53,17 @@ else if (floor_style == 2) {
     draw_set_color(make_color_rgb(34, 40, 50));
     draw_rectangle(x, y, x + 15, y + 15, true);
 }
+else if (floor_style == 3) {
+    // Wellness Green Room lush botanical runner carpet
+    draw_set_alpha(0.85);
+    draw_set_color(make_color_rgb(28, 62, 42)); // calming deep sage
+    draw_rectangle(x, y, x + 15, y + 15, false);
+
+    // Subtle mint woven border
+    draw_set_alpha(0.40);
+    draw_set_color(make_color_rgb(70, 165, 110)); // soft mint
+    draw_rectangle(x + 2, y + 2, x + 13, y + 13, true);
+}
 
 draw_set_color(c_white);
 draw_set_alpha(1.0);
