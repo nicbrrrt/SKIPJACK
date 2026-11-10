@@ -7,6 +7,8 @@ if (instance_exists(obj_transition)) exit;
 audio_stop_sound(snd_button_hover);
 audio_play_sound(snd_button_click, 10, false);
 
+global.intern_duty_flagged = false;
+
 var _t = instance_create_depth(0, 0, -9999, obj_transition);
 _t.target_room = rm_cipher_select;
 _t.fade_mode   = "fading_out";

@@ -131,10 +131,27 @@ else if (state == INTERN_STATE_SEEK_ROOM) {
     _draw_y_offset = -28;
 }
 else if (state == INTERN_STATE_HELD) {
-    // Idle South facing camera while held up
-    _src_x = 48;
-    _src_y = 0;
-    _draw_y_offset = -26;
+    if (held_prev_state == INTERN_STATE_KNOCKED_OUT) {
+        // Unconscious limp body
+        _src_x = 0;
+        _src_y = 96;
+        _draw_y_offset = -16;
+    } else if (held_prev_state == INTERN_STATE_FUMING) {
+        // Angry red-faced kicking legs
+        _src_x = ((struggle_timer div 4) mod 2) * 16;
+        _src_y = 64;
+        _draw_y_offset = -26;
+    } else if (struggle_rate >= 0.003) {
+        // Squirming / kicking legs walk cycle
+        _src_x = ((struggle_timer div 5) mod 6) * 16;
+        _src_y = 32;
+        _draw_y_offset = -26;
+    } else {
+        // Calm south facing pose
+        _src_x = 48;
+        _src_y = 0;
+        _draw_y_offset = -26;
+    }
 }
 else {
     // Idle directional pose
@@ -189,6 +206,27 @@ if (state == INTERN_STATE_KNOCKED_OUT) {
         draw_set_color(c_yellow);
         draw_text_transformed(x, y - 26, "Z z Z", 0.4, 0.4, 0);
     }
+}
+
+// -------------------------------------------------------------
+// Carried Intern Struggle Bar
+// -------------------------------------------------------------
+if (state == INTERN_STATE_HELD && held_prev_state != INTERN_STATE_KNOCKED_OUT) {
+    var _sb_w = 26;
+    var _sb_h = 3;
+    var _sb_x = x - _sb_w * 0.5;
+    var _sb_y = y - 48; // Above health bar and status badge
+    var _fill = clamp(struggle_meter, 0.0, 1.0);
+    var _fill_col = merge_color(c_yellow, c_red, _fill);
+
+    draw_set_alpha(0.85);
+    draw_set_color(c_black);
+    draw_rectangle(_sb_x - 1, _sb_y - 1, _sb_x + _sb_w + 1, _sb_y + _sb_h + 1, false);
+    draw_set_color(_fill_col);
+    draw_rectangle(_sb_x, _sb_y, _sb_x + _sb_w * _fill, _sb_y + _sb_h, false);
+    draw_set_color(c_white);
+    draw_rectangle(_sb_x - 1, _sb_y - 1, _sb_x + _sb_w + 1, _sb_y + _sb_h + 1, true);
+    draw_set_alpha(1.0);
 }
 
 // -------------------------------------------------------------
@@ -261,8 +299,22 @@ else if (state == INTERN_STATE_SOOTHED) {
     _badge_col  = make_color_rgb(120, 255, 180);
 }
 else if (state == INTERN_STATE_HELD) {
-    _badge_text = "HELD";
-    _badge_col  = c_aqua;
+    if (held_prev_state == INTERN_STATE_KNOCKED_OUT) {
+        _badge_text = "UNCONSCIOUS";
+        _badge_col  = c_orange;
+    } else if (held_prev_state == INTERN_STATE_FUMING) {
+        _badge_text = "! STRUGGLING (FUMING) !";
+        _badge_col  = (current_time mod 160 < 80) ? c_red : make_color_rgb(255, 120, 40);
+    } else if (struggle_meter > 0.70) {
+        _badge_text = "! BREAKING FREE !";
+        _badge_col  = (current_time mod 160 < 80) ? c_yellow : c_red;
+    } else if (struggle_rate >= 0.003) {
+        _badge_text = "STRUGGLING...";
+        _badge_col  = make_color_rgb(255, 220, 80);
+    } else {
+        _badge_text = "HELD (CALM)";
+        _badge_col  = c_aqua;
+    }
 }
 else if (state == INTERN_STATE_KNOCKED_OUT && is_slipped) {
     _badge_text = "! SLIPPED !";

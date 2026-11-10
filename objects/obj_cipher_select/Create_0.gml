@@ -19,6 +19,9 @@ caesar_hover   = false;
 vigenere_hover = false;
 atbash_hover   = false;
 
+// Reset intern duty flag upon entering Chapter Select
+global.intern_duty_flagged = false;
+
 // Interactive Floor / Phase Selector (1..10)
 selected_floor = variable_global_exists("chapter_floor") ? clamp(global.chapter_floor, 1, 10) : 1;
 

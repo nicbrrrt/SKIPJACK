@@ -79,16 +79,19 @@ if (keyboard_check_pressed(ord("G")) && instance_exists(obj_jack)) {
                 y = _oy + 3 * 16 + 8;
             }
 
-            // Dropped in Wellness Green Room -> Soothing relaxation (15 seconds)!
+            // Dropped in Wellness Green Room -> Soothing relaxation (20.0 seconds / 1200 frames)!
+            var _diff_g  = scr_intern_get_scrap_difficulty();
             state        = INTERN_STATE_SOOTHED;
-            soothe_timer = 900; // 15.0 seconds at 60 fps
+            soothe_timer = variable_struct_exists(_diff_g, "soothe_time") ? _diff_g.soothe_time : 1200;
             boredom      = 0;
             boredom_rate = random_range(0.045, 0.085);
+            struggle_meter = 0.0;
+            struggle_shake = 0.0;
             audio_play_sound(snd_correct_ping, 10, false);
             audio_play_sound(snd_voice1, 10, false);
         }
         else {
-            // Safe drop in other rooms: test candidate positions to guarantee no wall clipping
+            // Dropped OUTSIDE the Green Room: NO AUTOMATIC CALMING OR BOREDOM RESETS!
             var _drop_x = obj_jack.x;
             var _drop_y = obj_jack.y;
             var _found_clearance = false;
@@ -137,16 +140,32 @@ if (keyboard_check_pressed(ord("G")) && instance_exists(obj_jack)) {
                 y += lengthdir_y(2, _pdir);
             }
 
-            if (_rm == ROOM_INTERN_WORK) {
-                state         = INTERN_STATE_WORK;
-                boredom       = 0;
-                grace_timer   = 900;
-                vent_cooldown = 1200;
-                boredom_rate  = random_range(0.015, 0.045);
+            struggle_meter = 0.0;
+            struggle_shake = 0.0;
+
+            // State restoration: Mood is PRESERVED, must be brought to Green Room to soothe!
+            if (held_prev_state == INTERN_STATE_KNOCKED_OUT) {
+                state = INTERN_STATE_KNOCKED_OUT;
+            }
+            else if (held_prev_state == INTERN_STATE_FUMING) {
+                state        = INTERN_STATE_FUMING;
+                fuming_timer = max(45, held_prev_fuming);
+                audio_play_sound(snd_voice2, 10, false);
+            }
+            else if (held_prev_state == INTERN_STATE_MISCHIEF) {
+                state   = INTERN_STATE_MISCHIEF;
+                boredom = max(75, held_prev_boredom);
+                audio_play_sound(snd_voice2, 10, false);
+            }
+            else if (held_prev_state == INTERN_STATE_WORK && _rm == ROOM_INTERN_WORK && held_prev_boredom < 60) {
+                state   = INTERN_STATE_WORK;
+                boredom = held_prev_boredom; // Calm worker returns to desk with preserved boredom
                 audio_play_sound(snd_button_click, 10, false);
-            } else {
-                state = INTERN_STATE_BORED;
-                scr_intern_send_to_work(id, 600);
+            }
+            else {
+                state   = INTERN_STATE_BORED;
+                boredom = max(60, held_prev_boredom);
+                audio_play_sound(snd_voice1, 10, false);
             }
         }
     }
@@ -177,9 +196,32 @@ if (keyboard_check_pressed(ord("G")) && instance_exists(obj_jack)) {
             else if (global.held_intern_inst == noone && (!variable_global_exists("intern_drop_frame") || global.intern_drop_frame != current_time)) {
                 // Pick up intern!
                 global.held_intern_inst = id;
-                state        = INTERN_STATE_HELD;
-                is_slipped   = false;
-                fuming_timer = 0;
+                held_prev_state   = state;
+                held_prev_boredom = boredom;
+                held_prev_fuming  = (state == INTERN_STATE_FUMING) ? fuming_timer : 0;
+
+                state          = INTERN_STATE_HELD;
+                is_slipped     = false;
+                struggle_meter = 0.0;
+                struggle_timer = 0;
+                struggle_shake = 0.0;
+
+                // Determine struggle speed based on mood
+                var _diff_g = scr_intern_get_scrap_difficulty();
+                var _scale  = variable_struct_exists(_diff_g, "struggle_scale") ? _diff_g.struggle_scale : 1.0;
+
+                if (held_prev_state == INTERN_STATE_KNOCKED_OUT) {
+                    struggle_rate = 0.0; // Limp, unconscious
+                } else if (held_prev_state == INTERN_STATE_FUMING) {
+                    struggle_rate = (1.0 / 150) * _scale; // ~2.5s violent thrashing!
+                } else if (held_prev_state == INTERN_STATE_MISCHIEF) {
+                    struggle_rate = (1.0 / 240) * _scale; // ~4.0s active kicking
+                } else if (held_prev_state == INTERN_STATE_BORED || held_prev_state == INTERN_STATE_SEEK_ROOM || (held_prev_state == INTERN_STATE_WORK && held_prev_boredom >= 60)) {
+                    struggle_rate = (1.0 / 420) * _scale; // ~7.0s squirming
+                } else {
+                    // Calm worker (<60 boredom)
+                    struggle_rate = (1.0 / 720) * _scale; // ~12.0s docile
+                }
                 
                 // Detach immediately from any wobbling hazard
                 if (mischief_target != noone && instance_exists(mischief_target)) {
@@ -199,10 +241,98 @@ if (keyboard_check_pressed(ord("G")) && instance_exists(obj_jack)) {
     }
 }
 
-// Held by player: tracks Jack's overhead position
+// Held by player: tracks Jack's overhead position and updates struggle
 if (state == INTERN_STATE_HELD) {
     if (instance_exists(obj_jack)) {
-        x = obj_jack.x;
+        var _diff_held = scr_intern_get_scrap_difficulty();
+
+        // 1. Unconscious intern handling while held
+        if (held_prev_state == INTERN_STATE_KNOCKED_OUT) {
+            wake_timer--;
+            // Auto-wake up in Jack's hands directly into violent FUMING struggle!
+            if (wake_timer <= 0) {
+                held_prev_state = INTERN_STATE_FUMING;
+                fuming_timer    = variable_struct_exists(_diff_held, "fuming_time") ? _diff_held.fuming_time : 150;
+                var _sc = variable_struct_exists(_diff_held, "struggle_scale") ? _diff_held.struggle_scale : 1.0;
+                struggle_rate   = (1.0 / 150) * _sc;
+                struggle_meter  = 0.35; // Already startled and squirming!
+                audio_play_sound(snd_voice2, 10, false);
+            }
+        }
+        else {
+            // 2. Active struggling update
+            struggle_meter += struggle_rate;
+            struggle_timer++;
+            struggle_shake = sin(struggle_timer * 0.45) * (1.5 + struggle_meter * 4.5);
+
+            // Auditory squeaks / squirming noises
+            if (struggle_timer mod 32 == 0 && struggle_rate >= 0.0035) {
+                audio_play_sound(snd_voice2, 10, false);
+            }
+
+            // 3. Break-Free Escape!
+            if (struggle_meter >= 1.0) {
+                global.held_intern_inst  = noone;
+                global.intern_drop_frame = current_time;
+
+                // Candidate positions around Jack to prevent wall clipping
+                var _drop_x = obj_jack.x;
+                var _drop_y = obj_jack.y;
+                var _offsets = [
+                    [0, 12], [0, -12], [12, 0], [-12, 0],
+                    [8, 8], [-8, 8], [8, -8], [-8, -8]
+                ];
+                for (var _c = 0; _c < array_length(_offsets); _c++) {
+                    var _cx = obj_jack.x + _offsets[_c][0];
+                    var _cy = obj_jack.y + _offsets[_c][1];
+                    if (scr_intern_get_room_at(_cx, _cy) != ROOM_INTERN_NONE) {
+                        if (collision_circle(_cx, _cy, 6, obj_dungeon_wall, false, true) == noone) {
+                            _drop_x = _cx;
+                            _drop_y = _cy;
+                            break;
+                        }
+                    }
+                }
+                x = _drop_x;
+                y = _drop_y;
+                struggle_meter = 0.0;
+                struggle_shake = 0.0;
+
+                audio_play_sound(snd_attack_impact, 10, false);
+                audio_play_sound(snd_voice2, 10, false);
+
+                // Resolution based on agitation
+                if (held_prev_state == INTERN_STATE_FUMING) {
+                    // Furious intern breaks free -> EXPLODES INTO FULL TANTRUM!
+                    state          = INTERN_STATE_TANTRUM;
+                    mischief_timer = 0;
+                    global.jack_stun_timer = 50; // Stuns Jack
+                    with (obj_intern_ward_controller) {
+                        struggle_escape_alert = 90;
+                    }
+                }
+                else if (held_prev_state == INTERN_STATE_MISCHIEF) {
+                    // Agitated intern breaks free -> becomes FUMING with short fuse
+                    state        = INTERN_STATE_FUMING;
+                    fuming_timer = 90;
+                    with (obj_intern_ward_controller) {
+                        struggle_escape_alert = 90;
+                    }
+                }
+                else {
+                    // Bored/Calm intern drops down and continues wandering
+                    state   = INTERN_STATE_BORED;
+                    boredom = max(65, held_prev_boredom);
+                    with (obj_intern_ward_controller) {
+                        struggle_escape_alert = 60;
+                    }
+                }
+
+                exit;
+            }
+        }
+
+        x = obj_jack.x + struggle_shake;
         y = obj_jack.y - 18;
         depth = obj_jack.depth - 5;
     }
@@ -614,7 +744,7 @@ switch (state) {
         intern_hp = min(intern_max_hp, intern_hp + 0.35); // Heals ~21 HP/sec back to full health!
 
         if (soothe_timer <= 0) {
-            // Fully rested and calm after 15 seconds! Head straight back to work desk!
+            // Fully rested and calm after 20 seconds! Head straight back to work desk!
             audio_play_sound(snd_correct_ping, 10, false);
             target_room  = ROOM_INTERN_WORK;
             target_x     = home_desk_x;

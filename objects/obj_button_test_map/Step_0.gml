@@ -8,7 +8,8 @@ if (keyboard_check_pressed(ord("T"))) {
     if (audio_is_playing(snd_button_hover)) audio_stop_sound(snd_button_hover);
     audio_play_sound(snd_button_click, 10, false);
 
-    global.dungeons_cleared = 0;
+    global.dungeons_cleared    = 0;
+    global.intern_duty_flagged = false;
 
     if (instance_exists(obj_transition)) {
         obj_transition.target_room = dungeon_test;

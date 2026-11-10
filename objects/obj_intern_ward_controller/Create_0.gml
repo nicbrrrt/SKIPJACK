@@ -8,10 +8,11 @@ interns_lost    = 0;
 fried_count     = 0;
 total_fines     = 0;
 
-floor_oxygen        = 100.0;
-asphyxiation_active = false;
-asphyxiation_fail   = false;
-hands_full_alert    = 0;
+floor_oxygen          = 100.0;
+asphyxiation_active   = false;
+asphyxiation_fail     = false;
+hands_full_alert      = 0;
+struggle_escape_alert = 0;
 
 door_work       = noone;
 door_storage    = noone;

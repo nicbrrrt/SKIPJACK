@@ -120,8 +120,10 @@ function scr_intern_get_scrap_difficulty() {
         jack_stun_frames: round(lerp(72, 120, _t)),
         // Knockout wakeup delay before standing up in fuming state: 4.5s (270) down to 3.0s (180)
         knockout_wake_time: round(lerp(270, 180, _t)),
-        // Green Room soothing duration: 15s (900) down to 9s (540)
-        soothe_time:     round(lerp(900, 540, _t)),
+        // Green Room soothing duration: 20 seconds (1200 frames) of rest on wellness cushions
+        soothe_time:     1200,
+        // Struggle escape multiplier when carried by Jack (1.0x to 1.25x at high scrap)
+        struggle_scale:  lerp(1.0, 1.25, _t),
 
         // 4. Observation Deck Panoramic Glass (Fragile: breaks in 3-5 hits!)
         // Max HP: 30 down to 24

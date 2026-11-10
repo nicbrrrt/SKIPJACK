@@ -94,6 +94,17 @@ if (instance_exists(obj_jack)) {
         draw_set_color((tantrum_hit_alert mod 10 < 5) ? c_red : c_yellow);
         draw_text_transformed(_jx, _jy - 24, _hit_txt, 0.36, 0.36, 0);
     }
+    else if (variable_instance_exists(id, "struggle_escape_alert") && struggle_escape_alert > 0) {
+        struggle_escape_alert--;
+        var _esc_txt = "! INTERN BROKE FREE !";
+        draw_set_font(fnt_dialogue);
+        draw_set_halign(fa_center);
+        draw_set_valign(fa_bottom);
+        draw_set_color(c_black);
+        draw_text_transformed(_jx + 1, _jy - 23, _esc_txt, 0.36, 0.36, 0);
+        draw_set_color((struggle_escape_alert mod 10 < 5) ? c_red : c_orange);
+        draw_text_transformed(_jx, _jy - 24, _esc_txt, 0.36, 0.36, 0);
+    }
 }
 
 draw_set_halign(fa_left);

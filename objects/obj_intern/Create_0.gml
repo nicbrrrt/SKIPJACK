@@ -33,6 +33,15 @@ wake_timer     = variable_struct_exists(_diff, "knockout_wake_time") ? _diff.kno
 flail_angle    = 0;
 flail_cooldown = 0;
 
+// Struggle and carried state mechanics
+struggle_meter    = 0.0;
+struggle_rate     = 0.0;
+struggle_timer    = 0;
+struggle_shake    = 0.0;
+held_prev_state   = INTERN_STATE_WORK;
+held_prev_boredom = 0.0;
+held_prev_fuming  = 0;
+
 knockout_timer  = 1800; // 30 seconds to rescue before suffocation fatality
 revive_meter    = 0;
 is_cpr_target   = false;

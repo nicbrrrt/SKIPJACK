@@ -15,7 +15,7 @@ if (!intro_shown) {
     var _lines = [
         "HR AUDIT ALERT: Due to corporate assets dismantled on your last shift, you have been assigned to mandatory Intern Babysitting Duty!",
         "Kyle: Look at them, Jack... actual babies in business ties. Keep all 10 interns alive for this 3-minute shift to clear your HR debt!",
-        "Kyle: Use [G] to pick up and place interns anywhere. We've added a Wellness Green Room (North-East) that holds up to 4 interns to soothe tantrums!",
+        "Kyle: Use [G] to carry interns. Agitated interns will struggle and break free! To calm them, you must carry them into the Wellness Green Room (North-East)—it takes 20 seconds of rest to soothe them!",
         "Kyle: Pull stuck interns from vents before they kick them to pieces! If all 3 vents break, the floor air cuts out—grab the Wrench in Storage to fix them! (Hands full rule: can't carry interns while holding tools!)"
     ];
     var _spk_arr = array_create(array_length(_lines), id);
@@ -61,7 +61,8 @@ if (shift_ended) {
         global.cam_pan_phase    = "off";
         global.cam_pan_mode     = "";
         global.cam_pan_timer    = 0;
-        global.cam_pan_targets  = [];
+        global.cam_pan_targets     = [];
+        global.intern_duty_flagged = false;
         room_goto(rm_homeroom);
     }
     // Retry shift (playtesting shortcut)

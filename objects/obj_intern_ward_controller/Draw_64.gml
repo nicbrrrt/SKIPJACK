@@ -396,11 +396,11 @@ if (!shift_ended) {
         var _col  = c_yellow;
 
         if (_is_grn) {
-            _hint = "[G] PLACE ON WELLNESS CUSHION (SOOTHE 4s)";
+            _hint = "[G] PLACE ON WELLNESS CUSHION (SOOTHE 20s)";
             _col  = c_lime;
-        } else if (_jrm == ROOM_INTERN_WORK) {
-            _hint = "[G] RETURN INTERN TO WORKSTATION";
-            _col  = c_aqua;
+        } else {
+            _hint = "[G] DROP INTERN (CARRY TO GREEN ROOM TO SOOTHE)";
+            _col  = c_yellow;
         }
 
         // Drop shadow for legibility

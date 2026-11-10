@@ -6,7 +6,8 @@ if (instance_exists(obj_codex_manager) && obj_codex_manager.is_open) exit;
 if (audio_is_playing(snd_button_hover)) audio_stop_sound(snd_button_hover);
 audio_play_sound(snd_button_click, 10, false);
 
-global.dungeons_cleared = 0;
+global.dungeons_cleared    = 0;
+global.intern_duty_flagged = false;
 
 // Use transition object if available to smoothly fade to dungeon_test
 if (instance_exists(obj_transition)) {

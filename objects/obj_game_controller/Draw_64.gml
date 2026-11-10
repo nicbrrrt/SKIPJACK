@@ -398,7 +398,8 @@ if (pause_menu_state == "main") {
         audio_play_sound(snd_button_click, 10, false);
         audio_stop_all();
         instance_activate_all();
-        global.is_paused = false;
+        global.is_paused           = false;
+        global.intern_duty_flagged = false;
         if (instance_exists(obj_jack))           instance_destroy(obj_jack);
         if (instance_exists(obj_transition))      instance_destroy(obj_transition);
         if (instance_exists(obj_warp))            instance_destroy(obj_warp);

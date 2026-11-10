@@ -126,6 +126,10 @@ if (_launch_chapter > 0) {
     audio_stop_sound(snd_button_hover);
     audio_play_sound(snd_button_click, 10, false);
 
+    // Clear intern duty flag so chapter launch always starts Dungeon Mode!
+    global.intern_duty_flagged = false;
+    global.hr_scrap_count      = 0;
+
     // Set Chapter & Floor globals for the Dungeon Generator
     global.dungeon_chapter  = _launch_chapter;
     global.chapter_floor    = clamp(selected_floor, 1, CHAPTER_MAX_FLOORS);
