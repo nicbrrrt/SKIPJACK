@@ -7,5 +7,6 @@ open_amt      = 1.0; // starts fully open!
 near_player   = false;
 door_blocker  = noone;
 slam_cooldown = 400;
+unlock_meter  = 0.0;
 anim_t        = irandom(100);
 depth         = 26;

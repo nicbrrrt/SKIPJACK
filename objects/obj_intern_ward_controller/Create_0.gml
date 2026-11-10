@@ -16,15 +16,29 @@ door_work       = noone;
 door_storage    = noone;
 door_green      = noone;
 door_glass      = noone;
+vent_work       = noone;
+vent_storage    = noone;
+vent_glass      = noone;
 green_count     = 0;
 
 intro_shown     = false;
 alarm_siren     = 0;
 
-// Music: ensure corporate music plays
+// Music: ensure intern babysitting minigame music plays
+audio_stop_sound(corporate);
+if (!audio_is_playing(snd_intern_minigame)) {
+    var _bgm = audio_play_sound(snd_intern_minigame, 10, true);
+    audio_sound_gain(_bgm, 0.75, 0);
+}
 if (!instance_exists(obj_music_controller)) {
     instance_create_depth(0, 0, 0, obj_music_controller);
 }
+
+// Reset camera pan state so camera centers cleanly on Jack in the ward
+global.cam_pan_phase   = "off";
+global.cam_pan_mode    = "";
+global.cam_pan_timer   = 0;
+global.cam_pan_targets = [];
 
 // Dialogue speaker defaults (Kyle - Security Analyst / HR Compliance)
 myName         = "Kyle (Security Analyst)";

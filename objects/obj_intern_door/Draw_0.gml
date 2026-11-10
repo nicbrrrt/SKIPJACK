@@ -42,13 +42,28 @@ if (_leaf_w > 0) {
     draw_rectangle(_x2 - 1, _y1 + 1, _x2, _y2 - 1, false);
 }
 
-// Interaction prompt when closed/locked and Jack is near
+// Interaction prompt & progress bar when closed/locked and Jack is near
 if ((is_closed || is_locked) && near_player) {
+    var _bw = 36;
+    var _bh = 4;
+    var _bx1 = _cx - _bw * 0.5;
+    var _by1 = y - 10;
+
     draw_set_halign(fa_center);
     draw_set_valign(fa_bottom);
     draw_set_font(fnt_dialogue);
-    draw_set_color(c_lime);
-    draw_text_transformed(_cx, y - 4, "[E] OPEN DOOR", 0.40, 0.40, 0);
+    draw_set_color(c_yellow);
+    draw_text_transformed(_cx, _by1 - 2, "SPAM [E] TO UNLOCK!", 0.38, 0.38, 0);
+
+    // Progress bar for spam unlock
+    draw_set_alpha(0.95);
+    draw_set_color(c_black);
+    draw_rectangle(_bx1 - 1, _by1 - 1, _bx1 + _bw + 1, _by1 + _bh + 1, false);
+    draw_set_color(merge_color(c_orange, c_lime, unlock_meter));
+    draw_rectangle(_bx1, _by1, _bx1 + _bw * clamp(unlock_meter, 0, 1), _by1 + _bh, false);
+    draw_set_color(c_white);
+    draw_rectangle(_bx1 - 1, _by1 - 1, _bx1 + _bw + 1, _by1 + _bh + 1, true);
+
     draw_set_halign(fa_left);
     draw_set_valign(fa_top);
     draw_set_font(fnt_default);

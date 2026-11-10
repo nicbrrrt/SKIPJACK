@@ -4,6 +4,7 @@
 ///   - Dark 56% power-outage blackout overlay stays active until Stage 3 (global.power_restored)
 ///   - Unvisited/inactive rooms remain shrouded under 0.88 fog-of-war until Stage 4 (global.lockdown_lifted)
 
+if (variable_instance_exists(id, "is_intern_mode") && is_intern_mode) exit;
 if (!gen_complete) exit;
 
 var _chunk_px            = CHUNK_SIZE * TILE_SIZE; // 144 px per room

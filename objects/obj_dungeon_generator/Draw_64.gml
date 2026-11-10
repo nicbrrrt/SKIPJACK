@@ -2,6 +2,7 @@
 /// Displays the Chapter & Floor Curriculum HUD, Key status, Floor Intent Banner,
 /// and contextual [E] interaction prompts.
 
+if (variable_instance_exists(id, "is_intern_mode") && is_intern_mode) exit;
 if (!gen_complete) exit;
 if (instance_exists(obj_dungeon_victory)
     || instance_exists(obj_dungeon_quiz)

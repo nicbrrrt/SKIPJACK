@@ -1,5 +1,6 @@
-/// @description obj_intern_glass ?" Step Event
-near_player = false;
+/// @description obj_intern_glass — Step Event
+near_player      = false;
+is_repair_target = false;
 
 var _cx = x + 8;
 var _cy = y + 8;
@@ -13,14 +14,59 @@ if (instance_exists(obj_jack)) {
     }
 }
 
-// -----------------------------------------------------------------
-// 1. PLAYER REPAIR / REINFORCE WITH [E]
-// -----------------------------------------------------------------
-if (near_player && !is_shattered && glass_hp < 100) {
-    if (keyboard_check_pressed(ord("E"))) {
-        glass_hp = min(100, glass_hp + 35);
-        audio_play_sound(snd_correct_ping, 10, false);
+// Single-target selection: only the single closest damaged pane to Jack is the active repair target!
+if (near_player && !is_shattered && glass_hp < 100 && instance_exists(obj_jack)) {
+    var _closest_glass = noone;
+    var _best_d = 999999;
+    var _jx = obj_jack.x;
+    var _jy = obj_jack.y - 6;
+    with (obj_intern_glass) {
+        if (!is_shattered && glass_hp < 100) {
+            var _d = point_distance(x + 8, y + 8, _jx, _jy);
+            if (_d < 32 && _d < _best_d) {
+                _best_d = _d;
+                _closest_glass = id;
+            }
+        }
     }
+    is_repair_target = (_closest_glass == id);
+}
+
+// -----------------------------------------------------------------
+// 1. PLAYER REINFORCE: LONG PRESS HOLD [E] (5 Seconds)
+// -----------------------------------------------------------------
+if (is_repair_target && !is_shattered && glass_hp < 100) {
+    if (keyboard_check(ord("E"))) {
+        hold_timer++;
+        repair_spark_t++;
+
+        // Audio feedback while welding / reinforcing
+        if (repair_spark_t mod 25 == 0) {
+            audio_play_sound(snd_button_hover, 10, false);
+        }
+
+        // Progressively restore glass HP as player holds [E] down
+        glass_hp = min(100, glass_hp + (100.0 / hold_max));
+
+        if (hold_timer >= hold_max || glass_hp >= 100) {
+            glass_hp   = 100;
+            hold_timer = 0;
+            audio_play_sound(snd_objective_complete, 10, false);
+            audio_play_sound(snd_correct_ping, 10, false);
+
+            // Shoo away any interns loitering or banging on the deck glass back to their desks!
+            with (obj_intern) {
+                if (scr_intern_get_room_at(x, y) == ROOM_INTERN_GLASS && (state == INTERN_STATE_MISCHIEF || state == INTERN_STATE_TANTRUM || state == INTERN_STATE_BORED)) {
+                    scr_intern_send_to_work(id, 900);
+                }
+            }
+        }
+    } else {
+        // Key released: decay hold timer
+        hold_timer = max(0, hold_timer - 6);
+    }
+} else {
+    hold_timer = 0;
 }
 
 // -----------------------------------------------------------------

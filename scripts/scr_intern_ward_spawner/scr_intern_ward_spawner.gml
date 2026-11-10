@@ -13,22 +13,24 @@ function scr_intern_get_room_at(_px, _py) {
     var _tx = floor((_px - _ox) / 16);
     var _ty = floor((_py - _oy) / 16);
 
-    // Work Room (West)
-    if (_tx >= 0 && _tx <= 15 && _ty >= 6 && _ty <= 17) return ROOM_INTERN_WORK;
+    // Work Room (West) - interior cols 0..14, rows 6..17
+    if (_tx >= 0 && _tx <= 14 && _ty >= 6 && _ty <= 17) return ROOM_INTERN_WORK;
 
-    // Storage Room (North-West)
-    if (_tx >= 17 && _tx <= 24 && _ty >= 0 && _ty <= 7) return ROOM_INTERN_STORAGE;
+    // Storage Room (North-West) - interior cols 17..24, rows 0..6
+    if (_tx >= 17 && _tx <= 24 && _ty >= 0 && _ty <= 6) return ROOM_INTERN_STORAGE;
 
-    // Wellness Green Room (North-East)
-    if (_tx >= 26 && _tx <= 33 && _ty >= 0 && _ty <= 7) return ROOM_INTERN_GREEN;
+    // Wellness Green Room (North-East) - interior cols 26..33, rows 0..6
+    if (_tx >= 26 && _tx <= 33 && _ty >= 0 && _ty <= 6) return ROOM_INTERN_GREEN;
 
-    // Observation Deck Glass Room (East)
-    if (_tx >= 34 && _tx <= 41 && _ty >= 8 && _ty <= 16) return ROOM_INTERN_GLASS;
+    // Observation Deck Glass Room (East) - interior cols 35..41, rows 8..16
+    if (_tx >= 35 && _tx <= 41 && _ty >= 8 && _ty <= 16) return ROOM_INTERN_GLASS;
 
-    // Central Hallway Corridor & Doorway Branches
+    // Central Hallway Corridor, Door Thresholds & Branches
     if ((_tx >= 15 && _tx <= 34 && _ty >= 10 && _ty <= 15) ||
         (_tx >= 19 && _tx <= 21 && _ty >= 7 && _ty <= 11) ||
-        (_tx >= 28 && _tx <= 30 && _ty >= 7 && _ty <= 11)) {
+        (_tx >= 28 && _tx <= 30 && _ty >= 7 && _ty <= 11) ||
+        (_tx == 15 && _ty == 12) || // Work Room Door threshold
+        (_tx == 34 && _ty == 12)) { // Observation Deck Door threshold
         return ROOM_INTERN_HALL;
     }
 
@@ -248,18 +250,31 @@ function scr_spawn_intern_ward() {
     _wc.hazard_type = HAZARD_WATER;
 
     // -------------------------------------------------------------
-    // 5. Wellness Green Room Decor (Lounge chairs, relaxing props)
+    // 5. Facility Air Ventilation Units (3 Rooms with Vents)
     // -------------------------------------------------------------
-    var _chair1 = instance_create_layer(_ox + 28 * 16, _oy + 3 * 16, _layer, obj_dungeon_prop);
-    _chair1.prop_type = TILE_PROP_CHAIR;
-    _chair1.depth     = 28;
+    // Work Room Vent (North wall, col 8, row 6)
+    var _vent_work = instance_create_layer(_ox + 8 * 16, _oy + 6 * 16, _layer, obj_intern_vent);
+    _vent_work.room_assigned = ROOM_INTERN_WORK;
+    _vent_work.vent_label    = "Office Workroom Vent";
 
-    var _chair2 = instance_create_layer(_ox + 31 * 16, _oy + 3 * 16, _layer, obj_dungeon_prop);
-    _chair2.prop_type = TILE_PROP_CHAIR;
-    _chair2.depth     = 28;
+    // Storage Room Vent (North wall, col 21, row 0)
+    var _vent_storage = instance_create_layer(_ox + 21 * 16, _oy + 0 * 16, _layer, obj_intern_vent);
+    _vent_storage.room_assigned = ROOM_INTERN_STORAGE;
+    _vent_storage.vent_label    = "Storage Vault Vent";
+
+    // Observation Deck Vent (South wall, col 38, row 16)
+    var _vent_glass = instance_create_layer(_ox + 38 * 16, _oy + 16 * 16, _layer, obj_intern_vent);
+    _vent_glass.room_assigned = ROOM_INTERN_GLASS;
+    _vent_glass.vent_label    = "Observation Bullpen Vent";
 
     // -------------------------------------------------------------
-    // 6. Work Room: 10 Computer Desks & 10 Baby Interns!
+    // 6. Wellness Green Room Decor (4 Dedicated Relaxation Cushion Spots)
+    // Relaxation cushions are rendered directly onto the botanical carpet tiles
+    // at Spot 0 (28, 2), Spot 1 (31, 2), Spot 2 (28, 4), and Spot 3 (31, 4).
+    // -------------------------------------------------------------
+
+    // -------------------------------------------------------------
+    // 7. Work Room: 10 Computer Desks & 10 Baby Interns!
     // -------------------------------------------------------------
     var _desk_cols = [3, 5, 7, 9, 11,   3, 5, 7, 9, 11];
     var _desk_rows = [8, 8, 8, 8,  8,  13, 13, 13, 13, 13];
@@ -277,21 +292,38 @@ function scr_spawn_intern_ward() {
         _chair.depth     = 28;
 
         // Baby Intern
-        var _baby = instance_create_layer(_dx + 4, _dy + 8, _layer, obj_intern);
+        var _variant = (_i mod 5) + 1;
+        var _baby = instance_create_layer(_dx + 8, _dy + 14, _layer, obj_intern);
         _baby.intern_id       = _i;
-        _baby.home_desk_x     = _dx + 4;
-        _baby.home_desk_y     = _dy + 8;
+        _baby.intern_variant  = _variant;
+        _baby.home_desk_x     = _dx + 8;
+        _baby.home_desk_y     = _dy + 14;
 
-        // Dynamic individual focus & stamina (no simultaneous chaos wave!):
+        switch (_variant) {
+            case 1: _baby.sprite_index = intern1; break;
+            case 2: _baby.sprite_index = intern2; break;
+            case 3: _baby.sprite_index = intern3; break;
+            case 4: _baby.sprite_index = intern4; break;
+            case 5: _baby.sprite_index = intern5; break;
+            default: _baby.sprite_index = intern1; break;
+        }
+
+        // Dynamic individual focus & stamina (rapid chaotic escalation):
         if (_i == 0) {
-            _baby.boredom      = irandom_range(65, 80);
-            _baby.boredom_rate = random_range(0.045, 0.075); // gets restless around 5-8s
+            _baby.boredom      = 85;
+            _baby.boredom_rate = random_range(0.080, 0.130); // restless in ~2-3s!
         } else if (_i == 1) {
-            _baby.boredom      = irandom_range(35, 55);
-            _baby.boredom_rate = random_range(0.030, 0.050); // gets restless around 20-30s
+            _baby.boredom      = 70;
+            _baby.boredom_rate = random_range(0.070, 0.110); // restless in ~5s!
+        } else if (_i <= 3) {
+            _baby.boredom      = irandom_range(45, 60);
+            _baby.boredom_rate = random_range(0.060, 0.095); // restless in ~8-12s!
+        } else if (_i <= 5) {
+            _baby.boredom      = irandom_range(25, 40);
+            _baby.boredom_rate = random_range(0.050, 0.080); // restless in ~15-20s!
         } else {
-            _baby.boredom      = irandom_range(0, 45);
-            _baby.boredom_rate = random_range(0.012, 0.040); // spread across 40s to 120s+
+            _baby.boredom      = irandom_range(10, 25);
+            _baby.boredom_rate = random_range(0.045, 0.075); // restless in ~20-30s!
         }
 
         _baby.grace_timer     = 0;
@@ -309,4 +341,67 @@ function scr_spawn_intern_ward() {
     }
 
     show_debug_message("[scr_spawn_intern_ward] Intern Babysitting Ward successfully spawned with 4 rooms, Green Room, and downsized deck!");
+}
+
+/// @function scr_intern_send_to_work(_inst, _grace_frames)
+/// Sends an intern back to their office desk with full pathfinding and grace cooldowns!
+function scr_intern_send_to_work(_inst, _grace_frames) {
+    if (!instance_exists(_inst)) return;
+    with (_inst) {
+        if (state == INTERN_STATE_DEAD) return;
+
+        // Clear any vent targeting
+        vent_target = noone;
+
+        // Detach immediately from any active hazard
+        if (mischief_target != noone && instance_exists(mischief_target)) {
+            if (mischief_target.mischief_intern == id) {
+                mischief_target.mischief_intern = noone;
+            }
+            mischief_target = noone;
+        }
+
+        // Apply generous calming grace cooldowns
+        grace_timer   = _grace_frames; // Peaceful work grace timer (e.g. 900 = 15s)
+        vent_cooldown = 1800;          // 30 seconds immunity from vent crawling!
+        door_cooldown = 600;           // 10 seconds door locking cooldown
+        boredom       = 0;
+        target_room   = ROOM_INTERN_WORK;
+        target_x      = home_desk_x;
+        target_y      = home_desk_y;
+
+        // Doorway and corridor waypoint coordinates:
+        var _wp_work_in    = [544, 440];
+        var _wp_work       = [568, 440];
+        var _wp_work_hall  = [592, 440];
+        var _wp_junc_s     = [648, 440];
+        var _wp_storage_cor= [648, 384];
+        var _wp_storage    = [648, 360];
+        var _wp_storage_in = [648, 336];
+        var _wp_junc_g     = [792, 440];
+        var _wp_green_cor  = [792, 384];
+        var _wp_green      = [792, 360];
+        var _wp_green_in   = [792, 336];
+        var _wp_glass_hall = [848, 440];
+        var _wp_glass      = [872, 440];
+        var _wp_glass_in   = [896, 440];
+
+        var _cur_rm = scr_intern_get_room_at(x, y);
+
+        if (_cur_rm == ROOM_INTERN_STORAGE) {
+            waypoints = [_wp_storage_in, _wp_storage, _wp_storage_cor, _wp_junc_s, _wp_work_hall, _wp_work, _wp_work_in, [target_x, target_y]];
+        } else if (_cur_rm == ROOM_INTERN_GLASS) {
+            waypoints = [_wp_glass_in, _wp_glass, _wp_glass_hall, _wp_work_hall, _wp_work, _wp_work_in, [target_x, target_y]];
+        } else if (_cur_rm == ROOM_INTERN_GREEN) {
+            waypoints = [_wp_green_in, _wp_green, _wp_green_cor, _wp_junc_g, _wp_junc_s, _wp_work_hall, _wp_work, _wp_work_in, [target_x, target_y]];
+        } else if (_cur_rm == ROOM_INTERN_WORK) {
+            waypoints = [[target_x, target_y]];
+        } else {
+            waypoints = [_wp_work_hall, _wp_work, _wp_work_in, [target_x, target_y]];
+        }
+
+        current_wp = 0;
+        state      = INTERN_STATE_SEEK_ROOM;
+        audio_play_sound(snd_voice1, 10, false);
+    }
 }

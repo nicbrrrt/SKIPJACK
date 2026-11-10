@@ -32,9 +32,6 @@
   "resourceVersion":"2.0",
   "solid":false,
   "spriteId":null,
-  "spriteMaskId":{
-    "name":"spr_box",
-    "path":"sprites/spr_box/spr_box.yy",
-  },
+  "spriteMaskId":null,
   "visible":true,
 }

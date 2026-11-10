@@ -8,18 +8,37 @@ my_tilemap = layer_tilemap_get_id("Collision");
 if (room == rm_cutscene_lab || room == rm_hallway || room == rm_homeroom) {
     audio_stop_sound(snd_rm_level_1_city_music);
     audio_stop_sound(corporate);
+    audio_stop_sound(snd_intern_minigame);
     if (!audio_is_playing(snd_generic_background_music)) {
         audio_play_sound(snd_generic_background_music, 10, true);
     }
 } else if (room == dungeon_test) {
     audio_stop_sound(snd_generic_background_music);
     audio_stop_sound(snd_rm_level_1_city_music);
-    if (!audio_is_playing(corporate)) {
-        audio_play_sound(corporate, 10, true);
+    
+    if (variable_global_exists("intern_duty_flagged") && global.intern_duty_flagged) {
+        audio_stop_sound(corporate);
+        if (!audio_is_playing(snd_intern_minigame)) {
+            var _bgm = audio_play_sound(snd_intern_minigame, 10, true);
+            audio_sound_gain(_bgm, 0.75, 0);
+        }
+        x = 320 + 20 * 16 + 8; // 648 (Central Hallway)
+        y = 240 + 12 * 16 + 8; // 440
+        visible      = true;
+        isInCutscene = false;
+        bump_timer   = 0;
+        sprite_index = spr_jack_idle;
+    } else {
+        audio_stop_sound(snd_intern_minigame);
+        if (!audio_is_playing(corporate)) {
+            var _bgm = audio_play_sound(corporate, 10, true);
+            audio_sound_gain(_bgm, 0.45, 0); // Lowered volume of corporate a tad bit
+        }
     }
 } else if (room == rm_level_1) {
     audio_stop_sound(snd_generic_background_music);
     audio_stop_sound(corporate);
+    audio_stop_sound(snd_intern_minigame);
     if (!audio_is_playing(snd_rm_level_1_city_music)) {
         audio_play_sound(snd_rm_level_1_city_music, 10, true);
     }
@@ -27,6 +46,7 @@ if (room == rm_cutscene_lab || room == rm_hallway || room == rm_homeroom) {
     audio_stop_sound(snd_generic_background_music);
     audio_stop_sound(snd_rm_level_1_city_music);
     audio_stop_sound(corporate);
+    audio_stop_sound(snd_intern_minigame);
 }
 
 // 3. HOMEROOM SPAWN & CAMERA SNAP

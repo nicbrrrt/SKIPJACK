@@ -10,56 +10,125 @@ if (state == INTERN_STATE_DEAD) {
     exit;
 }
 
+if (state == INTERN_STATE_VENT_STUCK) {
+    // Intern is stuck head-first inside the air vent shaft; vent draws the kicking legs!
+    exit;
+}
+
 var _wobble = (state == INTERN_STATE_SEEK_ROOM || state == INTERN_STATE_TANTRUM) ? sin(walk_timer * 0.22) * 9 : 0;
 var _held   = (state == INTERN_STATE_HELD);
 
 // -------------------------------------------------------------
-// Draw Baby Intern Body
+// Draw Baby Intern Body (Uses Spritesheets intern1..intern5)
 // -------------------------------------------------------------
-var _by = y + 4;
+var _variant = variable_instance_exists(id, "intern_variant") ? intern_variant : ((intern_id mod 5) + 1);
+var _spr = intern1;
+switch (_variant) {
+    case 1: _spr = intern1; break;
+    case 2: _spr = intern2; break;
+    case 3: _spr = intern3; break;
+    case 4: _spr = intern4; break;
+    case 5: _spr = intern5; break;
+    default: _spr = intern1; break;
+}
 
-// Drop shadow
-draw_set_alpha(0.35);
-draw_set_color(c_black);
-draw_ellipse(x - 5, y + 2, x + 5, y + 6, false);
-draw_set_alpha(1.0);
+// Drop shadow under intern feet (not while held)
+if (state != INTERN_STATE_HELD) {
+    draw_set_alpha(0.35);
+    draw_set_color(c_black);
+    draw_ellipse(x - 6, y + 1, x + 6, y + 5, false);
+    draw_set_alpha(1.0);
+}
 
-// Tiny business trousers / diaper
-draw_set_color(make_color_rgb(45, 50, 65));
-draw_rectangle(x - 4, y, x + 4, y + 4, false);
+// Full LimeZu Character Spritesheet (896 x 640 grid of 16x32 character frames)
+var _src_x = 48; // Default Idle Down
+var _src_y = 0;
+var _draw_y_offset = -28;
 
-// Tiny white dress shirt
-draw_set_color(c_white);
-draw_rectangle(x - 4, y - 5, x + 4, y, false);
+if (state == INTERN_STATE_WORK) {
+    // Row 7: reading / typing papers at desk (6 frames)
+    _src_x = ((walk_timer div 8) mod 6) * 16;
+    _src_y = 224;
+    _draw_y_offset = -28;
+}
+else if (state == INTERN_STATE_SOOTHED) {
+    // Row 3: relaxing snuggled on cushion (6 frames)
+    _src_x = ((walk_timer div 20) mod 6) * 16;
+    _src_y = 96;
+    _draw_y_offset = -16;
+}
+else if (state == INTERN_STATE_KNOCKED_OUT) {
+    // Row 3: fainted / resting on floor
+    _src_x = 0;
+    _src_y = 96;
+    _draw_y_offset = -16;
+}
+else if (state == INTERN_STATE_TANTRUM) {
+    // Row 2: 4-directional angry sprint / tantrum
+    var _wf = (walk_timer div 3) mod 6;
+    if (face_dir >= 45 && face_dir < 135) {
+        // Moving North (Up) - Cols 6..11
+        _src_x = (6 + _wf) * 16;
+        _src_y = 64;
+    } else if (face_dir >= 135 && face_dir < 225) {
+        // Moving West (Left) - Cols 12..17
+        _src_x = (12 + _wf) * 16;
+        _src_y = 64;
+    } else if (face_dir >= 225 && face_dir < 315) {
+        // Moving South (Down) - Cols 18..23
+        _src_x = (18 + _wf) * 16;
+        _src_y = 64;
+    } else {
+        // Moving East (Right) - Cols 0..5
+        _src_x = _wf * 16;
+        _src_y = 64;
+    }
+    _draw_y_offset = -28;
+}
+else if (state == INTERN_STATE_SEEK_ROOM) {
+    // Row 1: 4-directional 6-frame walk cycle (paced to toddler waddle speed 1.1)
+    var _wf = (walk_timer div 6) mod 6;
+    if (face_dir >= 45 && face_dir < 135) {
+        // Moving North (Up) - Cols 6..11
+        _src_x = (6 + _wf) * 16;
+        _src_y = 32;
+    } else if (face_dir >= 135 && face_dir < 225) {
+        // Moving West (Left) - Cols 12..17
+        _src_x = (12 + _wf) * 16;
+        _src_y = 32;
+    } else if (face_dir >= 225 && face_dir < 315) {
+        // Moving South (Down) - Cols 18..23
+        _src_x = (18 + _wf) * 16;
+        _src_y = 32;
+    } else {
+        // Moving East (Right) - Cols 0..5
+        _src_x = _wf * 16;
+        _src_y = 32;
+    }
+    _draw_y_offset = -28;
+}
+else if (state == INTERN_STATE_HELD) {
+    // Idle South facing camera while held up
+    _src_x = 48;
+    _src_y = 0;
+    _draw_y_offset = -26;
+}
+else {
+    // Idle directional pose
+    if (face_dir >= 45 && face_dir < 135)       { _src_x = 16; _src_y = 0; } // Up (Col 1)
+    else if (face_dir >= 135 && face_dir < 225) { _src_x = 32; _src_y = 0; } // West / Left (Col 2)
+    else if (face_dir >= 225 && face_dir < 315) { _src_x = 48; _src_y = 0; } // Down (Col 3)
+    else                                        { _src_x = 0;  _src_y = 0; } // East / Right (Col 0)
+    _draw_y_offset = -28;
+}
 
-// Tiny corporate tie!
-draw_set_color(tie_color);
-draw_line(x, y - 5, x, y - 1);
-draw_triangle(x - 1, y - 5, x + 1, y - 5, x, y - 1, false);
+var _draw_x = round(x - 8);
+var _draw_y = round(y + _draw_y_offset);
+draw_sprite_part_ext(_spr, 0, _src_x, _src_y, 16, 32, _draw_x, _draw_y, 1, 1, c_white, 1.0);
 
-// Chubby baby head
-var _face_col = (state == INTERN_STATE_TANTRUM) ? make_color_rgb(255, 140, 140) : make_color_rgb(255, 220, 185);
-draw_set_color(_face_col);
-draw_circle(x, y - 8, 4.5, false);
-
-// Hair tuft
-draw_set_color(hair_color);
-draw_circle(x, y - 11, 3.5, false);
-
-// Eyes & expression
-draw_set_color(c_black);
 if (state == INTERN_STATE_KNOCKED_OUT) {
-    // Spiral dizzy eyes
-    draw_text_transformed(x - 4, y - 10, "x", 0.35, 0.35, 0);
-    draw_text_transformed(x + 1, y - 10, "x", 0.35, 0.35, 0);
-} else if (state == INTERN_STATE_TANTRUM) {
-    // Screaming crying eyes
-    draw_text_transformed(x - 4, y - 10, ">", 0.35, 0.35, 0);
-    draw_text_transformed(x + 1, y - 10, "<", 0.35, 0.35, 0);
-} else {
-    // Cute shiny black dots
-    draw_circle(x - 1.5, y - 8, 0.8, false);
-    draw_circle(x + 1.5, y - 8, 0.8, false);
+    draw_set_color(c_yellow);
+    draw_text_transformed(x, y - 26, "Z z Z", 0.4, 0.4, 0);
 }
 
 // -------------------------------------------------------------
@@ -114,7 +183,7 @@ if (_badge_text != "" && state != INTERN_STATE_KNOCKED_OUT && state != INTERN_ST
     var _tw = string_width(_badge_text) * _scale + 6;
     var _th = 8;
     var _bx = x - _tw * 0.5;
-    var _by = y - 20;
+    var _by = y - 36;
 
     // Dark pill container
     draw_set_alpha(0.82);
@@ -168,7 +237,7 @@ if (state == INTERN_STATE_KNOCKED_OUT) {
     }
 }
 // Grab prompt
-else if (near_player && global.held_intern_inst == noone && state != INTERN_STATE_HELD) {
+else if (near_player && global.held_intern_inst == noone && state != INTERN_STATE_HELD && state != INTERN_STATE_SOOTHED) {
     draw_set_color(c_white);
     draw_text_transformed(x, y + 10, "[G] PICK UP", 0.38, 0.38, 0);
 }

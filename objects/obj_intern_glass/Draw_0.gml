@@ -82,13 +82,36 @@ if (is_shattered) {
         draw_set_color(c_white);
         draw_rectangle(_bx1 - 1, _by1 - 1, _bx1 + _bw + 1, _by1 + _bh + 1, true);
 
-        // Prompt to patch/reinforce when Jack is near
-        if (near_player) {
+        // Prompt to patch/reinforce when this is the single targeted pane
+        if (is_repair_target) {
+            var _hpct = clamp(hold_timer / hold_max, 0, 1);
+            var _pw   = 36;
+            var _ph   = 4;
+            var _px   = _cx - _pw * 0.5;
+            var _py   = _by1 - 12;
+
             draw_set_halign(fa_center);
             draw_set_valign(fa_bottom);
             draw_set_font(fnt_dialogue);
-            draw_set_color(c_lime);
-            draw_text_transformed(_cx, _by1 - 4, "[E] REINFORCE (+35 HP)", 0.38, 0.38, 0);
+            draw_set_color((_hpct > 0) ? c_aqua : c_yellow);
+            var _msg = (_hpct > 0) ? ("HOLD [E] REINFORCING (" + string(round(_hpct * 100)) + "%)") : "HOLD [E] REINFORCE (5s)";
+            draw_text_transformed(_cx, _py - 2, _msg, 0.38, 0.38, 0);
+
+            // Hold progress bar
+            draw_set_alpha(0.95);
+            draw_set_color(c_black);
+            draw_rectangle(_px - 1, _py - 1, _px + _pw + 1, _py + _ph + 1, false);
+            draw_set_color(merge_color(make_color_rgb(0, 180, 255), c_lime, _hpct));
+            draw_rectangle(_px, _py, _px + _pw * _hpct, _py + _ph, false);
+            draw_set_color(c_white);
+            draw_rectangle(_px - 1, _py - 1, _px + _pw + 1, _py + _ph + 1, true);
+
+            // Subtle welding sparks while holding [E]
+            if (_hpct > 0 && (repair_spark_t mod 6 < 3)) {
+                draw_set_color(c_yellow);
+                draw_circle(_cx + irandom_range(-6, 6), _cy + irandom_range(-6, 6), 1.5, false);
+            }
+
             draw_set_halign(fa_left);
             draw_set_valign(fa_top);
             draw_set_font(fnt_default);
