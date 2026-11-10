@@ -1,6 +1,18 @@
 // --- Step Event for obj_button_intern_duty ---
 // Keyboard shortcut: Press 'I' to launch Intern Babysitting Duty mode directly
 
+if (!variable_global_exists("hr_scrap_count") || global.hr_scrap_count <= 0) {
+    global.hr_scrap_count = 4;
+}
+
+// Right-click button to cycle test scrap difficulty: 4 -> 8 -> 12 -> 4
+if (position_meeting(mouse_x, mouse_y, id) && mouse_check_button_pressed(mb_right)) {
+    if (global.hr_scrap_count < 6)       global.hr_scrap_count = 8;
+    else if (global.hr_scrap_count < 10) global.hr_scrap_count = 12;
+    else                                global.hr_scrap_count = 4;
+    audio_play_sound(snd_button_hover, 10, false);
+}
+
 if (keyboard_check_pressed(ord("I"))) {
     if (instance_exists(obj_review_screen)) exit;
     if (instance_exists(obj_codex_manager) && obj_codex_manager.is_open) exit;
@@ -10,7 +22,6 @@ if (keyboard_check_pressed(ord("I"))) {
 
     global.intern_duty_flagged = true;
     global.dungeons_cleared    = 0;
-    global.hr_scrap_count      = 4;
 
     global.cam_pan_phase   = "off";
     global.cam_pan_mode    = "";

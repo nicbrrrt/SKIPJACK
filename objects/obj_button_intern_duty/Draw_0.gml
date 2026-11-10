@@ -23,12 +23,15 @@ draw_set_color(_txt_col);
 draw_text(x, _center_y - 6, "INTERN DUTY");
 
 // Sub-label showing test info & shortcut key
+var _scrap_num = variable_global_exists("hr_scrap_count") ? global.hr_scrap_count : 4;
+var _sub_label = "[ PLAYTEST (I) | " + string(_scrap_num) + " SCRAP (R-CLICK) ]";
+
 draw_set_font(fnt_dialogue);
 draw_set_color(c_black);
-draw_text(x + 1, _center_y + 15, "[ PLAYTEST / KEY: I ]");
+draw_text(x + 1, _center_y + 15, _sub_label);
 
 draw_set_color(_is_hovered ? c_white : make_color_rgb(180, 220, 255));
-draw_text(x, _center_y + 14, "[ PLAYTEST / KEY: I ]");
+draw_text(x, _center_y + 14, _sub_label);
 
 // Reset draw state
 draw_set_color(c_white);

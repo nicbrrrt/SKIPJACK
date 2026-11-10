@@ -52,6 +52,20 @@ if (isInCutscene
     exit;
 }
 
+// --- INTERN TANTRUM STUN LOCK ---
+if (variable_global_exists("jack_stun_timer") && global.jack_stun_timer > 0) {
+    global.jack_stun_timer--;
+    sprite_index = spr_jack_hurt;
+    image_speed  = 0.2;
+    if (variable_global_exists("jack_hit_cooldown") && global.jack_hit_cooldown > 0) {
+        global.jack_hit_cooldown--;
+    }
+    exit;
+}
+if (variable_global_exists("jack_hit_cooldown") && global.jack_hit_cooldown > 0) {
+    global.jack_hit_cooldown--;
+}
+
 // --- LOCKED DOOR BUMP / KNOCKBACK SEQUENCE ---
 if (!variable_instance_exists(id, "bump_timer")) {
     bump_timer     = 0;

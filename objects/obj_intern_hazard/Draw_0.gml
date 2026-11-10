@@ -168,13 +168,18 @@ else if (hazard_type == HAZARD_LOCKER) {
 // -----------------------------------------------------------------
 else if (hazard_type == HAZARD_WATER) {
     if (is_fallen) {
-        // Fallen water cooler + puddle
-        draw_set_alpha(0.45);
-        draw_set_color(c_aqua);
-        draw_ellipse(x - 8, y + 6, x + 24, y + 16, false);
+        // Fallen water cooler on its side
         draw_set_alpha(0.9);
-        draw_set_color(c_white);
+        draw_set_color(make_color_rgb(220, 225, 235));
         draw_rectangle(x + 2, y + 10, x + 14, y + 15, false);
+        draw_set_color(make_color_rgb(140, 150, 165));
+        draw_rectangle(x + 2, y + 10, x + 14, y + 15, true);
+
+        // Plastic jug lying cracked on its side
+        draw_set_color(make_color_rgb(40, 140, 240));
+        draw_ellipse(x - 5, y + 9, x + 3, y + 15, false);
+        draw_set_color(c_aqua);
+        draw_ellipse(x - 4, y + 10, x + 2, y + 14, true);
 
         if (is_interact_target) {
             var _bw = 32;

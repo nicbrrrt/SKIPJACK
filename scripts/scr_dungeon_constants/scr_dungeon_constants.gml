@@ -67,6 +67,7 @@
 #macro INTERN_STATE_SOOTHED    8 // Relaxing in Green Room (takes 10-20s, resets boredom)
 #macro INTERN_STATE_TRAPPED    9 // Locked inside locker (hidden, awaiting player struggle pry)
 #macro INTERN_STATE_VENT_STUCK 10 // Stuck in air vent shaft (blocks room airflow)
+#macro INTERN_STATE_FUMING     11 // Pre-tantrum fuming/whining (safe grabbable window before full tantrum)
 
 #macro HAZARD_SHELF          0   // Heavy supply shelf (wobbles and tips over)
 #macro HAZARD_LOCKER         1   // Metal locker (rattles, traps intern)

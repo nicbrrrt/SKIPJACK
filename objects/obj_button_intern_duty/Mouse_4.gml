@@ -9,7 +9,7 @@ audio_play_sound(snd_button_click, 10, false);
 // Flag intern babysitting mode
 global.intern_duty_flagged = true;
 global.dungeons_cleared    = 0;
-global.hr_scrap_count      = 4;
+if (!variable_global_exists("hr_scrap_count") || global.hr_scrap_count <= 0) global.hr_scrap_count = 4;
 
 // Reset camera pan state so it centers immediately on Jack in the ward
 global.cam_pan_phase   = "off";

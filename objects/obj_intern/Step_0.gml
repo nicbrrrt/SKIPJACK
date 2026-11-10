@@ -150,24 +150,52 @@ if (keyboard_check_pressed(ord("G")) && instance_exists(obj_jack)) {
             }
         }
     }
-    else if (global.held_intern_inst == noone && (!variable_global_exists("intern_drop_frame") || global.intern_drop_frame != current_time) && near_player && state != INTERN_STATE_DEAD && state != INTERN_STATE_TRAPPED && state != INTERN_STATE_SOOTHED) {
-        // Pick up intern!
-        global.held_intern_inst = id;
-        state = INTERN_STATE_HELD;
-        
-        // Detach immediately from any wobbling hazard
-        if (mischief_target != noone && instance_exists(mischief_target)) {
-            if (mischief_target.mischief_intern == id) {
-                mischief_target.mischief_intern = noone;
-            }
-            mischief_target = noone;
-        }
-        with (obj_intern_hazard) {
-            if (mischief_intern == other.id) {
-                mischief_intern = noone;
+    else if (near_player && state != INTERN_STATE_DEAD && state != INTERN_STATE_TRAPPED && state != INTERN_STATE_SOOTHED) {
+        if (state == INTERN_STATE_TANTRUM) {
+            // Cannot grab an intern during an active violent tantrum!
+            audio_play_sound(snd_error, 10, false);
+            audio_play_sound(snd_attack_impact, 10, false);
+            var _diff_s = scr_intern_get_scrap_difficulty();
+            global.jack_stun_timer   = variable_struct_exists(_diff_s, "jack_stun_frames") ? _diff_s.jack_stun_frames : 90;
+            global.jack_hit_cooldown = 120;
+            global.player_has_mop    = false;
+            global.player_has_wrench = false;
+            with (obj_intern_ward_controller) {
+                tantrum_hit_alert = 90;
             }
         }
-        audio_play_sound(snd_select, 10, false);
+        else {
+            var _has_tool = (variable_global_exists("player_has_mop") && global.player_has_mop)
+                         || (variable_global_exists("player_has_wrench") && global.player_has_wrench);
+            if (_has_tool) {
+                // Player's hands are full carrying a maintenance tool! Cannot grab intern!
+                audio_play_sound(snd_error, 10, false);
+                with (obj_intern_ward_controller) {
+                    hands_full_alert = 90;
+                }
+            }
+            else if (global.held_intern_inst == noone && (!variable_global_exists("intern_drop_frame") || global.intern_drop_frame != current_time)) {
+                // Pick up intern!
+                global.held_intern_inst = id;
+                state        = INTERN_STATE_HELD;
+                is_slipped   = false;
+                fuming_timer = 0;
+                
+                // Detach immediately from any wobbling hazard
+                if (mischief_target != noone && instance_exists(mischief_target)) {
+                    if (mischief_target.mischief_intern == id) {
+                        mischief_target.mischief_intern = noone;
+                    }
+                    mischief_target = noone;
+                }
+                with (obj_intern_hazard) {
+                    if (mischief_intern == other.id) {
+                        mischief_intern = noone;
+                    }
+                }
+                audio_play_sound(snd_select, 10, false);
+            }
+        }
     }
 }
 
@@ -214,13 +242,74 @@ if (state != INTERN_STATE_HELD && state != INTERN_STATE_DEAD && state != INTERN_
     }
 }
 
+// Puddle collision & slip check
+slip_cooldown = max(0, slip_cooldown - 1);
+
+if (state != INTERN_STATE_HELD && state != INTERN_STATE_DEAD && state != INTERN_STATE_TRAPPED && state != INTERN_STATE_VENT_STUCK && slip_cooldown <= 0) {
+    var _puddle = instance_nearest(x, y, obj_intern_puddle);
+    if (_puddle != noone) {
+        var _pdx = (x - _puddle.x) / _puddle.radius_x;
+        var _pdy = (y - _puddle.y) / _puddle.radius_y;
+        if ((_pdx * _pdx + _pdy * _pdy) <= 1.0) {
+            // INTERN SLIPS ON THE SPILLED WATER!
+            var _diff_slip = scr_intern_get_scrap_difficulty();
+            var _dmg = variable_struct_exists(_diff_slip, "slip_damage") ? _diff_slip.slip_damage : 25;
+            intern_hp = max(0, intern_hp - _dmg);
+
+            is_slipped    = true;
+            slip_timer    = 240; // 4 seconds dazed on floor
+            wake_timer    = 240;
+            slip_cooldown = 360; // 6 seconds before can slip again after recovering
+
+            // Slide velocity in moving direction
+            var _sdir = face_dir;
+            if (state == INTERN_STATE_SEEK_ROOM && current_wp < array_length(waypoints)) {
+                _sdir = point_direction(x, y, waypoints[current_wp][0], waypoints[current_wp][1]);
+            }
+            slip_vx = lengthdir_x(5.0, _sdir);
+            slip_vy = lengthdir_y(2.5, _sdir);
+
+            // Detach immediately from any active hazard
+            if (mischief_target != noone && instance_exists(mischief_target)) {
+                if (mischief_target.mischief_intern == id) mischief_target.mischief_intern = noone;
+                mischief_target = noone;
+            }
+
+            if (intern_hp <= 0) {
+                state      = INTERN_STATE_DEAD;
+                is_slipped = false;
+                global.interns_lost++;
+                global.legal_fund = max(0, global.legal_fund - 150);
+                audio_play_sound(snd_die, 10, false);
+            } else {
+                state          = INTERN_STATE_KNOCKED_OUT;
+                knockout_timer = 1800; // in fresh hallway air, safe from suffocation
+                revive_meter   = 0.0;
+            }
+
+            audio_play_sound(snd_moveselect, 10, false);
+            audio_play_sound(snd_hurt, 10, false);
+            audio_play_sound(snd_attack_impact, 10, false);
+        }
+    }
+}
+
+// Skid velocity damping during initial slip frames
+if (is_slipped && (abs(slip_vx) > 0.1 || abs(slip_vy) > 0.1)) {
+    x += slip_vx;
+    y += slip_vy;
+    slip_vx *= 0.85;
+    slip_vy *= 0.85;
+}
+
 // Calming trigger when entering the Green Room (only if agitated or placed by player, NOT when exiting to work!)
 if (scr_intern_get_room_at(x, y) == ROOM_INTERN_GREEN && state != INTERN_STATE_SOOTHED && state != INTERN_STATE_KNOCKED_OUT && state != INTERN_STATE_SEEK_ROOM) {
-    if (state == INTERN_STATE_MISCHIEF || state == INTERN_STATE_TANTRUM || state == INTERN_STATE_BORED) {
+    if (state == INTERN_STATE_MISCHIEF || state == INTERN_STATE_TANTRUM || state == INTERN_STATE_BORED || state == INTERN_STATE_FUMING) {
+        var _diff    = scr_intern_get_scrap_difficulty();
         state        = INTERN_STATE_SOOTHED;
-        soothe_timer = 900; // 15 seconds!
+        soothe_timer = _diff.soothe_time;
         boredom      = 0;
-        boredom_rate = random_range(0.045, 0.085);
+        boredom_rate = random_range(_diff.boredom_min, _diff.boredom_max);
         audio_play_sound(snd_voice1, 10, false);
 
         // Snap to nearest relaxation spot if close
@@ -275,15 +364,14 @@ switch (state) {
                 state = INTERN_STATE_BORED;
                 audio_play_sound(snd_voice1, 10, false);
             }
-        } else {
-            boredom = 0;
         }
         break;
 
     case INTERN_STATE_BORED:
-        // If still under grace timer, return to desk and stay peaceful!
+        // If still under grace timer, stay peaceful at desk
         if (grace_timer > 0) {
-            scr_intern_send_to_work(id, grace_timer);
+            state   = INTERN_STATE_WORK;
+            boredom = 0;
             break;
         }
 
@@ -294,7 +382,7 @@ switch (state) {
         if (vent_cooldown <= 0 && grace_timer <= 0 && irandom(99) < 32) {
             var _avail_vents = [];
             with (obj_intern_vent) {
-                if (!is_clogged && cooldown <= 0 && stuck_intern == noone) {
+                if (!is_clogged && cooldown <= 0 && stuck_intern == noone && vent_hp > 0 && !is_down) {
                     array_push(_avail_vents, id);
                 }
             }
@@ -314,28 +402,28 @@ switch (state) {
                 vent_target = _chosen_vent;
                 target_room = _chosen_vent.room_assigned;
                 target_x    = _chosen_vent.x + 8;
-                target_y    = (_chosen_vent.room_assigned == ROOM_INTERN_GLASS) ? (_chosen_vent.y - 10) : (_chosen_vent.y + 16);
+                target_y    = (_chosen_vent.room_assigned == ROOM_INTERN_GLASS) ? (_chosen_vent.y - 12) : (_chosen_vent.y + 20);
             }
         }
 
-        // 2. If not seeking a vent, pick standard mischievous destination:
+        // 2. If not seeking a vent, pick genuine hazard destinations across facility (no fake office wandering):
         if (vent_target == noone) {
             var _roll = irandom(99);
-            if (_roll < 45) {
-                // Storage Room hazards (~45%)
+            if (_roll < 38) {
+                // Storage Room hazards (~38%)
                 target_room = ROOM_INTERN_STORAGE;
                 target_x    = 320 + irandom_range(18 * 16, 23 * 16);
                 target_y    = 240 + irandom_range(2 * 16, 5 * 16);
-            } else if (_roll < 90) {
-                // Observation Deck panoramic glass (~45%)
+            } else if (_roll < 65) {
+                // Hallway Water Cooler (~27%)
+                target_room = ROOM_INTERN_HALL;
+                target_x    = 320 + 24 * 16 + 8;
+                target_y    = 240 + 11 * 16 + 14;
+            } else {
+                // Observation Deck panoramic glass (~35%)
                 target_room = ROOM_INTERN_GLASS;
                 target_x    = 320 + irandom_range(35 * 16, 40 * 16);
                 target_y    = 240 + irandom_range(10 * 16, 14 * 16);
-            } else {
-                // Work Room wander (~10%)
-                target_room = ROOM_INTERN_WORK;
-                target_x    = 320 + irandom_range(3 * 16, 12 * 16);
-                target_y    = 240 + irandom_range(9 * 16, 15 * 16);
             }
         }
 
@@ -347,6 +435,8 @@ switch (state) {
                 waypoints = [_wp_work_in, _wp_work, _wp_work_hall, _wp_junc_s, _wp_storage_cor, _wp_storage, _wp_storage_in, [target_x, target_y]];
             } else if (target_room == ROOM_INTERN_GLASS) {
                 waypoints = [_wp_work_in, _wp_work, _wp_work_hall, _wp_glass_hall, _wp_glass, _wp_glass_in, [target_x, target_y]];
+            } else if (target_room == ROOM_INTERN_HALL) {
+                waypoints = [_wp_work_in, _wp_work, _wp_work_hall, [target_x, target_y]];
             } else {
                 waypoints = [[target_x, target_y]];
             }
@@ -356,6 +446,8 @@ switch (state) {
                 waypoints = [_wp_storage_in, _wp_storage, _wp_storage_cor, _wp_junc_s, _wp_work_hall, _wp_work, _wp_work_in, [target_x, target_y]];
             } else if (target_room == ROOM_INTERN_GLASS) {
                 waypoints = [_wp_storage_in, _wp_storage, _wp_storage_cor, _wp_junc_s, _wp_glass_hall, _wp_glass, _wp_glass_in, [target_x, target_y]];
+            } else if (target_room == ROOM_INTERN_HALL) {
+                waypoints = [_wp_storage_in, _wp_storage, _wp_storage_cor, _wp_junc_s, [target_x, target_y]];
             } else {
                 waypoints = [[target_x, target_y]];
             }
@@ -365,6 +457,8 @@ switch (state) {
                 waypoints = [_wp_glass_in, _wp_glass, _wp_glass_hall, _wp_work_hall, _wp_work, _wp_work_in, [target_x, target_y]];
             } else if (target_room == ROOM_INTERN_STORAGE) {
                 waypoints = [_wp_glass_in, _wp_glass, _wp_glass_hall, _wp_junc_s, _wp_storage_cor, _wp_storage, _wp_storage_in, [target_x, target_y]];
+            } else if (target_room == ROOM_INTERN_HALL) {
+                waypoints = [_wp_glass_in, _wp_glass, _wp_glass_hall, [target_x, target_y]];
             } else {
                 waypoints = [[target_x, target_y]];
             }
@@ -377,6 +471,8 @@ switch (state) {
                 waypoints = [_wp_green_in, _wp_green, _wp_green_cor, _wp_junc_g, _wp_junc_s, _wp_storage_cor, _wp_storage, _wp_storage_in, [target_x, target_y]];
             } else if (target_room == ROOM_INTERN_GLASS) {
                 waypoints = [_wp_green_in, _wp_green, _wp_green_cor, _wp_junc_g, _wp_glass_hall, _wp_glass, _wp_glass_in, [target_x, target_y]];
+            } else if (target_room == ROOM_INTERN_HALL) {
+                waypoints = [_wp_green_in, _wp_green, _wp_green_cor, _wp_junc_g, [target_x, target_y]];
             } else {
                 waypoints = [[target_x, target_y]];
             }
@@ -385,7 +481,8 @@ switch (state) {
             // In hallway
             if (target_room == ROOM_INTERN_STORAGE)      waypoints = [_wp_junc_s, _wp_storage_cor, _wp_storage, _wp_storage_in, [target_x, target_y]];
             else if (target_room == ROOM_INTERN_GLASS)   waypoints = [_wp_glass_hall, _wp_glass, _wp_glass_in, [target_x, target_y]];
-            else                                         waypoints = [_wp_work_hall, _wp_work, _wp_work_in, [target_x, target_y]];
+            else if (target_room == ROOM_INTERN_WORK)    waypoints = [_wp_work_hall, _wp_work, _wp_work_in, [target_x, target_y]];
+            else                                         waypoints = [[target_x, target_y]];
         }
 
         current_wp = 0;
@@ -396,16 +493,25 @@ switch (state) {
         // Follow waypoints cleanly through doorways
         walk_timer++;
 
-        // Mischievous door slamming: only when running right through a doorway threshold and NOT in grace/cooldown!
-        var _close_door = instance_nearest(x, y, obj_intern_door);
-        if (_close_door != noone && !_close_door.is_locked && !_close_door.is_closed && _close_door.slam_cooldown <= 0) {
-            if (grace_timer <= 0 && door_cooldown <= 0 && mischief_target == noone && point_distance(x, y, _close_door.x + 8, _close_door.y + 8) < 18) {
-                if (irandom(60) == 0) {
-                    _close_door.is_closed     = true;
-                    _close_door.is_locked     = true;
-                    _close_door.slam_cooldown = 400; // ~6.6s before door can be slammed again
-                    door_cooldown             = 400; // Intern cannot slam another door for ~6.6s
+        // Peaceful walkers traversing doorways will never slam doors (doors only lock when an intern inside does active mischief)
+
+        // Proximity check for vent crawling: if within reach of target vent, immediately enter!
+        if (vent_target != noone && instance_exists(vent_target)) {
+            var _dist_vent = point_distance(x, y, vent_target.x + 8, vent_target.y + 8);
+            if (_dist_vent <= 26) {
+                if (!vent_target.is_clogged && vent_target.cooldown <= 0 && vent_target.stuck_intern == noone && vent_cooldown <= 0 && vent_target.vent_hp > 0 && !vent_target.is_down) {
+                    vent_target.is_clogged    = true;
+                    vent_target.stuck_intern  = id;
+                    vent_target.struggle_pull = 0.0;
+                    state       = INTERN_STATE_VENT_STUCK;
+                    visible     = false;
+                    vent_target = noone;
                     audio_play_sound(snd_attack_impact, 10, false);
+                    audio_play_sound(snd_voice2, 10, false);
+                    break;
+                } else {
+                    vent_target = noone;
+                    state       = INTERN_STATE_MISCHIEF;
                 }
             }
         }
@@ -429,12 +535,12 @@ switch (state) {
             if (!_hit_x) x += _vx;
             if (!_hit_y) y += _vy;
 
-            if (point_distance(x, y, _dest_x, _dest_y) <= 6) {
+            if (point_distance(x, y, _dest_x, _dest_y) <= 8) {
                 current_wp++;
                 if (current_wp >= array_length(waypoints)) {
                     // 1. Did we specifically seek an air vent?
                     if (vent_target != noone && instance_exists(vent_target)) {
-                        if (!vent_target.is_clogged && vent_target.cooldown <= 0 && vent_target.stuck_intern == noone) {
+                        if (!vent_target.is_clogged && vent_target.cooldown <= 0 && vent_target.stuck_intern == noone && vent_target.vent_hp > 0 && !vent_target.is_down) {
                             vent_target.is_clogged    = true;
                             vent_target.stuck_intern  = id;
                             vent_target.struggle_pull = 0.0;
@@ -448,16 +554,17 @@ switch (state) {
                         vent_target = noone;
                     }
 
-                    // 2. Standard room transitions
-                    if (target_room == ROOM_INTERN_WORK) {
+                    // 2. Standard room transitions (ONLY sit down at desk if specifically returning to own desk)
+                    var _diff = scr_intern_get_scrap_difficulty();
+                    if (target_room == ROOM_INTERN_WORK && target_x == home_desk_x && target_y == home_desk_y) {
                         state        = INTERN_STATE_WORK;
                         boredom      = 0;
-                        boredom_rate = random_range(0.045, 0.085);
+                        boredom_rate = random_range(_diff.boredom_min, _diff.boredom_max);
                     } else if (target_room == ROOM_INTERN_GREEN) {
                         state        = INTERN_STATE_SOOTHED;
-                        soothe_timer = 900; // 15 seconds!
+                        soothe_timer = _diff.soothe_time;
                         boredom      = 0;
-                        boredom_rate = random_range(0.045, 0.085);
+                        boredom_rate = random_range(_diff.boredom_min, _diff.boredom_max);
                         audio_play_sound(snd_voice1, 10, false);
                     } else {
                         state          = INTERN_STATE_MISCHIEF;
@@ -468,7 +575,7 @@ switch (state) {
         } else {
             // Already arrived / empty waypoint path
             if (vent_target != noone && instance_exists(vent_target)) {
-                if (!vent_target.is_clogged && vent_target.cooldown <= 0 && vent_target.stuck_intern == noone) {
+                if (!vent_target.is_clogged && vent_target.cooldown <= 0 && vent_target.stuck_intern == noone && vent_target.vent_hp > 0 && !vent_target.is_down) {
                     vent_target.is_clogged    = true;
                     vent_target.stuck_intern  = id;
                     vent_target.struggle_pull = 0.0;
@@ -482,15 +589,16 @@ switch (state) {
                 vent_target = noone;
             }
 
-            if (target_room == ROOM_INTERN_WORK) {
+            var _diff = scr_intern_get_scrap_difficulty();
+            if (target_room == ROOM_INTERN_WORK && target_x == home_desk_x && target_y == home_desk_y) {
                 state        = INTERN_STATE_WORK;
                 boredom      = 0;
-                boredom_rate = random_range(0.045, 0.085);
+                boredom_rate = random_range(_diff.boredom_min, _diff.boredom_max);
             } else if (target_room == ROOM_INTERN_GREEN) {
                 state        = INTERN_STATE_SOOTHED;
-                soothe_timer = 900; // 15 seconds!
+                soothe_timer = _diff.soothe_time;
                 boredom      = 0;
-                boredom_rate = random_range(0.045, 0.085);
+                boredom_rate = random_range(_diff.boredom_min, _diff.boredom_max);
             } else {
                 state          = INTERN_STATE_MISCHIEF;
                 mischief_timer = 0;
@@ -499,10 +607,11 @@ switch (state) {
         break;
 
     case INTERN_STATE_SOOTHED:
-        // Relaxing in the Green Room for 15 seconds
+        // Relaxing in the Green Room: soothes emotions and heals HP rapidly
         walk_timer++;
         soothe_timer--;
         boredom = 0;
+        intern_hp = min(intern_max_hp, intern_hp + 0.35); // Heals ~21 HP/sec back to full health!
 
         if (soothe_timer <= 0) {
             // Fully rested and calm after 15 seconds! Head straight back to work desk!
@@ -551,6 +660,28 @@ switch (state) {
             break;
         }
 
+        // Door lock condition: Intern actively causing mischief inside room barricades the door!
+        if (door_cooldown <= 0 && _cur_rm != ROOM_INTERN_NONE && _cur_rm != ROOM_INTERN_HALL) {
+            var _rm_door = noone;
+            with (obj_intern_door) {
+                if (room_assigned == _cur_rm) {
+                    _rm_door = id;
+                    break;
+                }
+            }
+            if (_rm_door != noone && !_rm_door.is_locked && !_rm_door.is_closed && _rm_door.slam_cooldown <= 0) {
+                if (scr_intern_room_has_active_mischief(_cur_rm)) {
+                    if (irandom(50) == 0) {
+                        _rm_door.is_closed     = true;
+                        _rm_door.is_locked     = true;
+                        _rm_door.slam_cooldown = 400;
+                        door_cooldown          = 400;
+                        audio_play_sound(snd_attack_impact, 10, false);
+                    }
+                }
+            }
+        }
+
         // 2. Storage Room Mischief: Shake Shelf, Locker, or Water Cooler OR seek vent
         // Multiple hazards can be active in Storage simultaneously, but each intern only handles 1!
         if (_cur_rm == ROOM_INTERN_STORAGE) {
@@ -564,7 +695,7 @@ switch (state) {
             }
             if (_mischief_vent != noone && mischief_target == noone && vent_cooldown <= 0 && grace_timer <= 0) {
                 var _vd = point_distance(x, y, _mischief_vent.x + 8, _mischief_vent.y + 8);
-                if (_vd <= 20) {
+                if (_vd <= 26) {
                     _mischief_vent.is_clogged    = true;
                     _mischief_vent.stuck_intern  = id;
                     _mischief_vent.struggle_pull = 0.0;
@@ -616,7 +747,7 @@ switch (state) {
             }
             if (_mischief_vent_g != noone && vent_cooldown <= 0 && grace_timer <= 0) {
                 var _vd = point_distance(x, y, _mischief_vent_g.x + 8, _mischief_vent_g.y + 8);
-                if (_vd <= 20) {
+                if (_vd <= 26) {
                     _mischief_vent_g.is_clogged    = true;
                     _mischief_vent_g.stuck_intern  = id;
                     _mischief_vent_g.struggle_pull = 0.0;
@@ -641,18 +772,18 @@ switch (state) {
                 y += lengthdir_y(move_speed * 0.6, _gdir);
             }
         }
-        // 4. Work Room Mischief: Smash another PC or seek vent
+        // 4. Work Room Mischief: Seek vent or path out to other rooms
         else if (_cur_rm == ROOM_INTERN_WORK) {
             var _mischief_vent_w = noone;
             with (obj_intern_vent) {
-                if (room_assigned == _cur_rm && !is_clogged && cooldown <= 0 && stuck_intern == noone) {
+                if (room_assigned == _cur_rm && !is_clogged && cooldown <= 0 && stuck_intern == noone && vent_hp > 0 && !is_down) {
                     _mischief_vent_w = id;
                     break;
                 }
             }
             if (_mischief_vent_w != noone && vent_cooldown <= 0 && grace_timer <= 0) {
                 var _vd = point_distance(x, y, _mischief_vent_w.x + 8, _mischief_vent_w.y + 8);
-                if (_vd <= 20) {
+                if (_vd <= 26) {
                     _mischief_vent_w.is_clogged    = true;
                     _mischief_vent_w.stuck_intern  = id;
                     _mischief_vent_w.struggle_pull = 0.0;
@@ -668,61 +799,200 @@ switch (state) {
                     y += lengthdir_y(move_speed * 0.5, _vdir);
                     break;
                 }
+            } else {
+                // No operational vent in Work Room -> path out to Storage, Cooler, or Deck!
+                state = INTERN_STATE_BORED;
+                break;
+            }
+        }
+        // 5. Central Hallway Mischief: Tamper with Water Cooler
+        else if (_cur_rm == ROOM_INTERN_HALL) {
+            var _best_haz = noone;
+            var _best_d   = 40;
+            with (obj_intern_hazard) {
+                if (hazard_type == HAZARD_WATER && !is_wobbling && !is_fallen && mischief_intern == noone) {
+                    var _d = point_distance(other.x, other.y, x + 8, y + 8);
+                    if (_d < _best_d) {
+                        _best_d   = _d;
+                        _best_haz = id;
+                    }
+                }
             }
 
-            var _trm = instance_nearest(x, y, obj_intern_terminal);
-            if (_trm != noone && point_distance(x, y, _trm.x + 8, _trm.y + 8) < 20) {
-                if (!_trm.is_fried && mischief_timer > 90) {
-                    _trm.is_fried = true;
-                    audio_play_sound(snd_attack_impact, 10, false);
-                    scr_intern_send_to_work(id, 600);
+            if (_best_haz != noone) {
+                _best_haz.is_wobbling      = true;
+                _best_haz.wobble_timer     = _best_haz.wobble_max;
+                _best_haz.wobble_fix_meter = 0.0;
+                _best_haz.mischief_intern  = id;
+                mischief_target            = _best_haz;
+                audio_play_sound(snd_voice2, 10, false);
+                break;
+            }
+        }
+
+        // Tantrum roll only if mischief prolonged and NOT engaged with a target -> enters Pre-Tantrum FUMING!
+        var _diff = scr_intern_get_scrap_difficulty();
+        if (mischief_target == noone && mischief_timer > _diff.hazard_wobble) {
+            state          = choose(INTERN_STATE_BORED, INTERN_STATE_FUMING);
+            fuming_timer   = variable_struct_exists(_diff, "fuming_time") ? _diff.fuming_time : 150;
+            mischief_timer = 0;
+        }
+        break;
+
+    case INTERN_STATE_FUMING:
+        // Telegraphed Pre-Tantrum Warning: Foot stomping and boiling rage (Jack CAN grab with [G]!)
+        walk_timer += 2;
+        fuming_timer--;
+
+        if (fuming_timer mod 40 == 0) {
+            audio_play_sound(snd_voice2, 10, false);
+        }
+
+        // Door slamming check while fuming:
+        var _f_rm = scr_intern_get_room_at(x, y);
+        if (_f_rm != ROOM_INTERN_NONE && _f_rm != ROOM_INTERN_HALL) {
+            var _f_door = noone;
+            with (obj_intern_door) {
+                if (room_assigned == _f_rm) {
+                    _f_door = id;
                     break;
+                }
+            }
+            if (_f_door != noone && !_f_door.is_locked && !_f_door.is_closed && _f_door.slam_cooldown <= 0) {
+                if (door_cooldown <= 0 && scr_intern_room_has_active_mischief(_f_rm)) {
+                    if (irandom(40) == 0) {
+                        _f_door.is_closed     = true;
+                        _f_door.is_locked     = true;
+                        _f_door.slam_cooldown = 400;
+                        door_cooldown         = 400;
+                        audio_play_sound(snd_attack_impact, 10, false);
+                    }
                 }
             }
         }
 
-        // Tantrum roll only if mischief prolonged and NOT engaged with a target
-        if (mischief_target == noone && mischief_timer > 240) {
-            state          = choose(INTERN_STATE_BORED, INTERN_STATE_TANTRUM);
+        if (fuming_timer <= 0) {
+            // EXPLODES INTO FULL UNCONTROLLABLE TANTRUM!
+            state          = INTERN_STATE_TANTRUM;
             mischief_timer = 0;
+            audio_play_sound(snd_attack_impact, 10, false);
+            audio_play_sound(snd_voice2, 10, false);
         }
         break;
 
     case INTERN_STATE_TANTRUM:
         walk_timer += 2;
         mischief_timer++;
-        if (mischief_timer mod 60 == 0) {
+        flail_angle += 25;
+
+        if (mischief_timer mod 45 == 0) {
             audio_play_sound(snd_voice2, 10, false);
         }
 
-        // Interns in tantrum slam doors ONLY when physically right at the doorway, not engaged in target!
-        var _tantrum_door = instance_nearest(x, y, obj_intern_door);
-        if (_tantrum_door != noone && !_tantrum_door.is_locked && !_tantrum_door.is_closed && _tantrum_door.slam_cooldown <= 0) {
-            if (door_cooldown <= 0 && mischief_target == noone && point_distance(x, y, _tantrum_door.x + 8, _tantrum_door.y + 8) < 18) {
-                if (irandom(40) == 0) {
-                    _tantrum_door.is_closed     = true;
-                    _tantrum_door.is_locked     = true;
-                    _tantrum_door.slam_cooldown = 400;
-                    door_cooldown               = 400;
+        var _diff_t = scr_intern_get_scrap_difficulty();
+
+        // 1. DANGER TO OTHER INTERNS: Windmilling arms slap nearby interns!
+        var _slap_dmg = variable_struct_exists(_diff_t, "tantrum_flail_dmg") ? _diff_t.tantrum_flail_dmg : 20;
+        var _my_id = id;
+        with (obj_intern) {
+            if (id != _my_id && state != INTERN_STATE_DEAD && state != INTERN_STATE_HELD && state != INTERN_STATE_KNOCKED_OUT && state != INTERN_STATE_TANTRUM) {
+                if (point_distance(x, y, other.x, other.y) < 20) {
+                    intern_hp = max(0, intern_hp - _slap_dmg);
                     audio_play_sound(snd_attack_impact, 10, false);
+                    audio_play_sound(snd_hurt, 10, false);
+
+                    if (intern_hp <= 0) {
+                        state = INTERN_STATE_DEAD;
+                        global.interns_lost++;
+                        global.legal_fund = max(0, global.legal_fund - 150);
+                        audio_play_sound(snd_die, 10, false);
+                    } else {
+                        state          = INTERN_STATE_KNOCKED_OUT;
+                        wake_timer     = variable_struct_exists(_diff_t, "knockout_wake_time") ? _diff_t.knockout_wake_time : 240;
+                        knockout_timer = 1800;
+                        is_slipped     = false;
+                    }
                 }
             }
         }
 
-        if (mischief_timer > 240) {
+        // 2. DANGER TO PLAYER (JACK): Stuns Jack and knocks tools from his hands!
+        if (instance_exists(obj_jack)) {
+            if (!variable_global_exists("jack_hit_cooldown") || global.jack_hit_cooldown <= 0) {
+                if (point_distance(x, y, obj_jack.x, obj_jack.y - 6) < 22) {
+                    var _stun_f = variable_struct_exists(_diff_t, "jack_stun_frames") ? _diff_t.jack_stun_frames : 90;
+                    global.jack_stun_timer   = _stun_f;
+                    global.jack_hit_cooldown = 120; // 2 seconds hit immunity
+                    global.player_has_mop    = false;
+                    global.player_has_wrench = false;
+                    audio_play_sound(snd_attack_impact, 10, false);
+                    audio_play_sound(snd_hurt, 10, false);
+                    with (obj_intern_ward_controller) {
+                        tantrum_hit_alert = 90;
+                    }
+                }
+            }
+        }
+
+        // 3. Door slamming check
+        var _t_rm = scr_intern_get_room_at(x, y);
+        if (_t_rm != ROOM_INTERN_NONE && _t_rm != ROOM_INTERN_HALL) {
+            var _tantrum_door = noone;
+            with (obj_intern_door) {
+                if (room_assigned == _t_rm) {
+                    _tantrum_door = id;
+                    break;
+                }
+            }
+            if (_tantrum_door != noone && !_tantrum_door.is_locked && !_tantrum_door.is_closed && _tantrum_door.slam_cooldown <= 0) {
+                if (door_cooldown <= 0 && scr_intern_room_has_active_mischief(_t_rm)) {
+                    if (irandom(40) == 0) {
+                        _tantrum_door.is_closed     = true;
+                        _tantrum_door.is_locked     = true;
+                        _tantrum_door.slam_cooldown = 400;
+                        door_cooldown               = 400;
+                        audio_play_sound(snd_attack_impact, 10, false);
+                    }
+                }
+            }
+        }
+
+        // 4. Tantrum exhaustion
+        var _tantrum_dur = variable_struct_exists(_diff_t, "tantrum_duration") ? _diff_t.tantrum_duration : 180;
+        if (mischief_timer > _tantrum_dur) {
             state          = INTERN_STATE_BORED;
             mischief_timer = 0;
+            scr_intern_send_to_work(id, 300);
         }
         break;
 
     case INTERN_STATE_KNOCKED_OUT:
-        // Unconscious from suffocation or falling shelf
+        // Unconscious from suffocation, hazard collapse, or being slapped
         knockout_timer--;
+        wake_timer--;
         revive_meter = max(0, revive_meter - 0.007);
+
+        // Knockout HP bleed: unconscious interns lose health steadily
+        var _diff_ko = scr_intern_get_scrap_difficulty();
+        var _ko_loss = variable_struct_exists(_diff_ko, "ko_drain") ? _diff_ko.ko_drain : 0.08;
+        intern_hp = max(0, intern_hp - _ko_loss);
 
         // Fresh air revival: if in hallway, recovers slowly
         if (scr_intern_get_room_at(x, y) == ROOM_INTERN_HALL) {
             knockout_timer = min(1800, knockout_timer + 3);
+        }
+
+        // Automatic wake-up into FUMING state after ~4 seconds
+        if (wake_timer <= 0) {
+            if (intern_hp > 0) {
+                state        = INTERN_STATE_FUMING;
+                fuming_timer = variable_struct_exists(_diff_ko, "fuming_time") ? _diff_ko.fuming_time : 150;
+                wake_timer   = variable_struct_exists(_diff_ko, "knockout_wake_time") ? _diff_ko.knockout_wake_time : 240;
+                is_slipped   = false;
+                revive_meter = 0;
+                audio_play_sound(snd_voice2, 10, false);
+                break;
+            }
         }
 
         // SINGLE-TARGET CPR: Only the closest knocked-out intern to Jack responds!
@@ -747,6 +1017,9 @@ switch (state) {
                 if (revive_meter >= 1.0) {
                     revive_meter   = 0;
                     knockout_timer = 1800;
+                    wake_timer     = 240;
+                    is_slipped     = false;
+                    intern_hp      = min(intern_max_hp, intern_hp + 35.0); // CPR restores 35 HP!
                     audio_play_sound(snd_objective_complete, 10, false);
                     audio_play_sound(snd_voice1, 10, false);
                     scr_intern_send_to_work(id, 900);
@@ -754,12 +1027,21 @@ switch (state) {
             }
         }
 
-        // Suffocation fatality!
-        if (knockout_timer <= 0) {
+        // Fatality from suffocation or health loss!
+        if (intern_hp <= 0 || knockout_timer <= 0) {
             state = INTERN_STATE_DEAD;
             global.interns_lost++;
             global.legal_fund = max(0, global.legal_fund - 150);
             audio_play_sound(snd_die, 10, false);
         }
         break;
+}
+
+// Global fatality failsafe
+if (intern_hp <= 0 && state != INTERN_STATE_DEAD) {
+    state = INTERN_STATE_DEAD;
+    is_slipped = false;
+    global.interns_lost++;
+    global.legal_fund = max(0, global.legal_fund - 150);
+    audio_play_sound(snd_die, 10, false);
 }

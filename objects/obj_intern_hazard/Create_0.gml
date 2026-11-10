@@ -2,7 +2,8 @@
 hazard_type     = HAZARD_SHELF; // HAZARD_SHELF, HAZARD_LOCKER, HAZARD_WATER
 is_wobbling     = false;
 wobble_timer    = 0;
-wobble_max      = 240; // 4.0 seconds snappy reaction window!
+var _diff       = scr_intern_get_scrap_difficulty();
+wobble_max      = _diff.hazard_wobble; // Scaled: 4.0s (240 frames) down to 2.2s (132 frames) based on Scrap!
 wobble_angle    = 0;
 wobble_fix_meter = 0.0; // Spam [E] to fix/steady!
 is_fallen       = false;

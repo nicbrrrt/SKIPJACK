@@ -49,6 +49,126 @@ function scr_intern_get_room_name(_room_id) {
     }
 }
 
+/// @function scr_intern_get_scrap_difficulty()
+/// Calculates difficulty scaling parameters for the Intern Babysitting Shift
+/// based on the amount of company Scrap Jack severed / looted!
+function scr_intern_get_scrap_difficulty() {
+    var _scrap = 4;
+    if (variable_global_exists("floor_scrap_collected") && global.floor_scrap_collected > 0) {
+        _scrap = global.floor_scrap_collected;
+    } else if (variable_global_exists("hr_scrap_count") && global.hr_scrap_count > 0) {
+        _scrap = global.hr_scrap_count;
+    }
+
+    // Threat Tier (Level 1..4):
+    // Level 1: Mild (4 - 5 scrap)
+    // Level 2: Moderate (6 - 8 scrap)
+    // Level 3: Severe (9 - 11 scrap)
+    // Level 4: Extreme (12+ scrap)
+    var _level = 1;
+    var _tier_name = "MILD";
+    var _tier_col = make_color_rgb(100, 240, 140); // Green
+
+    if (_scrap >= 12) {
+        _level = 4;
+        _tier_name = "EXTREME";
+        _tier_col = make_color_rgb(255, 70, 70); // Red
+    } else if (_scrap >= 9) {
+        _level = 3;
+        _tier_name = "SEVERE";
+        _tier_col = make_color_rgb(255, 140, 40); // Orange
+    } else if (_scrap >= 6) {
+        _level = 2;
+        _tier_name = "MODERATE";
+        _tier_col = make_color_rgb(255, 215, 60); // Yellow
+    }
+
+    // Continuous normalized factor: 0.0 at 4 scrap up to 1.0 at 12+ scrap
+    var _t = clamp((_scrap - 4) / 8.0, 0.0, 1.0);
+
+    return {
+        scrap:           _scrap,
+        level:           _level,
+        tier_name:       _tier_name,
+        tier_col:        _tier_col,
+        factor:          _t,
+
+        // 1. Attention Span & Restlessness (Boredom increment per frame)
+        // Level 1: 0.045 - 0.085 (~26s desk sit)
+        // Level 4: 0.090 - 0.170 (~10s desk sit)
+        boredom_min:     lerp(0.045, 0.090, _t),
+        boredom_max:     lerp(0.085, 0.170, _t),
+
+        // 2. Grace Periods (Frames)
+        // Initial shift calm: 5.0s (300) down to 1.0s (60)
+        initial_grace:   round(lerp(300, 60, _t)),
+        // Return-to-work grace: 10s (600) down to 4s (240)
+        work_grace:      round(lerp(600, 240, _t)),
+        // Vent crawling immunity: 20s (1200) down to 10s (600)
+        vent_immunity:   round(lerp(1200, 600, _t)),
+
+        // 3. Patience, Volatility & Tantrums
+        // Hazard wobble countdown: 4.0s (240) down to 2.0s (120)
+        hazard_wobble:   round(lerp(240, 120, _t)),
+        // Pre-tantrum fuming warning window before full explosion: 3.0s (180) down to 1.5s (90)
+        fuming_time:     round(lerp(180, 90, _t)),
+        // Full tantrum duration: 2.5s (150) up to 4.0s (240)
+        tantrum_duration: round(lerp(150, 240, _t)),
+        // Tantrum flail damage to nearby interns: 15 up to 25
+        tantrum_flail_dmg: round(lerp(15, 25, _t)),
+        // Player stun duration if struck by tantrum: 1.2s (72) up to 2.0s (120)
+        jack_stun_frames: round(lerp(72, 120, _t)),
+        // Knockout wakeup delay before standing up in fuming state: 4.5s (270) down to 3.0s (180)
+        knockout_wake_time: round(lerp(270, 180, _t)),
+        // Green Room soothing duration: 15s (900) down to 9s (540)
+        soothe_time:     round(lerp(900, 540, _t)),
+
+        // 4. Observation Deck Panoramic Glass (Fragile: breaks in 3-5 hits!)
+        // Max HP: 30 down to 24
+        glass_max_hp:    round(lerp(30, 24, _t)),
+        // Damage per hit: 6 up to 12
+        glass_damage:    round(lerp(6, 12, _t)),
+        // Hit cadence interval: 75 frames (~1.25s) down to 45 frames (~0.75s)
+        glass_hit_cd:    round(lerp(75, 45, _t)),
+
+        // 5. Intern Injury & Health Bleed
+        // Slipping blunt trauma damage: 20 up to 35
+        slip_damage:     round(lerp(20, 35, _t)),
+        // Stuck in vent suffocation rate: ~6.0 HP/s (0.10) to ~13.2 HP/s (0.22)
+        vent_intern_dmg: lerp(0.10, 0.22, _t),
+        // Unconscious knockout HP bleed per frame: ~3.6 HP/s (0.06) to ~7.2 HP/s (0.12)
+        ko_drain:        lerp(0.06, 0.12, _t),
+
+        // 6. Ventilation Degradation & Facility Asphyxiation
+        // Vent damage per frame from stuck intern: ~0.14 (~12s) to ~0.24 (~7s)
+        vent_damage_rate: lerp(0.14, 0.24, _t),
+        // Global floor oxygen drain per frame when all 3 vents down: ~0.09 (~18.5s) to ~0.13 (~12.8s)
+        floor_o2_drain:   lerp(0.09, 0.13, _t)
+    };
+}
+
+/// @function scr_intern_room_has_active_mischief(_room_id)
+/// Returns true if at least one intern in the room is actively engaged in disruption:
+/// mischief with hazards, screaming in tantrum, fuming before tantrum, trapped under debris, or stuck in air vent.
+function scr_intern_room_has_active_mischief(_room_id) {
+    if (_room_id == ROOM_INTERN_NONE || _room_id == ROOM_INTERN_HALL) return false;
+    var _has_mischief = false;
+    with (obj_intern) {
+        if (state == INTERN_STATE_DEAD) continue;
+        if (scr_intern_get_room_at(x, y) == _room_id) {
+            if (state == INTERN_STATE_MISCHIEF
+             || state == INTERN_STATE_TANTRUM
+             || state == INTERN_STATE_FUMING
+             || state == INTERN_STATE_TRAPPED
+             || state == INTERN_STATE_VENT_STUCK) {
+                _has_mischief = true;
+                break;
+            }
+        }
+    }
+    return _has_mischief;
+}
+
 /// @function scr_spawn_intern_ward()
 function scr_spawn_intern_ward() {
     show_debug_message("[scr_spawn_intern_ward] Generating fixed 4-Room Intern Babysitting Ward...");
@@ -243,9 +363,19 @@ function scr_spawn_intern_ward() {
         _lk.hazard_type = HAZARD_LOCKER;
     }
 
-    // Water Cooler Dispenser
-    var _wx = _ox + 23 * 16;
-    var _wy = _oy + 4 * 16;
+    // Janitor Mop & Bucket Station (in Storage Room)
+    var _mx = _ox + 23 * 16;
+    var _my = _oy + 4 * 16;
+    var _mop = instance_create_layer(_mx, _my, _layer, obj_intern_mop_station);
+
+    // Mechanic Wrench Toolbox Station (in Storage Room)
+    var _wrench_x  = _ox + 18 * 16;
+    var _wrench_y  = _oy + 1 * 16;
+    var _wrench_st = instance_create_layer(_wrench_x, _wrench_y, _layer, obj_intern_wrench_station);
+
+    // Water Cooler Dispenser (Moved out to Central Hallway corridor!)
+    var _wx = _ox + 24 * 16;
+    var _wy = _oy + 11 * 16;
     var _wc = instance_create_layer(_wx, _wy, _layer, obj_intern_hazard);
     _wc.hazard_type = HAZARD_WATER;
 
@@ -308,25 +438,19 @@ function scr_spawn_intern_ward() {
             default: _baby.sprite_index = intern1; break;
         }
 
-        // Dynamic individual focus & stamina (rapid chaotic escalation):
+        // Threat-scaled attention span & snappy start grace periods:
+        var _diff = scr_intern_get_scrap_difficulty();
+        _baby.boredom_rate    = random_range(_diff.boredom_min, _diff.boredom_max);
+
         if (_i == 0) {
-            _baby.boredom      = 85;
-            _baby.boredom_rate = random_range(0.080, 0.130); // restless in ~2-3s!
-        } else if (_i == 1) {
-            _baby.boredom      = 70;
-            _baby.boredom_rate = random_range(0.070, 0.110); // restless in ~5s!
-        } else if (_i <= 3) {
-            _baby.boredom      = irandom_range(45, 60);
-            _baby.boredom_rate = random_range(0.060, 0.095); // restless in ~8-12s!
-        } else if (_i <= 5) {
-            _baby.boredom      = irandom_range(25, 40);
-            _baby.boredom_rate = random_range(0.050, 0.080); // restless in ~15-20s!
+            // First intern gets restless almost immediately (~1.5s - 2.0s)
+            _baby.boredom     = round(lerp(92, 98, _diff.factor));
+            _baby.grace_timer = round(lerp(90, 30, _diff.factor));
         } else {
-            _baby.boredom      = irandom_range(10, 25);
-            _baby.boredom_rate = random_range(0.045, 0.075); // restless in ~20-30s!
+            _baby.boredom     = irandom_range(round(lerp(30, 45, _diff.factor)), round(lerp(60, 75, _diff.factor)));
+            _baby.grace_timer = _diff.initial_grace;
         }
 
-        _baby.grace_timer     = 0;
         _baby.assigned_term   = _term;
         _term.assigned_intern = _baby;
     }
@@ -361,11 +485,14 @@ function scr_intern_send_to_work(_inst, _grace_frames) {
             mischief_target = noone;
         }
 
-        // Apply generous calming grace cooldowns
-        grace_timer   = _grace_frames; // Peaceful work grace timer (e.g. 900 = 15s)
-        vent_cooldown = 1800;          // 30 seconds immunity from vent crawling!
-        door_cooldown = 600;           // 10 seconds door locking cooldown
+        // Apply threat-scaled calming grace cooldowns
+        var _diff = scr_intern_get_scrap_difficulty();
+        var _g_frames = (_grace_frames > 0) ? _grace_frames : _diff.work_grace;
+        grace_timer   = _g_frames;
+        vent_cooldown = _diff.vent_immunity;
+        door_cooldown = max(240, round(_diff.vent_immunity * 0.4));
         boredom       = 0;
+        boredom_rate  = random_range(_diff.boredom_min, _diff.boredom_max);
         target_room   = ROOM_INTERN_WORK;
         target_x      = home_desk_x;
         target_y      = home_desk_y;

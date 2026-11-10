@@ -37,10 +37,11 @@ if (is_shattered) {
     draw_set_color(make_color_rgb(120, 140, 170));
     draw_rectangle(x, y, x + 15, y + 15, true);
 
-    // Crack Overlays based on remaining HP
-    if (glass_hp <= 75) {
+    // Crack Overlays based on remaining HP percentage
+    var _hp_ratio = glass_hp / max_hp;
+    if (_hp_ratio <= 0.75) {
         draw_set_alpha(0.95);
-        var _crack_col = (glass_hp <= 25) ? (current_time mod 200 < 100 ? c_red : c_white) : c_white;
+        var _crack_col = (_hp_ratio <= 0.25) ? (current_time mod 200 < 100 ? c_red : c_white) : c_white;
         draw_set_color(_crack_col);
 
         // Stage 1 hairline crack
@@ -48,14 +49,14 @@ if (is_shattered) {
         draw_line(_cx + 1, _cy + 1, _cx - 3, _cy + 6);
 
         // Stage 2 spiderweb fractures
-        if (glass_hp <= 50) {
+        if (_hp_ratio <= 0.50) {
             draw_line(_cx + 1, _cy + 1, _cx + 6, _cy - 2);
             draw_line(_cx + 1, _cy + 1, _cx + 5, _cy + 4);
             draw_line(_cx - 2, _cy - 5, _cx - 6, _cy - 3);
         }
 
         // Stage 3 critical fractures & warning beacon
-        if (glass_hp <= 25) {
+        if (_hp_ratio <= 0.25) {
             draw_line(_cx + 6, _cy - 2, _cx + 7, _cy - 7);
             draw_line(_cx - 3, _cy + 6, _cx - 7, _cy + 7);
             draw_circle(_cx, _cy, 4, true);
@@ -65,7 +66,7 @@ if (is_shattered) {
     // -------------------------------------------------------------
     // Structural Health Bar (Appears when glass is damaged)
     // -------------------------------------------------------------
-    if (glass_hp < 100) {
+    if (glass_hp < max_hp) {
         var _bw   = 28;
         var _bh   = 4;
         var _bx1  = _cx - _bw * 0.5;
@@ -76,7 +77,7 @@ if (is_shattered) {
         draw_set_color(c_black);
         draw_rectangle(_bx1 - 1, _by1 - 1, _bx1 + _bw + 1, _by1 + _bh + 1, false);
 
-        var _hp_col = (glass_hp > 75) ? c_lime : ((glass_hp > 50) ? c_yellow : ((glass_hp > 25) ? c_orange : (current_time mod 200 < 100 ? c_red : c_white)));
+        var _hp_col = (_hp_ratio > 0.75) ? c_lime : ((_hp_ratio > 0.50) ? c_yellow : ((_hp_ratio > 0.25) ? c_orange : (current_time mod 200 < 100 ? c_red : c_white)));
         draw_set_color(_hp_col);
         draw_rectangle(_bx1, _by1, _bx1 + _bw * _fill, _by1 + _bh, false);
         draw_set_color(c_white);
@@ -94,7 +95,7 @@ if (is_shattered) {
             draw_set_valign(fa_bottom);
             draw_set_font(fnt_dialogue);
             draw_set_color((_hpct > 0) ? c_aqua : c_yellow);
-            var _msg = (_hpct > 0) ? ("HOLD [E] REINFORCING (" + string(round(_hpct * 100)) + "%)") : "HOLD [E] REINFORCE (5s)";
+            var _msg = (_hpct > 0) ? ("HOLD [E] REINFORCING (" + string(round(_hpct * 100)) + "%)") : "HOLD [E] REINFORCE (2s)";
             draw_text_transformed(_cx, _py - 2, _msg, 0.38, 0.38, 0);
 
             // Hold progress bar

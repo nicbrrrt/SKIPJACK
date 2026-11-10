@@ -14,27 +14,91 @@ if (instance_exists(obj_jack)) {
     }
 }
 
-// Single-target selection: only the single closest clogged vent to Jack responds to [E]!
-if (near_player && is_clogged && instance_exists(obj_jack)) {
-    var _closest_vent = noone;
-    var _best_d = 999999;
-    var _jx = obj_jack.x;
-    var _jy = obj_jack.y - 6;
-    with (obj_intern_vent) {
-        if (near_player && is_clogged) {
-            var _d = point_distance(x + 8, y + 8, _jx, _jy);
-            if (_d < _best_d) {
-                _best_d = _d;
-                _closest_vent = id;
+// Single-target selection: closest interactable vent (clogged OR damaged) to Jack responds to [E]!
+if (near_player && instance_exists(obj_jack)) {
+    var _is_actionable = (is_clogged || (vent_hp < 100 && stuck_intern == noone));
+    if (_is_actionable) {
+        var _closest_vent = noone;
+        var _best_d = 999999;
+        var _jx = obj_jack.x;
+        var _jy = obj_jack.y - 6;
+        with (obj_intern_vent) {
+            if (near_player && (is_clogged || (vent_hp < 100 && stuck_intern == noone))) {
+                var _d = point_distance(x + 8, y + 8, _jx, _jy);
+                if (_d < _best_d) {
+                    _best_d = _d;
+                    _closest_vent = id;
+                }
+            }
+        }
+        is_interact_target = (_closest_vent == id);
+    }
+}
+
+// Proximity capture: if an intern is right at the vent and eligible, get stuck!
+if (!is_clogged && !is_down && vent_hp > 0 && cooldown <= 0 && stuck_intern == noone) {
+    with (obj_intern) {
+        if (state != INTERN_STATE_HELD && state != INTERN_STATE_DEAD && state != INTERN_STATE_TRAPPED && state != INTERN_STATE_SOOTHED && state != INTERN_STATE_VENT_STUCK) {
+            if (vent_cooldown <= 0 && grace_timer <= 0) {
+                if (point_distance(x, y, other.x + 8, other.y + 8) <= 26) {
+                    other.is_clogged    = true;
+                    other.stuck_intern  = id;
+                    other.struggle_pull = 0.0;
+                    state       = INTERN_STATE_VENT_STUCK;
+                    visible     = false;
+                    vent_target = noone;
+                    audio_play_sound(snd_attack_impact, 10, false);
+                    audio_play_sound(snd_voice2, 10, false);
+                    break;
+                }
             }
         }
     }
-    is_interact_target = (_closest_vent == id);
 }
 
 // Handle clogged vent state and player struggle rescue
 if (is_clogged) {
     clog_timer++;
+
+    // Frantic kicking intern damages the ventilation duct rapidly!
+    var _diff = scr_intern_get_scrap_difficulty();
+    var _dmg  = variable_struct_exists(_diff, "vent_damage_rate") ? _diff.vent_damage_rate : 0.18;
+    vent_hp   = max(0, vent_hp - _dmg);
+
+    // Stuck intern takes damage over time from suffocation / being squeezed in vent
+    if (instance_exists(stuck_intern)) {
+        var _intern_v_dmg = variable_struct_exists(_diff, "vent_intern_dmg") ? _diff.vent_intern_dmg : 0.15;
+        stuck_intern.intern_hp = max(0, stuck_intern.intern_hp - _intern_v_dmg);
+        if (stuck_intern.intern_hp <= 0 && stuck_intern.state != INTERN_STATE_DEAD) {
+            stuck_intern.state = INTERN_STATE_DEAD;
+            stuck_intern.visible = true;
+            is_clogged = false;
+            if (room_assigned == ROOM_INTERN_GLASS) {
+                stuck_intern.x = x + 8;
+                stuck_intern.y = y - 28;
+            } else {
+                stuck_intern.x = x + 8;
+                stuck_intern.y = y + 28;
+            }
+            audio_play_sound(snd_error, 10, false);
+            audio_play_sound(snd_hurt, 10, false);
+            global.interns_lost++;
+            global.legal_fund = max(0, global.legal_fund - 150);
+            stuck_intern = noone;
+        }
+    }
+
+    kick_impact_t++;
+    if (kick_impact_t >= 35) {
+        kick_impact_t = 0;
+        audio_play_sound(snd_attack_impact, 10, false);
+    }
+
+    if (vent_hp <= 0 && !is_down) {
+        vent_hp = 0;
+        is_down = true;
+        audio_play_sound(snd_error, 10, false);
+    }
 
     // Safety: if stuck_intern instance was lost, reset vent
     if (stuck_intern != noone && !instance_exists(stuck_intern)) {
@@ -69,13 +133,11 @@ if (is_clogged) {
                         stuck_intern.y = y + 28; // Clear safe distance South of North wall vent
                     }
 
-                    // Check room oxygen at time of extraction
+                    // Check facility air at time of extraction
                     var _ctrl = instance_nearest(x, y, obj_intern_ward_controller);
                     var _o2 = 100;
-                    if (_ctrl != noone) {
-                        if (room_assigned == ROOM_INTERN_WORK)    _o2 = _ctrl.oxygen_work;
-                        if (room_assigned == ROOM_INTERN_STORAGE) _o2 = _ctrl.oxygen_storage;
-                        if (room_assigned == ROOM_INTERN_GLASS)   _o2 = _ctrl.oxygen_glass;
+                    if (_ctrl != noone && variable_instance_exists(_ctrl, "floor_oxygen")) {
+                        _o2 = _ctrl.floor_oxygen;
                     }
 
                     if (_o2 <= 0) {
@@ -94,7 +156,32 @@ if (is_clogged) {
         struggle_pull = max(0.0, struggle_pull - 0.005);
     }
 } else {
-    fan_rot += 12;
-    breeze_timer++;
+    // -------------------------------------------------------------
+    // UNCLOGGED VENT: Wrench Repair & Operational State
+    // -------------------------------------------------------------
     struggle_pull = 0.0;
+
+    if (vent_hp > 0 && !is_down) {
+        fan_rot += 12;
+        breeze_timer++;
+    }
+
+    // Repair with Wrench: player holds [E] with wrench equipped
+    if (vent_hp < 100 && stuck_intern == noone) {
+        var _has_wrench = (variable_global_exists("player_has_wrench") && global.player_has_wrench);
+        if (is_interact_target && _has_wrench && keyboard_check(ord("E"))) {
+            vent_hp = min(100.0, vent_hp + 1.25); // ~1.33s of holding [E] to repair
+            repair_snd_t++;
+            if (repair_snd_t mod 12 == 0) {
+                audio_play_sound(snd_moveselect, 10, false);
+            }
+
+            if (vent_hp >= 100.0) {
+                vent_hp   = 100.0;
+                is_down   = false;
+                audio_play_sound(snd_correct_ping, 10, false);
+                audio_play_sound(snd_objective_complete, 10, false);
+            }
+        }
+    }
 }

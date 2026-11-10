@@ -2,8 +2,10 @@
 intern_id       = 0;
 state           = INTERN_STATE_WORK;
 boredom         = 0;
-boredom_rate    = random_range(0.045, 0.085); // Dynamic chaotic attention span per intern!
-grace_timer     = 20 * 60; // 20s initial peaceful work grace period
+
+var _diff       = scr_intern_get_scrap_difficulty();
+boredom_rate    = random_range(_diff.boredom_min, _diff.boredom_max); // Scaled to company Scrap looted!
+grace_timer     = _diff.initial_grace; // Scaled peaceful initial grace period
 home_desk_x     = x;
 home_desk_y     = y;
 assigned_term   = noone;
@@ -17,8 +19,20 @@ mischief_timer  = 0;
 vent_target     = noone;
 door_cooldown   = 0;
 vent_cooldown   = 0;
-move_speed      = 1.1; // Manageable toddler waddle speed (Jack walks at 2.5, sprints at 4.2)
+move_speed      = 2.85; // A little faster than Jack walking (2.5), but slower than Jack sprinting (4.2)
+is_slipped      = false;
+slip_timer      = 0;
+slip_cooldown   = 0;
+slip_vx         = 0;
+slip_vy         = 0;
 walk_timer      = 0;
+intern_hp      = 100.0;
+intern_max_hp  = 100.0;
+fuming_timer   = variable_struct_exists(_diff, "fuming_time") ? _diff.fuming_time : 150;
+wake_timer     = variable_struct_exists(_diff, "knockout_wake_time") ? _diff.knockout_wake_time : 240;
+flail_angle    = 0;
+flail_cooldown = 0;
+
 knockout_timer  = 1800; // 30 seconds to rescue before suffocation fatality
 revive_meter    = 0;
 is_cpr_target   = false;

@@ -15,13 +15,13 @@ if (instance_exists(obj_jack)) {
 }
 
 // Single-target selection: only the single closest damaged pane to Jack is the active repair target!
-if (near_player && !is_shattered && glass_hp < 100 && instance_exists(obj_jack)) {
+if (near_player && !is_shattered && glass_hp < max_hp && instance_exists(obj_jack)) {
     var _closest_glass = noone;
     var _best_d = 999999;
     var _jx = obj_jack.x;
     var _jy = obj_jack.y - 6;
     with (obj_intern_glass) {
-        if (!is_shattered && glass_hp < 100) {
+        if (!is_shattered && glass_hp < max_hp) {
             var _d = point_distance(x + 8, y + 8, _jx, _jy);
             if (_d < 32 && _d < _best_d) {
                 _best_d = _d;
@@ -33,9 +33,9 @@ if (near_player && !is_shattered && glass_hp < 100 && instance_exists(obj_jack))
 }
 
 // -----------------------------------------------------------------
-// 1. PLAYER REINFORCE: LONG PRESS HOLD [E] (5 Seconds)
+// 1. PLAYER REINFORCE: LONG PRESS HOLD [E] (2 Seconds)
 // -----------------------------------------------------------------
-if (is_repair_target && !is_shattered && glass_hp < 100) {
+if (is_repair_target && !is_shattered && glass_hp < max_hp) {
     if (keyboard_check(ord("E"))) {
         hold_timer++;
         repair_spark_t++;
@@ -46,10 +46,10 @@ if (is_repair_target && !is_shattered && glass_hp < 100) {
         }
 
         // Progressively restore glass HP as player holds [E] down
-        glass_hp = min(100, glass_hp + (100.0 / hold_max));
+        glass_hp = min(max_hp, glass_hp + (max_hp / hold_max));
 
-        if (hold_timer >= hold_max || glass_hp >= 100) {
-            glass_hp   = 100;
+        if (hold_timer >= hold_max || glass_hp >= max_hp) {
+            glass_hp   = max_hp;
             hold_timer = 0;
             audio_play_sound(snd_objective_complete, 10, false);
             audio_play_sound(snd_correct_ping, 10, false);
@@ -83,12 +83,13 @@ if (!is_shattered) {
     }
 
     if (_banging && hit_cooldown <= 0) {
-        hit_cooldown = 90; // ~1.5s between bangs per pane
-        glass_hp = max(0, glass_hp - 4);
-        hit_anim = 8;
+        var _diff    = scr_intern_get_scrap_difficulty();
+        hit_cooldown = _diff.glass_hit_cd;
+        glass_hp     = max(0, glass_hp - _diff.glass_damage);
+        hit_anim     = 8;
         audio_play_sound(snd_button_hover, 10, false);
 
-        if (glass_hp <= 25 && (alarm_get(0) mod 60 == 0)) {
+        if (glass_hp <= (max_hp * 0.25) && (alarm_get(0) mod 60 == 0)) {
             audio_play_sound(snd_error, 10, false);
         }
     }

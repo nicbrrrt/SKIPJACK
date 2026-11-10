@@ -8,9 +8,10 @@ interns_lost    = 0;
 fried_count     = 0;
 total_fines     = 0;
 
-oxygen_work     = 100.0;
-oxygen_storage  = 100.0;
-oxygen_glass    = 100.0;
+floor_oxygen        = 100.0;
+asphyxiation_active = false;
+asphyxiation_fail   = false;
+hands_full_alert    = 0;
 
 door_work       = noone;
 door_storage    = noone;
@@ -23,6 +24,9 @@ green_count     = 0;
 
 intro_shown     = false;
 alarm_siren     = 0;
+global.player_has_mop    = false;
+global.player_has_wrench = false;
+threat_diff     = scr_intern_get_scrap_difficulty();
 
 // Music: ensure intern babysitting minigame music plays
 audio_stop_sound(corporate);

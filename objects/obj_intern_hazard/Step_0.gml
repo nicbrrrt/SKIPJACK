@@ -115,14 +115,21 @@ if (is_wobbling && !is_fallen && !is_trapped) {
         }
         else if (hazard_type == HAZARD_WATER) {
             is_fallen = true;
+            global.cam_shake_timer = 12;
+            global.cam_shake_mag   = 4;
             audio_play_sound(snd_hurt, 10, false);
             audio_play_sound(snd_attack_impact, 10, false);
 
-            // Fry nearby terminals if any
-            with (obj_intern_terminal) {
-                if (point_distance(x, y, _cx, _cy) < 40) {
-                    is_fried = true;
-                }
+            // Shoo away / send the mischievous intern back to desk
+            if (instance_exists(mischief_intern)) {
+                scr_intern_send_to_work(mischief_intern, 600);
+                mischief_intern = noone;
+            }
+
+            // Spawn Spilled Water Puddle in the hallway corridor
+            if (!instance_exists(obj_intern_puddle)) {
+                var _puddle = instance_create_layer(_cx, y + 22, "Instances", obj_intern_puddle);
+                _puddle.cooler_inst = id;
             }
         }
     }
