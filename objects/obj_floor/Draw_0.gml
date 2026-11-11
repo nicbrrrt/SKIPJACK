@@ -89,6 +89,66 @@ else if (floor_style == 3) {
         draw_rectangle(x + 5, y + 9, x + 10, y + 12, false);
     }
 }
+else if (floor_style == 4) {
+    // Executive Observation Deck luxury navy carpet
+    var _tile_x = x div 16;
+    var _tile_y = y div 16;
+    var _is_dark = (((_tile_x + _tile_y) mod 2) != 0);
+
+    draw_set_alpha(1.0);
+    if (_is_dark) {
+        draw_set_color(make_color_rgb(22, 32, 53)); // deep executive navy #162035
+    } else {
+        draw_set_color(make_color_rgb(28, 40, 64)); // rich corporate navy #1c2840
+    }
+    draw_rectangle(x, y, x + 15, y + 15, false);
+
+    // Subtle executive cyan-tinted weave seam
+    draw_set_alpha(0.35);
+    draw_set_color(make_color_rgb(58, 96, 140));
+    draw_rectangle(x, y, x + 15, y + 15, true);
+
+    // Subtle luxury pile weave tick
+    draw_set_alpha(0.20);
+    draw_set_color(make_color_rgb(100, 155, 210));
+    draw_line(x + 4, y + 8, x + 11, y + 8);
+}
+else if (floor_style == 5) {
+    // Central Hallway & Transit Corridor polished slate flooring
+    var _tile_x = x div 16;
+    var _tile_y = y div 16;
+    var _is_dark = (((_tile_x + _tile_y) mod 2) != 0);
+
+    draw_set_alpha(1.0);
+    if (_is_dark) {
+        draw_set_color(make_color_rgb(40, 48, 58)); // slate charcoal #28303a
+    } else {
+        draw_set_color(make_color_rgb(50, 58, 69)); // polished cool slate #323a45
+    }
+    draw_rectangle(x, y, x + 15, y + 15, false);
+
+    // 1px clean corridor panel seam
+    draw_set_alpha(0.60);
+    draw_set_color(make_color_rgb(68, 79, 94)); // #444f5e
+    draw_rectangle(x, y, x + 15, y + 15, true);
+}
+else {
+    // Universal solid tile fallback: ensures NO floor tile ever renders transparent or black void!
+    var _tile_x = x div 16;
+    var _tile_y = y div 16;
+    var _is_dark = (((_tile_x + _tile_y) mod 2) != 0);
+
+    draw_set_alpha(1.0);
+    if (_is_dark) {
+        draw_set_color(make_color_rgb(125, 125, 125));
+    } else {
+        draw_set_color(make_color_rgb(177, 177, 177));
+    }
+    draw_rectangle(x, y, x + 15, y + 15, false);
+
+    draw_set_color(make_color_rgb(148, 148, 148));
+    draw_rectangle(x, y, x + 15, y + 15, true);
+}
 
 draw_set_color(c_white);
 draw_set_alpha(1.0);
