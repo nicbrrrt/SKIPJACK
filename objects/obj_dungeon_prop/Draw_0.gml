@@ -164,47 +164,78 @@ else if (prop_type == TILE_PROP_LOCKER) {
     // =========================================================
     var _is_occupied = (variable_global_exists("player_in_locker") && global.player_in_locker && global.active_locker_id == id);
 
-    // Subtle floor light pool under locker
-    draw_set_alpha(0.07);
-    draw_set_color(_is_occupied ? c_lime : c_aqua);
-    draw_circle(_cx, y + 8, 10, false);
+    // [EXPERIMENTAL] Toggle for using user-provided locker sprites
+    // (Easily reversible: set to false to instantly fall back to the original procedural code!)
+    var _use_new_locker_sprites = true;
 
-    // Drop shadow under locker
-    draw_set_alpha(0.55);
-    draw_set_color(c_black);
-    draw_rectangle(x, y - 8, x + 15, y + 15, false);
-
-    // High-contrast Safety Amber / Cyan Steel Locker Cabinet
-    draw_set_alpha(1.0);
-    draw_set_color(_is_occupied ? make_color_rgb(20, 125, 145) : make_color_rgb(230, 155, 25));
-    draw_rectangle(x + 1, y - 8, x + 14, y + 14, false);
-
-    // Crisp bright neon frame & vertical door divider
-    draw_set_color(_is_occupied ? c_lime : make_color_rgb(255, 235, 120));
-    draw_rectangle(x + 1, y - 8, x + 14, y + 14, true);
-    draw_line(x + 2, y - 4, x + 13, y - 4);
-
-    // Glowing Top LED Beacon
-    draw_set_color(_is_occupied ? c_lime : c_aqua);
-    draw_circle(_cx, y - 6, 2, false);
-
-    // Louvered air vents / Peephole visor slit
-    if (_is_occupied) {
+    if (_use_new_locker_sprites && sprite_exists(spr_dungeon_locker) && sprite_exists(spr_dungeon_locker_hidden)) {
+        // Drop shadow under locker base
+        draw_set_alpha(0.35);
         draw_set_color(c_black);
-        draw_rectangle(x + 3, y - 2, x + 12, y + 2, false);
-        draw_set_color(c_lime);
-        draw_point(x + 6, y);
-        draw_point(x + 9, y);
-    } else {
-        draw_set_color(make_color_rgb(25, 30, 42));
-        draw_rectangle(x + 4, y - 2, x + 11, y + 3, false);
-        draw_set_color(make_color_rgb(255, 220, 95));
-        draw_line(x + 4, y, x + 11, y);
-    }
+        draw_ellipse(_cx - 8, y + 12, _cx + 8, y + 16, false);
 
-    // Bright White/Silver Locker Handle
-    draw_set_color(c_white);
-    draw_rectangle(x + 10, y + 6, x + 12, y + 10, false);
+        // Select sprite depending on locker variant and whether Jack is hidden inside:
+        // locker_variant == 0: North wall (door faces player) -> spr_dungeon_locker / spr_dungeon_locker_hidden
+        // locker_variant == 1: East, West, or South wall (door does not face player) -> spr_dungeon_locker_1 (normal & hidden)
+        var _spr = _is_occupied ? spr_dungeon_locker_hidden : spr_dungeon_locker;
+        if (variable_instance_exists(id, "locker_variant") && locker_variant == 1) {
+            if (sprite_exists(spr_dungeon_locker_1)) {
+                _spr = spr_dungeon_locker_1;
+            }
+        }
+
+        // Position the sprite centered horizontally on the 16px tile, with base resting at y+16
+        var _draw_x = _cx - (sprite_get_width(_spr) * 0.5) + sprite_get_xoffset(_spr);
+        var _draw_y = (y + 16) - sprite_get_height(_spr) + sprite_get_yoffset(_spr);
+
+        draw_set_alpha(1.0);
+        draw_sprite_ext(_spr, 0, _draw_x, _draw_y, 1.0, 1.0, 0, c_white, 1.0);
+    } else {
+        // =========================================================
+        // ORIGINAL PROCEDURAL LOCKER (Fallback / Reversible)
+        // =========================================================
+        // Subtle floor light pool under locker
+        draw_set_alpha(0.07);
+        draw_set_color(_is_occupied ? c_lime : c_aqua);
+        draw_circle(_cx, y + 8, 10, false);
+
+        // Drop shadow under locker
+        draw_set_alpha(0.55);
+        draw_set_color(c_black);
+        draw_rectangle(x, y - 8, x + 15, y + 15, false);
+
+        // High-contrast Safety Amber / Cyan Steel Locker Cabinet
+        draw_set_alpha(1.0);
+        draw_set_color(_is_occupied ? make_color_rgb(20, 125, 145) : make_color_rgb(230, 155, 25));
+        draw_rectangle(x + 1, y - 8, x + 14, y + 14, false);
+
+        // Crisp bright neon frame & vertical door divider
+        draw_set_color(_is_occupied ? c_lime : make_color_rgb(255, 235, 120));
+        draw_rectangle(x + 1, y - 8, x + 14, y + 14, true);
+        draw_line(x + 2, y - 4, x + 13, y - 4);
+
+        // Glowing Top LED Beacon
+        draw_set_color(_is_occupied ? c_lime : c_aqua);
+        draw_circle(_cx, y - 6, 2, false);
+
+        // Louvered air vents / Peephole visor slit
+        if (_is_occupied) {
+            draw_set_color(c_black);
+            draw_rectangle(x + 3, y - 2, x + 12, y + 2, false);
+            draw_set_color(c_lime);
+            draw_point(x + 6, y);
+            draw_point(x + 9, y);
+        } else {
+            draw_set_color(make_color_rgb(25, 30, 42));
+            draw_rectangle(x + 4, y - 2, x + 11, y + 3, false);
+            draw_set_color(make_color_rgb(255, 220, 95));
+            draw_line(x + 4, y, x + 11, y);
+        }
+
+        // Bright White/Silver Locker Handle
+        draw_set_color(c_white);
+        draw_rectangle(x + 10, y + 6, x + 12, y + 10, false);
+    }
 }
 else if (prop_type == TILE_PROP_OVERRIDE) {
     // =========================================================

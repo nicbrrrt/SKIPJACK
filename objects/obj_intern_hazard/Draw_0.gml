@@ -96,29 +96,51 @@ if (hazard_type == HAZARD_SHELF) {
 // -----------------------------------------------------------------
 else if (hazard_type == HAZARD_LOCKER) {
     var _lx_off = (is_wobbling || is_trapped) ? irandom_range(-1, 1) : 0;
+    var _use_locker_sprite = sprite_exists(spr_dungeon_locker_hidden) || sprite_exists(spr_dungeon_locker);
 
-    // Draw Blue Corporate Hallway Locker
-    draw_set_alpha(0.95);
-    draw_set_color(make_color_rgb(32, 64, 110));
-    draw_rectangle(x + 1 + _lx_off, y - 10, x + 15 + _lx_off, y + 15, false);
-    draw_set_color(make_color_rgb(70, 130, 210));
-    draw_rectangle(x + 1 + _lx_off, y - 10, x + 15 + _lx_off, y + 15, true);
+    if (_use_locker_sprite) {
+        // Drop shadow under locker base
+        draw_set_alpha(0.35);
+        draw_set_color(c_black);
+        draw_ellipse(_cx - 8, y + 12, _cx + 8, y + 16, false);
 
-    // Vent slits and handle
-    draw_set_color(c_black);
-    draw_line(x + 4 + _lx_off, y - 6, x + 12 + _lx_off, y - 6);
-    draw_line(x + 4 + _lx_off, y - 3, x + 12 + _lx_off, y - 3);
-    draw_set_color(c_yellow);
-    draw_circle(x + 12 + _lx_off, y + 4, 1.5, false);
+        // Sprite selection:
+        // - When empty (no intern inside): spr_dungeon_locker
+        // - When an intern is trapped inside: spr_dungeon_locker_hidden
+        var _spr = is_trapped ? spr_dungeon_locker_hidden : spr_dungeon_locker;
+        if (!sprite_exists(_spr)) {
+            _spr = sprite_exists(spr_dungeon_locker) ? spr_dungeon_locker : spr_dungeon_locker_hidden;
+        }
+
+        var _draw_x = _cx - (sprite_get_width(_spr) * 0.5) + sprite_get_xoffset(_spr) + _lx_off;
+        var _draw_y = (y + 16) - sprite_get_height(_spr) + sprite_get_yoffset(_spr);
+
+        draw_set_alpha(1.0);
+        draw_sprite_ext(_spr, 0, _draw_x, _draw_y, 1.0, 1.0, 0, c_white, 1.0);
+    } else {
+        // Draw Blue Corporate Hallway Locker (Procedural Fallback)
+        draw_set_alpha(0.95);
+        draw_set_color(make_color_rgb(32, 64, 110));
+        draw_rectangle(x + 1 + _lx_off, y - 10, x + 15 + _lx_off, y + 15, false);
+        draw_set_color(make_color_rgb(70, 130, 210));
+        draw_rectangle(x + 1 + _lx_off, y - 10, x + 15 + _lx_off, y + 15, true);
+
+        // Vent slits and handle
+        draw_set_color(c_black);
+        draw_line(x + 4 + _lx_off, y - 6, x + 12 + _lx_off, y - 6);
+        draw_line(x + 4 + _lx_off, y - 3, x + 12 + _lx_off, y - 3);
+        draw_set_color(c_yellow);
+        draw_circle(x + 12 + _lx_off, y + 4, 1.5, false);
+    }
 
     if (is_wobbling) {
         var _bob = sin(current_time / 80) * 2;
-        draw_sprite_ext(spr_exclamation, 0, _cx, y - 20 + _bob, 0.5, 0.5, 0, c_white, 1.0);
+        draw_sprite_ext(spr_exclamation, 0, _cx, y - 26 + _bob, 0.5, 0.5, 0, c_white, 1.0);
         if (is_interact_target) {
             var _bw = 32;
             var _bh = 4;
             var _bx1 = _cx - _bw * 0.5;
-            var _by1 = y - 26;
+            var _by1 = y - 32;
             draw_set_halign(fa_center);
             draw_set_valign(fa_bottom);
             draw_set_font(fnt_dialogue);
@@ -142,7 +164,7 @@ else if (hazard_type == HAZARD_LOCKER) {
         var _bw = 36;
         var _bh = 5;
         var _bx1 = _cx - _bw * 0.5;
-        var _by1 = y - 22;
+        var _by1 = y - 26;
         var _fill = clamp(struggle_meter, 0, 1);
 
         draw_set_alpha(0.95);
@@ -167,19 +189,41 @@ else if (hazard_type == HAZARD_LOCKER) {
 // 3. HAZARD: WATER DISPENSER
 // -----------------------------------------------------------------
 else if (hazard_type == HAZARD_WATER) {
-    if (is_fallen) {
-        // Fallen water cooler on its side
-        draw_set_alpha(0.9);
-        draw_set_color(make_color_rgb(220, 225, 235));
-        draw_rectangle(x + 2, y + 10, x + 14, y + 15, false);
-        draw_set_color(make_color_rgb(140, 150, 165));
-        draw_rectangle(x + 2, y + 10, x + 14, y + 15, true);
+    var _use_cooler_sprite = sprite_exists(spr_water_cooler);
 
-        // Plastic jug lying cracked on its side
-        draw_set_color(make_color_rgb(40, 140, 240));
-        draw_ellipse(x - 5, y + 9, x + 3, y + 15, false);
-        draw_set_color(c_aqua);
-        draw_ellipse(x - 4, y + 10, x + 2, y + 14, true);
+    if (is_fallen) {
+        if (_use_cooler_sprite) {
+            // Tipped over water cooler sprite resting horizontally on the floor
+            var _ox = sprite_get_xoffset(spr_water_cooler);
+            var _oy = sprite_get_yoffset(spr_water_cooler);
+            var _pdx = 8 - _ox;
+            var _pdy = 16 - _oy;
+            var _dist = point_distance(0, 0, _pdx, _pdy);
+            var _dir  = point_direction(0, 0, _pdx, _pdy);
+            var _draw_x = _cx - lengthdir_x(_dist, _dir + 90);
+            var _draw_y = (y + 8) - lengthdir_y(_dist, _dir + 90);
+
+            // Subtle floor contact shadow
+            draw_set_alpha(0.35);
+            draw_set_color(c_black);
+            draw_ellipse(_cx - 16, y + 12, _cx + 16, y + 16, false);
+
+            draw_set_alpha(1.0);
+            draw_sprite_ext(spr_water_cooler, 0, _draw_x, _draw_y, 1.0, 1.0, 90, c_white, 1.0);
+        } else {
+            // Fallen water cooler on its side (Procedural Fallback)
+            draw_set_alpha(0.9);
+            draw_set_color(make_color_rgb(220, 225, 235));
+            draw_rectangle(x + 2, y + 10, x + 14, y + 15, false);
+            draw_set_color(make_color_rgb(140, 150, 165));
+            draw_rectangle(x + 2, y + 10, x + 14, y + 15, true);
+
+            // Plastic jug lying cracked on its side
+            draw_set_color(make_color_rgb(40, 140, 240));
+            draw_ellipse(x - 5, y + 9, x + 3, y + 15, false);
+            draw_set_color(c_aqua);
+            draw_ellipse(x - 4, y + 10, x + 2, y + 14, true);
+        }
 
         if (is_interact_target) {
             var _bw = 32;
@@ -204,27 +248,48 @@ else if (hazard_type == HAZARD_WATER) {
             draw_set_font(fnt_default);
         }
     } else {
-        var _rad = degtorad(wobble_angle);
-        draw_set_alpha(0.95);
-        draw_set_color(make_color_rgb(220, 225, 235));
-        draw_rectangle(x + 3, y + 3, x + 13, y + 15, false);
-        draw_set_color(make_color_rgb(140, 150, 165));
-        draw_rectangle(x + 3, y + 3, x + 13, y + 15, true);
+        if (_use_cooler_sprite) {
+            // Standing water cooler grounded at y + 16, wobbling around bottom center (_cx, _by)
+            var _ox = sprite_get_xoffset(spr_water_cooler);
+            var _oy = sprite_get_yoffset(spr_water_cooler);
+            var _pdx = 8 - _ox;
+            var _pdy = 32 - _oy;
+            var _dist = point_distance(0, 0, _pdx, _pdy);
+            var _dir  = point_direction(0, 0, _pdx, _pdy);
+            var _draw_x = _cx - lengthdir_x(_dist, _dir + wobble_angle);
+            var _draw_y = _by - lengthdir_y(_dist, _dir + wobble_angle);
 
-        // Blue water jug on top
-        draw_set_color(make_color_rgb(40, 140, 240));
-        draw_ellipse(x + 4, y - 7, x + 12, y + 3, false);
-        draw_set_color(c_aqua);
-        draw_ellipse(x + 5, y - 6, x + 11, y + 2, true);
+            // Ground shadow
+            draw_set_alpha(0.35);
+            draw_set_color(c_black);
+            draw_ellipse(_cx - 8, y + 13, _cx + 8, y + 16, false);
+
+            draw_set_alpha(1.0);
+            draw_sprite_ext(spr_water_cooler, 0, _draw_x, _draw_y, 1.0, 1.0, wobble_angle, c_white, 1.0);
+        } else {
+            // Procedural Fallback
+            var _rad = degtorad(wobble_angle);
+            draw_set_alpha(0.95);
+            draw_set_color(make_color_rgb(220, 225, 235));
+            draw_rectangle(x + 3, y + 3, x + 13, y + 15, false);
+            draw_set_color(make_color_rgb(140, 150, 165));
+            draw_rectangle(x + 3, y + 3, x + 13, y + 15, true);
+
+            // Blue water jug on top
+            draw_set_color(make_color_rgb(40, 140, 240));
+            draw_ellipse(x + 4, y - 7, x + 12, y + 3, false);
+            draw_set_color(c_aqua);
+            draw_ellipse(x + 5, y - 6, x + 11, y + 2, true);
+        }
 
         if (is_wobbling) {
             var _bob = sin(current_time / 80) * 2;
-            draw_sprite_ext(spr_exclamation, 0, _cx, y - 16 + _bob, 0.5, 0.5, 0, c_white, 1.0);
+            draw_sprite_ext(spr_exclamation, 0, _cx, y - 22 + _bob, 0.5, 0.5, 0, c_white, 1.0);
             if (is_interact_target) {
                 var _bw = 32;
                 var _bh = 4;
                 var _bx1 = _cx - _bw * 0.5;
-                var _by1 = y - 24;
+                var _by1 = y - 28;
                 draw_set_halign(fa_center);
                 draw_set_valign(fa_bottom);
                 draw_set_font(fnt_dialogue);

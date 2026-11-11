@@ -1,40 +1,28 @@
 /// @description obj_floor — Draw Event
 /// Renders corporate office tiles, hallway carpet runners, or brushed steel elevator flooring.
 
-draw_self();
+if (floor_style == 0 || floor_style == 1) {
+    // Alternating checkerboard floor tile panel pattern
+    var _tile_x = x div 16;
+    var _tile_y = y div 16;
+    var _is_dark = (((_tile_x + _tile_y) mod 2) != 0);
 
-if (floor_style == 0) {
-    // Corporate polished floor tile subtle check pattern
-    var _checker = ((floor(x / 16) + floor(y / 16)) mod 2 == 0);
-    draw_set_alpha(_checker ? 0.12 : 0.20);
-    draw_set_color(make_color_rgb(30, 42, 62));
+    draw_set_alpha(1.0);
+
+    // 1. Solid panel face: base (#b1b1b1) or dark (#7d7d7d)
+    if (_is_dark) {
+        // Dark variant panel: #7d7d7d / RGB: 125, 125, 125
+        draw_set_color(make_color_rgb(125, 125, 125));
+    } else {
+        // Base variant panel: #b1b1b1 / RGB: 177, 177, 177
+        draw_set_color(make_color_rgb(177, 177, 177));
+    }
     draw_rectangle(x, y, x + 15, y + 15, false);
 
-    // Subtle tile seam
-    draw_set_alpha(0.22);
-    draw_set_color(make_color_rgb(18, 24, 36));
+    // 2. Deliberate 1px inline seam (in-between color: #949494 / RGB: 148, 148, 148)
+    // Ensures clean panel borders with zero transparency
+    draw_set_color(make_color_rgb(148, 148, 148));
     draw_rectangle(x, y, x + 15, y + 15, true);
-}
-else if (floor_style == 1) {
-    // Corporate hallway / office runner carpet (crimson lockdown / gold key vault / dark slate)
-    draw_set_alpha(0.78);
-    if (room_theme == ROOM_CAESAR_KEY) {
-        draw_set_color(make_color_rgb(70, 52, 18));
-    } else if (room_theme == ROOM_CAESAR_LOCKED) {
-        draw_set_color(make_color_rgb(68, 18, 36));
-    } else {
-        draw_set_color(make_color_rgb(56, 22, 28));
-    }
-    draw_rectangle(x, y, x + 15, y + 15, false);
-
-    // Subtle woven inner trim
-    draw_set_alpha(0.35);
-    if (room_theme == ROOM_CAESAR_KEY) {
-        draw_set_color(make_color_rgb(220, 175, 45));
-    } else {
-        draw_set_color(make_color_rgb(170, 45, 60));
-    }
-    draw_rectangle(x + 2, y + 2, x + 13, y + 13, true);
 }
 else if (floor_style == 2) {
     // Brushed steel elevator cab floor

@@ -15,6 +15,7 @@ rot_angle   = choose(-12, 0, 8, 15);
 log_variant = irandom(5);
 talked_once = false;
 player_near = false;
+locker_variant = 0;
 
 // Dialogue speaker defaults (used by create_textevent)
 myName         = "Terminal";
