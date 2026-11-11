@@ -67,9 +67,8 @@ if (is_final_exam) {
 } else if (cleared_floor == 9) {
     _sub_str = "PRACTICE COMPLETE!  Next Up: FLOOR 10 CHAPTER FINAL EXAM!";
 } else {
-    _sub_str = (clues_total >= clues_req)
-        ? ("INVESTIGATION RANK: S  (Clues Gathered: " + string(clues_total) + "/" + string(clues_req) + ")")
-        : ("INVESTIGATION RANK: A  (Clues Gathered: " + string(clues_total) + "/" + string(clues_req) + ")");
+    var _rank = (case_wrong <= 0) ? "S" : ((case_wrong == 1) ? "A" : "B");
+    _sub_str = "INVESTIGATION RANK: " + _rank + "  (Evidence: " + string(case_ev) + "/" + string(case_ev_req) + "   Wrong Accusations: " + string(case_wrong) + ")";
 }
 draw_set_color(make_color_rgb(255, 215, 55));
 draw_text_transformed(_cx, _y1 + 42, _sub_str, 0.84, 0.84, 0);
@@ -163,7 +162,7 @@ draw_text_transformed(_x1 + 26, _y1 + 256, _task_summary, 0.78, 0.78, 0);
         "Cipher Speed & Accuracy  (" + string(paycheck.fails) + " failed codes / timeouts, -$25 each)",
         "Salvage Task Bonus  (" + string((task1_done ? 1 : 0) + (task2_done ? 1 : 0)) + "/2 tasks)",
         "Clean Security Record  (busted " + string(paycheck.busted) + "x)",
-        "HR Property Audit  (" + string(hr_scrapped) + "/" + string(hr_limit) + " scrapped)"
+        "Corporate Recovery Audit (" + string(hr_scrapped) + " Pcs) " + (is_compliant ? "[COMPLIANT - SAFE EXIT]" : "[NON-COMPLIANT - INTERN DUTY]")
     ];
     var _lines_amt = [paycheck.hazard, paycheck.speed, paycheck.salvage, paycheck.clean, paycheck.fine];
 

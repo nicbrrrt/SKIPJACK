@@ -128,12 +128,19 @@ if (prop_type == TILE_PROP_DRONE) {
     }
 
     if (!is_scrapped && !_lifted) {
+        var _is_jammed = (variable_global_exists("drone_jammed_timer") && global.drone_jammed_timer > 0);
+        if (_is_jammed) {
+            patrol_vx = 0;
+            patrol_vy = 0;
+            can_sneak_ambush = true;
+        }
+
         var _trigger_bot_capture = (grapple_meter <= 0.0 && zap_cd == 60);
         if (_trigger_bot_capture) {
             grapple_meter = 0.45;
         }
 
-        if (!_trigger_bot_capture && instance_exists(obj_dungeon_generator) && variable_instance_exists(obj_dungeon_generator, "hallway_waypoints")) {
+        if (!_trigger_bot_capture && !_is_jammed && instance_exists(obj_dungeon_generator) && variable_instance_exists(obj_dungeon_generator, "hallway_waypoints")) {
             var _wps = obj_dungeon_generator.hallway_waypoints;
             var _n_wp = array_length(_wps);
             if (_n_wp >= 2) {
@@ -193,7 +200,7 @@ if (prop_type == TILE_PROP_DRONE) {
             var _vis_range = _watcher ? 66 : 92;
             var _vis_half  = _watcher ? 22 : 32;
 
-            if (!_trigger_bot_capture && zap_cd <= 0 && _dist_to_jack <= _vis_range && obj_jack.bump_timer <= 0) {
+            if (!_trigger_bot_capture && !_is_jammed && zap_cd <= 0 && _dist_to_jack <= _vis_range && obj_jack.bump_timer <= 0) {
                 // Caught if inside the 64-degree (±32°) front flashlight beam (or bumping into its front arc)
                 // AND there is no wall blocking line-of-sight!
                 if (_ang_diff <= _vis_half || (_dist_to_jack < 10 && _ang_diff <= 45)) {
@@ -371,11 +378,10 @@ if (player_near && _wrench_pressed && !is_scrapped && (prop_type == TILE_PROP_PC
         exit;
     }
 
-    // Safety net: if scrapping an unread Clue Terminal, auto-log its clue first so you never soft-lock the Key Vault!
+    // Safety net: if scrapping an unread evidence terminal, auto-log its evidence first so the case is never soft-locked!
     if (prop_type == TILE_PROP_PC && has_clue && !talked_once && !_lifted) {
         talked_once = true;
-        if (!variable_global_exists("clues_found")) global.clues_found = 0;
-        global.clues_found++;
+        if (evidence_idx >= 0) scr_log_evidence(evidence_idx);
     }
 
     audio_play_sound(snd_select, 8, false);
@@ -441,6 +447,14 @@ if (player_near && keyboard_check_pressed(ord("E"))) {
                 "The Lockdown Override is already active—the red sirens and hallway security drones are shut down!",
                 "Next: head to the Power Control Room and flip the Breaker Panel to restore floor power."
             ], [obj_jack.id, obj_jack.id]);
+        } else if (!variable_global_exists("incident_solved") || !global.incident_solved) {
+            audio_play_sound(wrong1, 8, false);
+            global.e_dialogue_intro_shown = true;
+            create_textevent([
+                "EMERGENCY OVERRIDE LOCKED — INCIDENT REPORT REQUIRED!",
+                "Facility safety protocols prevent overriding security grids until the breach is traced to its source.",
+                "Gather evidence from the offices, narrow down the suspects on the Case Board [TAB], then accuse the culprit at their desk!"
+            ], [obj_jack.id, obj_jack.id, obj_jack.id]);
         } else {
             global.override_ui_open   = true;
             global.override_timer_max = scr_get_cipher_timer_frames("sever");
@@ -464,7 +478,7 @@ if (player_near && keyboard_check_pressed(ord("E"))) {
         exit;
     }
 
-    var _is_new_clue = !talked_once && !_lifted && ((prop_type == TILE_PROP_PC && has_clue) || prop_type == TILE_PROP_PAPER || prop_type == TILE_PROP_NPC);
+    var _is_new_clue = !talked_once && !_lifted && evidence_idx < 0 && (prop_type == TILE_PROP_PAPER || prop_type == TILE_PROP_NPC);
     talked_once = true;
     audio_play_sound(snd_button_click, 5, false);
     global.e_dialogue_intro_shown = true;
@@ -475,7 +489,7 @@ if (player_near && keyboard_check_pressed(ord("E"))) {
         global.clues_found++;
         var _ping = audio_play_sound(snd_correct_ping, 6, false);
         audio_sound_gain(_ping, 0.45, 0);
-        _clue_prefix = "[CLUE #" + string(global.clues_found) + " DISCOVERED] ";
+        _clue_prefix = "[IT TIP #" + string(global.clues_found) + " LOGGED] ";
     }
 
     var _case = variable_global_exists("floor_case") ? global.floor_case : scr_get_floor_incident_case(0);
@@ -508,27 +522,58 @@ if (player_near && keyboard_check_pressed(ord("E"))) {
         _radar_hint = _target_lbl + ": " + _compass;
     }
 
-    if (prop_type == TILE_PROP_PC && has_clue) {
-        // Open the dedicated Computer Monitor Screen UI (with greyed-out background) instead of a dialogue box!
+    if (prop_type == TILE_PROP_PC) {
+        audio_play_sound(snd_button_click, 5, false);
+        keyboard_clear(ord("E"));
+        global.pc_screen_open     = true;
+        global.pc_input_cooldown  = 12;
+        global.pc_screen_is_pz    = false;
+        global.pc_screen_mode     = 0;
+        global.pc_screen_target   = id;
+        global.pc_screen_select   = 0;
+        global.pc_screen_feedback = "";
+
         if (is_holding_clue) {
             var _eq = variable_global_exists("holding_math_clue") ? global.holding_math_clue : "SHIFT KEY (X) = (3 * 3) - 6";
-            global.pc_screen_open  = true;
             global.pc_screen_title = "HOLDING CELL TERMINAL";
             global.pc_screen_body  = "Solve for the cell door's Shift Key (X):\n\n" + _eq;
             global.pc_screen_radar = "+X = Shift UP   |   -X = Shift DOWN";
             global.pc_screen_badge = "CELL DOOR KEY CLUE";
-        } else {
-            var _logs = _case.pc_logs;
-            var _log_line = _logs[log_variant mod array_length(_logs)];
-
-            global.pc_screen_open  = true;
-            global.pc_screen_title = "TERMINAL #" + string(log_variant + 1);
-            global.pc_screen_body  = _lifted
-                ? ("THREAT CLEARED: " + _case.word + "\n\n" + _case.takeaway)
-                : _log_line;
+        } else if (suspect_idx >= 0) {
+            // Suspect's desk: shows the owner and lets the player ACCUSE
+            var _sp = global.case_suspects[suspect_idx];
+            global.pc_screen_mode  = 1;
+            global.pc_screen_title = "DESK: " + nameplate + "  [" + _sp.dept + "]";
+            global.pc_screen_body  = "";
             global.pc_screen_radar = _radar_hint;
-            global.pc_screen_badge = "CLUES FOUND: " + string(global.clues_found) + " / " + string(global.clues_needed);
+            global.pc_screen_badge = (variable_global_exists("incident_solved") && global.incident_solved)
+                ? "CASE CLOSED"
+                : "SUSPECT DESK";
+        } else if (evidence_idx >= 0) {
+            // Evidence terminal: readable proof that clears or implicates a suspect
+            var _ev_new = scr_log_evidence(evidence_idx);
+            var _evd    = global.case_evidence[evidence_idx];
+            if (_ev_new) {
+                var _ep = audio_play_sound(snd_correct_ping, 6, false);
+                audio_sound_gain(_ep, 0.45, 0);
+            }
+            global.pc_screen_title = "EVIDENCE: " + string_upper(_evd.type);
+            global.pc_screen_body  = _evd.text + "\n\n" + (_ev_new ? "NEW EVIDENCE ADDED TO CASE BOARD." : "(Already on the Case Board.)") + "\nOpen the Case Board with [TAB].";
+            global.pc_screen_radar = "EVIDENCE " + string(global.evidence_found) + "/" + string(global.evidence_needed) + "   [TAB] CASE BOARD";
+            global.pc_screen_badge = "CASE FILE";
+        } else {
+            // Ordinary coworker workstation (flavor only)
+            var _flav = [
+                "Q3 sales slides, a half-written email, and a coffee order.\n\nNothing about the breach here.",
+                "A spreadsheet of office snack votes.\n\nNothing about the breach here.",
+                "Unread newsletters and a sticky note: 'change password someday'.\n\nNothing about the breach here."
+            ];
+            global.pc_screen_title = "WORKSTATION: Corporate Terminal";
+            global.pc_screen_body  = _flav[log_variant mod 3];
+            global.pc_screen_radar = _radar_hint;
+            global.pc_screen_badge = "NO EVIDENCE";
         }
+        exit;
     }
     else if (prop_type == TILE_PROP_PAPER) {
         if (is_holding_clue) {
@@ -536,6 +581,16 @@ if (player_near && keyboard_check_pressed(ord("E"))) {
             create_textevent([
                 "[SCRATCHPAD NOTE]: 'The brig door has its own Shift Key (X)! Solve this equation to escape:'",
                 _eq + "   (Positive X = Shift UP, Negative X = Shift DOWN!)"
+            ], [obj_jack.id, obj_jack.id]);
+        } else if (evidence_idx >= 0) {
+            var _pe_new = scr_log_evidence(evidence_idx);
+            if (_pe_new) {
+                var _pep = audio_play_sound(snd_correct_ping, 6, false);
+                audio_sound_gain(_pep, 0.45, 0);
+            }
+            create_textevent([
+                (_pe_new ? "[EVIDENCE LOGGED] " : "[ALREADY ON CASE BOARD] ") + global.case_evidence[evidence_idx].text,
+                "Noted. [TAB] opens the Case Board (" + string(global.evidence_found) + "/" + string(global.evidence_needed) + " pieces)."
             ], [obj_jack.id, obj_jack.id]);
         } else {
             var _notes = _case.memo_notes;
@@ -559,6 +614,16 @@ if (player_near && keyboard_check_pressed(ord("E"))) {
             create_textevent([
                 _l1,
                 "All clear—let's get to the Extraction Elevator and secure the building."
+            ], [id, obj_jack.id]);
+        } else if (evidence_idx >= 0) {
+            var _ne_new = scr_log_evidence(evidence_idx);
+            if (_ne_new) {
+                var _nep = audio_play_sound(snd_correct_ping, 6, false);
+                audio_sound_gain(_nep, 0.45, 0);
+            }
+            create_textevent([
+                (_ne_new ? "[EVIDENCE LOGGED] " : "[ALREADY ON CASE BOARD] ") + global.case_evidence[evidence_idx].text,
+                "Thanks. I'll add that to the Case Board [TAB] (" + string(global.evidence_found) + "/" + string(global.evidence_needed) + " pieces)."
             ], [id, obj_jack.id]);
         } else {
             var _nclues = _case.npc_clues;

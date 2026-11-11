@@ -53,38 +53,42 @@ function scr_intern_get_room_name(_room_id) {
 /// Calculates difficulty scaling parameters for the Intern Babysitting Shift
 /// based on the amount of company Scrap Jack severed / looted!
 function scr_intern_get_scrap_difficulty() {
-    var _scrap = 4;
-    if (variable_global_exists("floor_scrap_collected") && global.floor_scrap_collected > 0) {
-        _scrap = global.floor_scrap_collected;
-    } else if (variable_global_exists("hr_scrap_count") && global.hr_scrap_count > 0) {
-        _scrap = global.hr_scrap_count;
-    }
+    var _scrap = variable_global_exists("hr_scrap_count") ? global.hr_scrap_count : (variable_global_exists("floor_scrap_collected") ? global.floor_scrap_collected : 0);
 
-    // Threat Tier (Level 1..4):
-    // Level 1: Mild (4 - 5 scrap)
-    // Level 2: Moderate (6 - 8 scrap)
-    // Level 3: Severe (9 - 11 scrap)
-    // Level 4: Extreme (12+ scrap)
-    var _level = 1;
-    var _tier_name = "MILD";
+    // Compliance Tiers based on Symmetrical Compliance Meter:
+    // 4..6 Scrap: GREEN (Compliant / Clean - Level 0, factor 0.0)
+    // 3 or 7..8 Scrap: YELLOW (Mild - Level 1, factor 0.25)
+    // 1..2 or 9..11 Scrap: RED (Severe - Level 3, factor 0.70)
+    // 0 or 12+ Scrap: BLACK (Extreme - Level 4, factor 1.0)
+    var _level = 0;
+    var _tier_name = "COMPLIANT";
     var _tier_col = make_color_rgb(100, 240, 140); // Green
+    var _t = 0.0;
+    var _is_compliant = false;
 
-    if (_scrap >= 12) {
-        _level = 4;
-        _tier_name = "EXTREME";
-        _tier_col = make_color_rgb(255, 70, 70); // Red
-    } else if (_scrap >= 9) {
+    if (_scrap >= 4 && _scrap <= 6) {
+        _level = 0;
+        _tier_name = "COMPLIANT";
+        _tier_col = make_color_rgb(100, 240, 140);
+        _t = 0.0;
+        _is_compliant = true;
+    } else if (_scrap == 3 || (_scrap >= 7 && _scrap <= 8)) {
+        _level = 1;
+        _tier_name = "MILD";
+        _tier_col = make_color_rgb(255, 215, 60); // Yellow
+        _t = 0.25;
+    } else if (_scrap == 1 || _scrap == 2 || (_scrap >= 9 && _scrap <= 11)) {
         _level = 3;
         _tier_name = "SEVERE";
         _tier_col = make_color_rgb(255, 140, 40); // Orange
-    } else if (_scrap >= 6) {
-        _level = 2;
-        _tier_name = "MODERATE";
-        _tier_col = make_color_rgb(255, 215, 60); // Yellow
+        _t = 0.70;
+    } else {
+        // 0 Scrap (Negligence) or 12+ Scrap (Hazardous Clutter)
+        _level = 4;
+        _tier_name = "EXTREME";
+        _tier_col = make_color_rgb(255, 70, 70); // Red
+        _t = 1.0;
     }
-
-    // Continuous normalized factor: 0.0 at 4 scrap up to 1.0 at 12+ scrap
-    var _t = clamp((_scrap - 4) / 8.0, 0.0, 1.0);
 
     return {
         scrap:           _scrap,
@@ -92,6 +96,7 @@ function scr_intern_get_scrap_difficulty() {
         tier_name:       _tier_name,
         tier_col:        _tier_col,
         factor:          _t,
+        is_compliant:    _is_compliant,
 
         // 1. Attention Span & Restlessness (Boredom increment per frame)
         // Level 1: 0.045 - 0.085 (~26s desk sit)

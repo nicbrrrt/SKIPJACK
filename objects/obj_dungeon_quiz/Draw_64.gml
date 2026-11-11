@@ -65,7 +65,7 @@ if (string_length(player_guess) < string_length(target_word)) {
 
 if (_clues_cur <= 0) {
     draw_set_color(make_color_rgb(255, 175, 65));
-    draw_text_transformed(_cx, _y1 + 90, "CLUES: 0/" + string(_clues_req) + "  —  Inspect a glowing PC or NPC [E] first!", 0.82, 0.82, 0);
+    draw_text_transformed(_cx, _y1 + 90, "CLUES: 0/" + string(_clues_req) + "  —  Read a sticky note or chat with a coworker [E] first!", 0.82, 0.82, 0);
 } else if (_guided && _clues_cur >= _clues_req) {
     draw_set_color(c_lime);
     draw_text_transformed(_cx, _y1 + 90, "TUTORIAL: Type the GREEN highlighted letter ('" + _next_needed_ch + "')!", 0.84, 0.84, 0);

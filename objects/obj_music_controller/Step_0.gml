@@ -25,7 +25,7 @@ else if (room == dungeon_test)
     audio_stop_sound(snd_tutorial_void_music);
     audio_stop_sound(snd_generic_background_music);
     
-    var _is_intern_duty = (variable_global_exists("intern_duty_flagged") && global.intern_duty_flagged) || instance_exists(obj_intern_ward_controller);
+    var _is_intern_duty = instance_exists(obj_intern_ward_controller) || (instance_exists(obj_dungeon_generator) && variable_instance_exists(obj_dungeon_generator, "is_intern_mode") && obj_dungeon_generator.is_intern_mode);
     
     if (_is_intern_duty) {
         audio_stop_sound(corporate);

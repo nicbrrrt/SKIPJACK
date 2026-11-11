@@ -9,6 +9,27 @@ var _lifted = (variable_global_exists("lockdown_lifted")     && global.lockdown_
 var _pwr_on = (variable_global_exists("power_restored")      && global.power_restored)
            || (variable_global_exists("lockdown_lifted")     && global.lockdown_lifted);
 
+// Suspect desk nameplate (whodunit): lets the player match evidence to a desk
+if (prop_type == TILE_PROP_PC && suspect_idx >= 0 && nameplate != "") {
+    var _solved_np = (variable_global_exists("incident_solved") && global.incident_solved);
+    var _is_cul    = (variable_global_exists("case_culprit_idx") && suspect_idx == global.case_culprit_idx);
+    var _wrong_np  = (variable_global_exists("case_suspects") && variable_struct_exists(global.case_suspects[suspect_idx], "accused_wrong"));
+    draw_set_font(fnt_dialogue);
+    draw_set_halign(fa_center);
+    draw_set_valign(fa_middle);
+    var _np_w = string_width(nameplate) * 0.5 + 4;
+    draw_set_alpha(0.85);
+    draw_set_color(make_color_rgb(14, 20, 30));
+    draw_rectangle(_cx - _np_w, y - 12, _cx + _np_w, y - 3, false);
+    draw_set_alpha(1.0);
+    draw_set_color((_solved_np && _is_cul) ? c_lime : (_wrong_np ? make_color_rgb(120, 140, 150) : make_color_rgb(255, 180, 90)));
+    draw_rectangle(_cx - _np_w, y - 12, _cx + _np_w, y - 3, true);
+    draw_text_transformed(_cx, y - 7, nameplate, 0.5, 0.5, 0);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+    draw_set_alpha(1.0);
+}
+
 if (prop_type == TILE_PROP_PC) {
     if (is_scrapped) {
         // =========================================================
@@ -250,21 +271,26 @@ else if (prop_type == TILE_PROP_DRONE) {
         // REAL-TIME 2D RAYCAST FLASHLIGHT BEAM (Wraps around corners & walls!)
         // =========================================================
         if (!_lifted && !grapple_active) {
+            var _is_jammed = (variable_global_exists("drone_jammed_timer") && global.drone_jammed_timer > 0);
             var _base_dir  = point_direction(0, 0, patrol_vx, patrol_vy);
             var _scan_dir  = _base_dir + sin(hover_t * 0.90) * 18;
             var _watcher   = scr_has_active_statue(0); // Blind Watcher Bust shrinks the beam
-            var _max_dist  = _watcher ? 66 : 94;
+            var _max_dist  = _is_jammed ? 40 : (_watcher ? 66 : 94);
             var _half_fov  = _watcher ? 22 : 32;
             var _num_rays  = 24;
 
             // Subtle flashlight glow around the drone lens itself
-            draw_set_alpha(0.08);
-            draw_set_color(make_color_rgb(255, 210, 120));
+            draw_set_alpha(_is_jammed ? 0.04 : 0.08);
+            draw_set_color(_is_jammed ? c_aqua : make_color_rgb(255, 210, 120));
             draw_circle(_cx, _cy, 10, false);
 
             // Outer Raycast Flashlight Fan (clips against walls & spills into open doorway alcoves!)
             draw_primitive_begin(pr_trianglefan);
-            draw_vertex_color(_cx, _cy, make_color_rgb(255, 235, 165), 0.42);
+            var _fan_c1 = _is_jammed ? make_color_rgb(100, 160, 220) : make_color_rgb(255, 235, 165);
+            var _fan_a1 = _is_jammed ? 0.20 : 0.42;
+            var _fan_c2 = _is_jammed ? make_color_rgb(50, 80, 120)  : make_color_rgb(255, 65, 55);
+            var _fan_a2 = _is_jammed ? 0.06 : 0.14;
+            draw_vertex_color(_cx, _cy, _fan_c1, _fan_a1);
 
             for (var _ri = 0; _ri <= _num_rays; _ri++) {
                 var _ang = (_scan_dir - _half_fov) + (_ri / _num_rays) * (_half_fov * 2);
@@ -281,9 +307,18 @@ else if (prop_type == TILE_PROP_DRONE) {
 
                 var _rx = _cx + _vx * _hit_d;
                 var _ry = _cy + _vy * _hit_d;
-                draw_vertex_color(_rx, _ry, make_color_rgb(255, 65, 55), 0.14);
+                draw_vertex_color(_rx, _ry, _fan_c2, _fan_a2);
             }
             draw_primitive_end();
+
+            // Floating [JAMMED] indicator if frequency jammed
+            if (_is_jammed) {
+                draw_set_font(fnt_dialogue);
+                draw_set_halign(fa_center);
+                draw_set_valign(fa_bottom);
+                draw_set_color(c_aqua);
+                draw_text_transformed(_cx, y - 10, "[JAMMED]", 0.72, 0.72, 0);
+            }
         } else {
             // Powered-down or Grappled standby ring
             draw_set_alpha(0.28);

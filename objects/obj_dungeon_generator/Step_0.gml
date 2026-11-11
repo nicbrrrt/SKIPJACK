@@ -8,6 +8,9 @@ if (!gen_complete) exit;
 
 siren_timer++;
 if (banner_timer > 0) banner_timer--;
+if (variable_global_exists("drone_jammed_timer") && global.drone_jammed_timer > 0) {
+    global.drone_jammed_timer--;
+}
 
 var _any_ui_busy = instance_exists(obj_textbox)
     || instance_exists(obj_textevent)
@@ -71,7 +74,7 @@ if (intro_pending && siren_timer >= 12 && instance_exists(obj_jack) && !_any_ui_
         var _lesson_intro = (array_length(_m_lines) > 0) ? _m_lines[0] : "Welcome to the floor! Let me show you how this sector works.";
         var _tour_lines = [
             _lesson_intro + " Let's review our 4-step emergency recovery protocol for this sector.",
-            "Step 1: Inspect Clue Terminals [E] in the offices to gather clues, then unlock this Gold Key Vault room to calibrate the floor's Cipher Key!",
+            "Step 1: Read sticky notes and chat with coworkers [E] for IT Help-Desk tips, then unlock this Gold Key Vault room to calibrate the floor's Cipher Key! Separately, collect case evidence and press [TAB] for the Case Board to hunt down the culprit!",
             "Step 2: Use that Cipher Key to decode these Pink Encrypted Doors (shrouded in 100% black fog) to search the rooms and find the Lockdown Override Console!",
             "Step 3: Overriding the lockdown unseals this Cyan Power Breaker Room—head inside and flip the 2 matching fuses to restore facility power!",
             (global.chapter_floor == 3)
@@ -80,7 +83,7 @@ if (intro_pending && siren_timer >= 12 && instance_exists(obj_jack) && !_any_ui_
         ];
         var _tour_targets = [
             { tx: _start_cx, ty: _start_cy, label: "SECTOR BRIEFING",                     sublabel: "Kyle (Security Analyst)",                                  col: c_white },
-            { tx: _key_tx,   ty: _key_ty,   label: "STEP 1: GOLD KEY VAULT ROOM",          sublabel: "Find Clues [E] -> Pass Door Quiz -> Calibrate Floor Key",  col: make_color_rgb(255, 215, 55) },
+            { tx: _key_tx,   ty: _key_ty,   label: "STEP 1: GOLD KEY VAULT ROOM",          sublabel: "Read Memos/Coworkers [E] -> Pass Door Quiz -> Calibrate Floor Key",  col: make_color_rgb(255, 215, 55) },
             { tx: _enc_tx,   ty: _enc_ty,   label: "STEP 2: SEARCH ENCRYPTED DOORS",       sublabel: "Unlock Pink Encrypted Doors [E] -> Find Lockdown Override", col: make_color_rgb(255, 80, 95) },
             { tx: _brk_tx,   ty: _brk_ty,   label: "STEP 3: POWER BREAKER ROOM",           sublabel: "Unseals After Override -> Flip 2 Valid Fuses [ON]",         col: c_aqua },
             { tx: _start_cx, ty: _start_cy, label: "STEP 4: EXTRACTION ELEVATOR SEARCH",   sublabel: "Explore Encrypted Doors to Find Elevator & Clear Sector!", col: c_lime }

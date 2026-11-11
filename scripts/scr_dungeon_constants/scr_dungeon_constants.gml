@@ -344,13 +344,25 @@ function scr_get_floor_curriculum(_chapter, _floor_num) {
 function scr_get_floor_incident_case(_case_idx) {
     var _ch = variable_global_exists("dungeon_chapter") ? global.dungeon_chapter : CHAPTER_CAESAR;
 
-    // Case 9 dynamically reinforces the active chapter's cipher!
+    // Case 0 dynamically reinforces the active chapter's cipher!
     var _cipher_case = {
         word:     "CAESAR",
         title:    "Alphabet Shift Cipher",
         scenario: "Classical cipher that shifts every letter in the alphabet by a fixed key:",
         hint:     "Named after Roman leader Julius Caesar.",
         takeaway: "TIP: Caesar ciphers only have 25 keys—easy for computers to crack!",
+        victim_name: "David (Security Lead)",
+        victim_dept: "Cybersecurity Ops",
+        suspects: ["David (Sec Lead)", "Alice (Legal)", "Toby (Sales)"],
+        vectors:  ["Cipher Key Leak", "Phishing Email", "DDoS Attack"],
+        correct_suspect_idx: 0,
+        correct_vector_idx:  0,
+        desktop_items: [
+            { label: "Log: Internal Key Exfiltration via Port 8080", is_breach: true,  desc: "ALERT: Outbound transmission of raw cipher shift tables to external IP!" },
+            { label: "Memo: Scheduled Key Rotation for Q3",          is_breach: false, desc: "Normal security policy reminder to rotate employee keys." },
+            { label: "Report: Firewall Packet Inspection Log",       is_breach: false, desc: "Normal inbound traffic inspection." }
+        ],
+        kyle_debrief: "The attacker sniffed unencrypted cipher keys in transit! Always encrypt sensitive keys with TLS.",
         npc_clues: [
             "The hackers encrypted the doors with a 2,000-year-old Roman cipher that shifts every letter in the alphabet!",
             "If the shift key is +3, then 'A' becomes 'D'—and you shift 3 steps forward to decrypt it!",
@@ -375,6 +387,18 @@ function scr_get_floor_incident_case(_case_idx) {
             scenario: "Cipher that uses a repeating KEYWORD to shift each letter by a different amount:",
             hint:     "Uses a repeating keyword (A=0, B=1, C=2...) instead of a single shift.",
             takeaway: "TIP: Vigenere resists simple frequency analysis by using multiple shifts!",
+            victim_name: "David (Security Lead)",
+            victim_dept: "Cybersecurity Ops",
+            suspects: ["David (Sec Lead)", "Alice (Legal)", "Toby (Sales)"],
+            vectors:  ["Polyalphabetic Leak", "Phishing Email", "DDoS Attack"],
+            correct_suspect_idx: 0,
+            correct_vector_idx:  0,
+            desktop_items: [
+                { label: "Log: Keyword Exfiltration (Key: 'CAB')", is_breach: true,  desc: "ALERT: Outbound leak of polyalphabetic repeating keyword!" },
+                { label: "Memo: Vigenere Table Matrix Reference",  is_breach: false, desc: "26x26 Caesar shift grid for manual decryption." },
+                { label: "Notice: Password Hygiene Guidelines",     is_breach: false, desc: "Standard company password security memo." }
+            ],
+            kyle_debrief: "A repeating keyword cipher shifts each letter differently—making it far stronger than a single Caesar shift!",
             npc_clues: [
                 "Instead of shifting every letter by the same number, this lock uses a repeating keyword where A=0, B=1, C=2!",
                 "Because each letter in the keyword applies a different Caesar shift, it's called a polyalphabetic cipher!",
@@ -398,6 +422,18 @@ function scr_get_floor_incident_case(_case_idx) {
             scenario: "Ancient substitution cipher that folds the alphabet like a mirror (A<->Z, B<->Y):",
             hint:     "Swaps the first letter (A) with the last (Z), second (B) with second-to-last (Y).",
             takeaway: "TIP: Atbash has no secret key—anyone who knows the mirror rule can decode it!",
+            victim_name: "David (Security Lead)",
+            victim_dept: "Cybersecurity Ops",
+            suspects: ["David (Sec Lead)", "Alice (Legal)", "Toby (Sales)"],
+            vectors:  ["Mirror Cipher Breach", "Phishing Email", "DDoS Attack"],
+            correct_suspect_idx: 0,
+            correct_vector_idx:  0,
+            desktop_items: [
+                { label: "Log: Mirror Substitution Exploit Detected", is_breach: true,  desc: "ALERT: Alphabet flipped end-to-end (A<->Z, B<->Y). Secret key not required!" },
+                { label: "Doc: Ancient Hebrew Cipher History",        is_breach: false, desc: "Historical document on Biblical monoalphabetic ciphers." },
+                { label: "Memo: Terminal Maintenance Schedule",        is_breach: false, desc: "Routine cleaning and dusting for server racks." }
+            ],
+            kyle_debrief: "Atbash has no secret key—if an attacker recognizes the alphabet mirror, they can decrypt it immediately!",
             npc_clues: [
                 "The hackers folded the alphabet in half like a mirror—'A' becomes 'Z', 'B' becomes 'Y', and 'M' becomes 'N'!",
                 "Because the alphabet is reversed end-to-end, encrypting and decrypting use the exact same mirror rule!",
@@ -424,6 +460,18 @@ function scr_get_floor_incident_case(_case_idx) {
             scenario: "Fake emails or websites that trick you into giving up passwords:",
             hint:     "Uses fake emails as 'bait' to steal logins.",
             takeaway: "TIP: Always check the sender's address before clicking login links!",
+            victim_name: "Dave Miller",
+            victim_dept: "Logistics & Shipping",
+            suspects: ["Dave Miller", "Karen Jenkins", "Frank Castle"],
+            vectors:  ["Phishing Email", "Trojan Utility", "Weak Password"],
+            correct_suspect_idx: 0,
+            correct_vector_idx:  0,
+            desktop_items: [
+                { label: "Email: 'URGENT: Overdue Invoice_981.pdf.exe'", is_breach: true,  desc: "From billing@quickpay-secure.co! Contains a disguised executable (.exe)." },
+                { label: "Email: 'Weekly Shipping Schedule'",             is_breach: false, desc: "From dispatch@skipjack.com - standard logistics spreadsheet." },
+                { label: "Email: 'Warehouse Coffee Machine Repaired'",    is_breach: false, desc: "Office announcement from building maintenance." }
+            ],
+            kyle_debrief: "Dave opened an .exe disguised as a PDF invoice! Never launch executable attachments from external emails.",
             npc_clues: [
                 "Someone clicked a fake 'Holiday Bonus' email and typed their login into a bogus page!",
                 "I almost fell for that fake IT login email too, until I saw the sender URL was misspelled!",
@@ -446,6 +494,18 @@ function scr_get_floor_incident_case(_case_idx) {
             scenario: "Malware disguised as a harmless, useful program:",
             hint:     "Hides inside a normal-looking app (like the Trojan Horse).",
             takeaway: "TIP: Only download apps from official, verified sources!",
+            victim_name: "Karen Jenkins",
+            victim_dept: "Human Resources",
+            suspects: ["Karen Jenkins", "Dave Miller", "Marcus Vance"],
+            vectors:  ["Trojan Utility", "Phishing Email", "Rogue USB Drive"],
+            correct_suspect_idx: 0,
+            correct_vector_idx:  0,
+            desktop_items: [
+                { label: "Download: 'Free_Resume_Parser_Turbo.exe'", is_breach: true,  desc: "Downloaded from shady-recruiting-tools.net. Dropped a hidden backdoor!" },
+                { label: "Doc: 'Benefits Enrollment Form 2026.docx'",is_breach: false, desc: "Standard company insurance policy documentation." },
+                { label: "Memo: 'Intern Babysitting Shift Rota'",     is_breach: false, desc: "Shift schedule for supervising the intern ward." }
+            ],
+            kyle_debrief: "Karen downloaded unverified freeware that hid malware inside—a textbook Trojan Horse!",
             npc_clues: [
                 "Someone in accounting installed 'Free_Spreadsheet_Turbo.exe' and it secretly unlocked the building's backdoors!",
                 "That app looked like a harmless desktop tool on the outside, but it hid hacker malware inside!",
@@ -468,6 +528,18 @@ function scr_get_floor_incident_case(_case_idx) {
             scenario: "The security barrier that monitors and blocks unauthorized network traffic:",
             hint:     "Blocks suspicious traffic between your network and the internet.",
             takeaway: "TIP: Keep your Firewall enabled to block unauthorized connections!",
+            victim_name: "Bob Higgins",
+            victim_dept: "Marketing & PR",
+            suspects: ["Bob Higgins", "Chloe Rivera", "Alice Cooper"],
+            vectors:  ["Firewall Disabled", "Spyware Keylogger", "Phishing Email"],
+            correct_suspect_idx: 0,
+            correct_vector_idx:  0,
+            desktop_items: [
+                { label: "Setting: 'Windows Defender Firewall: DISABLED'", is_breach: true,  desc: "Turned off to host an unapproved game server, exposing ports 21-8080." },
+                { label: "Draft: 'New Product Press Release'",             is_breach: false, desc: "Marketing copy for the upcoming Skipjack cipher tool." },
+                { label: "Bookmark: 'Social Media Analytics Dashboard'",   is_breach: false, desc: "Official marketing metrics page." }
+            ],
+            kyle_debrief: "Bob shut down the firewall to bypass port rules, leaving the entire subnet open to the internet!",
             npc_clues: [
                 "Someone turned off our network traffic filter to host a LAN party, and the hackers walked right in!",
                 "Without our digital security guard checking incoming data packets, every network port was wide open!",
@@ -490,6 +562,18 @@ function scr_get_floor_incident_case(_case_idx) {
             scenario: "A network of hijacked 'zombie' computers controlled remotely by a hacker:",
             hint:     "'Robot' + 'Network' — an army of infected devices.",
             takeaway: "TIP: Change default passwords on smart devices to stop Botnets!",
+            victim_name: "Chloe Rivera",
+            victim_dept: "Smart Facilities",
+            suspects: ["Chloe Rivera", "Bob Higgins", "Greg Vance"],
+            vectors:  ["Botnet Infection", "Rogue USB Drive", "Weak Password"],
+            correct_suspect_idx: 0,
+            correct_vector_idx:  0,
+            desktop_items: [
+                { label: "Alert: '180 Smart Bulbs & Printers Flooding Outbound'", is_breach: true,  desc: "Office IoT devices running default passwords hijacked into a DDoS army." },
+                { label: "Log: 'Breakroom Thermostat Schedule'",                 is_breach: false, desc: "Normal AC settings for the 3rd floor." },
+                { label: "Notice: 'Elevator Maintenance Due'",                    is_breach: false, desc: "Routine building service log." }
+            ],
+            kyle_debrief: "Unsecured smart devices with default passwords were hijacked into a zombie Botnet army!",
             npc_clues: [
                 "Even the breakroom smart fridge and the office printers got hijacked into a zombie army!",
                 "Hundreds of infected office devices are all taking remote orders from the hacker's server at once!",
@@ -512,6 +596,18 @@ function scr_get_floor_incident_case(_case_idx) {
             scenario: "Malicious software that secretly watches your screen and records keystrokes:",
             hint:     "Acts like a hidden spy to steal your passwords.",
             takeaway: "TIP: Scan regularly for hidden background keyloggers and Spyware!",
+            victim_name: "Greg Vance",
+            victim_dept: "Accounting",
+            suspects: ["Greg Vance", "Karen Jenkins", "Dave Miller"],
+            vectors:  ["Spyware Keylogger", "Phishing Email", "Firewall Disabled"],
+            correct_suspect_idx: 0,
+            correct_vector_idx:  0,
+            desktop_items: [
+                { label: "Process: 'win_audio_svc32.exe (Keystroke Hook)'", is_breach: true,  desc: "Secretly recording every password and banking credential typed." },
+                { label: "Sheet: 'Q2 Tax Returns.xlsx'",                    is_breach: false, desc: "Quarterly accounting spreadsheet." },
+                { label: "Receipt: 'Office Supplies Order #401'",           is_breach: false, desc: "Purchased printer toner and pens." }
+            ],
+            kyle_debrief: "A background Spyware process was recording Greg's keystrokes to steal company passwords!",
             npc_clues: [
                 "The hackers knew my new password five seconds after I typed it! Something is recording my keyboard!",
                 "It didn't lock my screen—it just hid silently in the background watching everything I typed!",
@@ -534,6 +630,18 @@ function scr_get_floor_incident_case(_case_idx) {
             scenario: "The general umbrella term for any 'Malicious Software' built to harm a PC:",
             hint:     "Short for MALicious + softWARE.",
             takeaway: "TIP: Never plug unknown USB drives into your computer!",
+            victim_name: "Marcus Vance",
+            victim_dept: "Software Engineering",
+            suspects: ["Marcus Vance", "Chloe Rivera", "Toby Flend"],
+            vectors:  ["Rogue USB Drive", "Trojan Utility", "Backdoor"],
+            correct_suspect_idx: 0,
+            correct_vector_idx:  0,
+            desktop_items: [
+                { label: "Device: 'Mounted Drive E: [CONFIDENTIAL PAYROLL.usb]'", is_breach: true,  desc: "Found on parking lot asphalt and plugged in. Auto-executed malicious payload." },
+                { label: "Code: 'skipjack_core.c (Clean Git Commit)'",           is_breach: false, desc: "Normal source code repository checkout." },
+                { label: "Doc: 'API Documentation v2.1'",                         is_breach: false, desc: "Internal developer documentation." }
+            ],
+            kyle_debrief: "Marcus fell for USB baiting! Never plug random flash drives found in the wild into work PCs.",
             npc_clues: [
                 "Someone found a USB drive in the parking lot labeled 'Bonus Pay' and plugged it into the server!",
                 "As soon as that USB drive went in, hostile software started corrupting files and locking doors!",
@@ -556,6 +664,18 @@ function scr_get_floor_incident_case(_case_idx) {
             scenario: "Faking a trusted email address, caller ID, or IP address to impersonate someone:",
             hint:     "Disguising an untrusted sender's identity as a trusted one.",
             takeaway: "TIP: Display names and caller IDs can be faked—verify through a second channel!",
+            victim_name: "Sarah Connor",
+            victim_dept: "Legal & Compliance",
+            suspects: ["Sarah Connor", "Bob Higgins", "Marcus Vance"],
+            vectors:  ["Email Spoofing", "Weak Password", "Botnet Infection"],
+            correct_suspect_idx: 0,
+            correct_vector_idx:  0,
+            desktop_items: [
+                { label: "Header: 'From: CEO@skipjack.com [Forged IP: 185.220.101.5]'", is_breach: true,  desc: "Attacker forged display name and internal headers to impersonate the executive office." },
+                { label: "Contract: 'Vendor NDA Agreement'",                           is_breach: false, desc: "Standard mutual non-disclosure contract." },
+                { label: "Email: 'Reminder: Compliance Training Friday'",              is_breach: false, desc: "Legitimate HR compliance notification." }
+            ],
+            kyle_debrief: "The attacker spoofed the CEO's email address! Always verify urgent wire or credential requests out-of-band.",
             npc_clues: [
                 "The attacker forged our CEO's email header so the message looked like it came from inside the building!",
                 "They disguised their untrusted IP address to impersonate our internal security server!",
@@ -578,6 +698,18 @@ function scr_get_floor_incident_case(_case_idx) {
             scenario: "Attack that encrypts a victim's files and demands payment to unlock them:",
             hint:     "Holds your data hostage until a payment (ransom) is made.",
             takeaway: "TIP: Keep offline backups of critical data so you never have to pay a ransom!",
+            victim_name: "Toby Flend",
+            victim_dept: "Enterprise Sales",
+            suspects: ["Toby Flend", "Sarah Connor", "Dave Miller"],
+            vectors:  ["Ransomware Lock", "Firewall Disabled", "Spyware Keylogger"],
+            correct_suspect_idx: 0,
+            correct_vector_idx:  0,
+            desktop_items: [
+                { label: "File: 'CLIENT_DATABASE.encrypted.LOCKY'", is_breach: true,  desc: "Hostile ransomware encrypted all client files and generated a ransom extortion note." },
+                { label: "Pitch: 'Q3 Enterprise Sales Deck.pptx'", is_breach: false, desc: "Client presentation slides." },
+                { label: "Contact: 'Lead List - West Coast'",       is_breach: false, desc: "Normal sales prospect directory." }
+            ],
+            kyle_debrief: "Ransomware held the database hostage! Offline, immutable backups are the best defense against extortion.",
             npc_clues: [
                 "The hackers encrypted our entire HR database and popped up a countdown timer demanding payment!",
                 "They're holding our server files hostage and refusing to hand over the decryption key unless we pay!",
@@ -600,6 +732,18 @@ function scr_get_floor_incident_case(_case_idx) {
             scenario: "A hidden entrance left in software that bypasses normal login security:",
             hint:     "Like a secret unlocked 'back door' into a building's system.",
             takeaway: "TIP: Audit code and remove default test accounts to close hidden backdoors!",
+            victim_name: "Frank Castle",
+            victim_dept: "Server Infrastructure",
+            suspects: ["Frank Castle", "Greg Vance", "David (Sec Lead)"],
+            vectors:  ["Hardcoded Backdoor", "Rogue USB Drive", "Trojan Utility"],
+            correct_suspect_idx: 0,
+            correct_vector_idx:  0,
+            desktop_items: [
+                { label: "Port: 'Hidden Root Listener on Port 9999 [NO_AUTH]'", is_breach: true,  desc: "Secret bypass account left by a rogue contractor allowing remote root shell without login." },
+                { label: "Config: 'Nginx Reverse Proxy Config'",               is_breach: false, desc: "Normal web server routing configuration." },
+                { label: "Log: 'System Uptime: 412 Days'",                     is_breach: false, desc: "Standard Linux server uptime statistics." }
+            ],
+            kyle_debrief: "A hidden Backdoor bypassed authentication entirely! Regular code audits prevent rogue maintenance bypasses.",
             npc_clues: [
                 "The hackers didn't even use the front login page—they slipped in through a hidden developer test port!",
                 "Someone left a secret maintenance bypass in the server code that skips password checks completely!",
@@ -1377,13 +1521,18 @@ function scr_init_floor_salvage_tasks() {
     global.elevator_room_found    = false;
 
     global.hr_scrap_count         = 0;
-    global.hr_scrap_limit         = 3;
+    global.hr_scrap_limit         = 6;
     global.breaker_repaired       = false;
     global.scrap_ui_open          = false;
     global.bot_grapple_active     = false;
     global.task_bots_scrapped     = 0;
     global.task_servers_scrapped  = 0;
     global.floor_scrap_collected  = 0;
+    global.incident_solved        = false;
+    global.drone_jammed_timer     = 0;
+    global.patient_zero_inst      = noone;
+    global.pc_screen_open         = false;
+    global.pc_screen_is_pz        = false;
 }
 
 
@@ -1812,10 +1961,14 @@ function scr_draw_scrap_sever_ui(_gui_w, _gui_h) {
             if (global.scrap_is_bot)    global.task_bots_scrapped++;
             if (global.scrap_is_server) global.task_servers_scrapped++;
 
-            var _over_limit = (global.hr_scrap_count > global.hr_scrap_limit);
-            if (_over_limit) {
-                global.intern_duty_flagged = true;
-            }
+            // Symmetrical Corporate Compliance Meter evaluation:
+            // 4..6 Scrap = GREEN (Compliant / Clean Exit)
+            // 3 or 7..8 = YELLOW (Mild Duty)
+            // 1..2 or 9..11 = RED (Severe Duty)
+            // 0 or 12+ = BLACK (Extreme Duty)
+            var _scrap = global.hr_scrap_count;
+            var _is_compliant = (_scrap >= 4 && _scrap <= 6);
+            global.intern_duty_flagged = !_is_compliant;
 
             if (instance_exists(global.scrap_target_inst)) {
                 global.scrap_target_inst.is_scrapped     = true;
@@ -1827,10 +1980,16 @@ function scr_draw_scrap_sever_ui(_gui_w, _gui_h) {
                     : ("+" + string(_yield) + " SCRAP!");
             }
 
-            global.scrap_col   = _over_limit ? make_color_rgb(255, 110, 95) : c_lime;
-            global.scrap_msg   = _over_limit
-                ? ("SCRAPPED (+" + string(_yield) + " Scrap)!  HR LIMIT EXCEEDED (" + string(global.hr_scrap_count) + "/3) -> INTERN DUTY FLAGGED!")
-                : ("UPLINK SEVERED & SCRAPPED!  +" + string(_yield) + " Scrap  (HR Limit: " + string(global.hr_scrap_count) + "/3)");
+            if (_is_compliant) {
+                global.scrap_col = c_lime;
+                global.scrap_msg = "SCRAPPED (+" + string(_yield) + ")! COMPLIANCE MET (" + string(_scrap) + " Pcs) -> GREEN ZONE [SAFE EXIT]";
+            } else if (_scrap < 4) {
+                global.scrap_col = make_color_rgb(255, 215, 60); // Yellow
+                global.scrap_msg = "SCRAPPED (+" + string(_yield) + ")! DEFICIT (" + string(_scrap) + "/4 Pcs) -> SCRAP MORE FOR GREEN ZONE";
+            } else {
+                global.scrap_col = make_color_rgb(255, 110, 95); // Red
+                global.scrap_msg = "SCRAPPED (+" + string(_yield) + ")! OVERLOAD (" + string(_scrap) + " Pcs) -> EXCEEDED GREEN ZONE!";
+            }
             global.scrap_win_t = 55;
             audio_play_sound(snd_objective_complete, 10, false);
         } else {
@@ -1842,3 +2001,254 @@ function scr_draw_scrap_sever_ui(_gui_w, _gui_h) {
 
 
 
+
+
+// ---------------------------------------------------------------------------
+/// @function scr_case_dept(_name)
+/// @description Returns the company department of a named employee (used by the
+///              whodunit case dossier so evidence can point at a department).
+// ---------------------------------------------------------------------------
+function scr_case_dept(_name) {
+    var _keys  = ["David", "Alice", "Toby", "Dave", "Karen", "Frank", "Marcus", "Bob", "Chloe", "Greg", "Sarah"];
+    var _depts = ["Security", "Legal", "Sales", "Accounting", "HR", "Facilities", "Engineering", "IT Support", "Marketing", "Operations", "Executive"];
+    for (var _i = 0; _i < array_length(_keys); _i++) {
+        if (string_pos(_keys[_i] + " ", _name + " ") == 1) return _depts[_i];
+    }
+    return "Admin";
+}
+
+
+// ---------------------------------------------------------------------------
+/// @function scr_case_nameplate(_name)
+/// @description Builds a short desk nameplate, e.g. "Dave Miller" -> "D. MILLER".
+// ---------------------------------------------------------------------------
+function scr_case_nameplate(_name) {
+    var _base = _name;
+    var _p = string_pos(" (", _name);
+    if (_p > 0) _base = string_copy(_name, 1, _p - 1);
+    var _sp = string_pos(" ", _base);
+    if (_sp <= 0) return string_upper(_base);
+    var _last = string_copy(_base, _sp + 1, string_length(_base) - _sp);
+    return string_upper(string_char_at(_base, 1)) + ". " + string_upper(_last);
+}
+
+
+// ---------------------------------------------------------------------------
+/// @function scr_case_recompute()
+/// @description Re-evaluates every suspect's status (0 unknown, 1 cleared, 2 suspect)
+///              from the evidence found so far. If all innocents are cleared, the
+///              last one standing is flagged by elimination.
+// ---------------------------------------------------------------------------
+function scr_case_recompute() {
+    if (!variable_global_exists("case_suspects")) return;
+    var _sus = global.case_suspects;
+    var _ev  = global.case_evidence;
+    var _ns  = array_length(_sus);
+    var _ne  = array_length(_ev);
+
+    for (var _s = 0; _s < _ns; _s++) {
+        var _cleared = false;
+        var _impl    = false;
+        for (var _e = 0; _e < _ne; _e++) {
+            if (!_ev[_e].found) continue;
+            if (_ev[_e].clears    == _s) _cleared = true;
+            if (_ev[_e].implicates == _s) _impl    = true;
+        }
+        _sus[_s].status = _cleared ? 1 : (_impl ? 2 : 0);
+        if (variable_struct_exists(_sus[_s], "accused_wrong") && _sus[_s].accused_wrong) _sus[_s].status = 1;
+    }
+
+    var _left = 0;
+    var _left_idx = -1;
+    for (var _s2 = 0; _s2 < _ns; _s2++) {
+        if (_sus[_s2].status != 1) { _left++; _left_idx = _s2; }
+    }
+    if (_left == 1 && _left_idx >= 0) _sus[_left_idx].status = 2;
+}
+
+
+// ---------------------------------------------------------------------------
+/// @function scr_log_evidence(_idx)
+/// @description Logs evidence piece _idx into the case file. Returns true if it was new.
+// ---------------------------------------------------------------------------
+function scr_log_evidence(_idx) {
+    if (!variable_global_exists("case_evidence")) return false;
+    if (_idx < 0 || _idx >= array_length(global.case_evidence)) return false;
+    if (global.case_evidence[_idx].found) return false;
+    global.case_evidence[_idx].found = true;
+    global.evidence_found++;
+    scr_case_recompute();
+    return true;
+}
+
+
+// ---------------------------------------------------------------------------
+/// @function scr_case_pick_pc(_pool, _avoid_x, _avoid_y, _min_dist)
+/// @description Removes & returns a PC from _pool that is at least _min_dist px
+///              from the avoid point (falls back to any). Returns noone if empty.
+// ---------------------------------------------------------------------------
+function scr_case_pick_pc(_pool, _avoid_x, _avoid_y, _min_dist) {
+    var _n = array_length(_pool);
+    if (_n <= 0) return noone;
+    if (_min_dist > 0) {
+        for (var _i = _n - 1; _i >= 0; _i--) {
+            var _pc = _pool[_i];
+            if (instance_exists(_pc) && point_distance(_pc.x, _pc.y, _avoid_x, _avoid_y) >= _min_dist) {
+                array_delete(_pool, _i, 1);
+                return _pc;
+            }
+        }
+    }
+    return array_pop(_pool);
+}
+
+
+// ---------------------------------------------------------------------------
+/// @function scr_init_case_dossier(_case, _floor)
+/// @description Builds this floor's whodunit: a shuffled suspect list (the culprit is
+///              Patient Zero, the desk the hacker used as an entry point), the
+///              evidence trail that clears innocents / implicates the culprit,
+///              and shuffled attack-vector choices.
+///              Floors 1-3: 2 suspects, 4-7: 3 suspects, 8-10: 4 suspects (+red herring).
+// ---------------------------------------------------------------------------
+function scr_init_case_dossier(_case, _floor) {
+    var _n_susp = (_floor <= 3) ? 2 : ((_floor <= 7) ? 3 : 4);
+    var _roster = ["Dave Miller", "Karen Jenkins", "Frank Castle", "Marcus Vance", "Bob Higgins",
+                   "Chloe Rivera", "Greg Vance", "Sarah Connor", "Toby Flend", "Alice Cooper"];
+
+    // --- Build suspect list: culprit first, then innocents (padded from roster) ---
+    var _names = [_case.suspects[0]];
+    for (var _k = 1; _k < array_length(_case.suspects) && array_length(_names) < _n_susp; _k++) {
+        array_push(_names, _case.suspects[_k]);
+    }
+    var _guard = 0;
+    while (array_length(_names) < _n_susp && _guard < 60) {
+        _guard++;
+        var _cand  = _roster[irandom(array_length(_roster) - 1)];
+        var _cdept = scr_case_dept(_cand);
+        var _dup   = false;
+        for (var _d = 0; _d < array_length(_names); _d++) {
+            if (scr_case_dept(_names[_d]) == _cdept) _dup = true;
+        }
+        if (!_dup) array_push(_names, _cand);
+    }
+
+    var _sus = [];
+    for (var _i = 0; _i < array_length(_names); _i++) {
+        array_push(_sus, {
+            name:      _names[_i],
+            dept:      scr_case_dept(_names[_i]),
+            nameplate: scr_case_nameplate(_names[_i]),
+            is_culprit: (_i == 0),
+            status:    0
+        });
+    }
+
+    // --- Shuffle suspects, then find the culprit ---
+    for (var _a = array_length(_sus) - 1; _a > 0; _a--) {
+        var _b = irandom(_a);
+        var _t = _sus[_a];
+        _sus[_a] = _sus[_b];
+        _sus[_b] = _t;
+    }
+    var _cul = 0;
+    for (var _c = 0; _c < array_length(_sus); _c++) {
+        if (_sus[_c].is_culprit) _cul = _c;
+    }
+
+    // --- Evidence trail ---
+    var _hours   = [9, 10, 11, 12, 13, 14, 15, 16, 8, 17];
+    var _cidx    = variable_global_exists("floor_case_index") ? global.floor_case_index : 0;
+    var _hr      = _hours[((_cidx mod 10) + 10) mod 10];
+    var _t_str   = ((_hr < 10) ? "0" : "") + string(_hr) + ":20";
+    var _tb_str  = ((_hr - 1 < 10) ? "0" : "") + string(_hr - 1) + ":45";
+
+    var _how_label = "Suspicious activity detected";
+    var _how_desc  = "";
+    if (variable_struct_exists(_case, "desktop_items")) {
+        for (var _di = 0; _di < array_length(_case.desktop_items); _di++) {
+            if (_case.desktop_items[_di].is_breach) {
+                _how_label = _case.desktop_items[_di].label;
+                _how_desc  = _case.desktop_items[_di].desc;
+            }
+        }
+    }
+
+    var _ev = [];
+    // WHO: the breach came from the culprit's department
+    array_push(_ev, {
+        type: "log",
+        text: "SECURITY LOG " + _t_str + ": the intrusion was launched from a workstation in the " + _sus[_cul].dept + " department.",
+        implicates: _cul, clears: -1, found: false
+    });
+    // HOW: the technical trace (teaches the attack vector)
+    array_push(_ev, {
+        type: "how",
+        text: "IT FORENSICS: " + _how_label + "\n" + _how_desc,
+        implicates: -1, clears: -1, found: false
+    });
+    // ALIBIS: one for every innocent suspect
+    var _alibi_n = 0;
+    for (var _s = 0; _s < array_length(_sus); _s++) {
+        if (_s == _cul) continue;
+        var _nm = _sus[_s].name;
+        var _dp = _sus[_s].dept;
+        var _txt = "";
+        var _ty  = "badge";
+        switch (_alibi_n mod 4) {
+            case 0: _txt = "BADGE RECORD: " + _nm + " (" + _dp + ") swiped out of the building at " + _tb_str + " and had not returned when the breach hit at " + _t_str + "."; break;
+            case 1: _txt = "'I was on a video call with " + _nm + " (" + _dp + ") when the alarm went off. They never touched their keyboard.'"; _ty = "witness"; break;
+            case 2: _txt = "CAFETERIA RECEIPT: " + _nm + " (" + _dp + ") paid for lunch at " + _t_str + ", at the exact moment of the breach."; _ty = "receipt"; break;
+            default: _txt = "MEETING INVITE: " + _nm + " (" + _dp + ") was presenting in Conference Room B at " + _t_str + "."; _ty = "memo"; break;
+        }
+        array_push(_ev, { type: _ty, text: _txt, implicates: -1, clears: _s, found: false });
+        _alibi_n++;
+    }
+    // RED HERRING (floors 8-10): looks suspicious but is unrelated
+    if (_floor >= 8) {
+        var _hs = (_cul == 0) ? 1 : 0;
+        array_push(_ev, {
+            type: "memo",
+            text: "IT NOTE: " + _sus[_hs].name + " (" + _sus[_hs].dept + ") installed a pirated game last week. Different malware signature, so it is NOT linked to today's attack.",
+            implicates: -1, clears: -1, found: false
+        });
+    }
+
+    // Shuffle evidence order so alibis and the log are not always found in the same order
+    for (var _x = array_length(_ev) - 1; _x > 0; _x--) {
+        var _y = irandom(_x);
+        var _tmp = _ev[_x];
+        _ev[_x] = _ev[_y];
+        _ev[_y] = _tmp;
+    }
+
+    // --- Shuffled attack vectors ---
+    var _vec_src = _case.vectors;
+    var _vec_ok  = _case.correct_vector_idx;
+    var _order   = [];
+    for (var _v = 0; _v < array_length(_vec_src); _v++) array_push(_order, _v);
+    for (var _o = array_length(_order) - 1; _o > 0; _o--) {
+        var _p = irandom(_o);
+        var _q = _order[_o];
+        _order[_o] = _order[_p];
+        _order[_p] = _q;
+    }
+    var _vecs = [];
+    var _vec_correct = 0;
+    for (var _w = 0; _w < array_length(_order); _w++) {
+        array_push(_vecs, _vec_src[_order[_w]]);
+        if (_order[_w] == _vec_ok) _vec_correct = _w;
+    }
+
+    global.case_suspects        = _sus;
+    global.case_culprit_idx     = _cul;
+    global.case_evidence        = _ev;
+    global.evidence_found       = 0;
+    global.evidence_needed      = array_length(_ev);
+    global.case_vectors         = _vecs;
+    global.case_vector_correct  = _vec_correct;
+    global.case_wrong_accusations = 0;
+    global.case_culprit_confirmed = false;
+    global.pc_screen_mode       = 0;
+    scr_case_recompute();
+}

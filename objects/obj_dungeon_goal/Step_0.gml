@@ -16,13 +16,14 @@ if (_dist > 28) {
 }
 
 if (!triggered && _touching) {
-    var _overridden = (variable_global_exists("lockdown_overridden") && global.lockdown_overridden);
-    var _powered    = (variable_global_exists("power_restored")      && global.power_restored);
+    var _overridden    = (variable_global_exists("lockdown_overridden") && global.lockdown_overridden);
+    var _powered       = (variable_global_exists("power_restored")      && global.power_restored);
+    var _incident_done = (variable_global_exists("incident_solved")     && global.incident_solved);
 
     // Player reached the elevator room! Flag as found
     global.elevator_room_found = true;
 
-    if (!_overridden || !_powered) {
+    if (!_incident_done || !_overridden || !_powered) {
         if (!warned_this_overlap && warn_cd <= 0 && !instance_exists(obj_textevent) && !instance_exists(obj_textbox)) {
             warned_this_overlap = true;
             warn_cd = 120;
@@ -34,7 +35,12 @@ if (!triggered && _touching) {
             obj_jack.x += lengthdir_x(14, _push_dir);
             obj_jack.y += lengthdir_y(14, _push_dir);
 
-            if (!_overridden) {
+            if (!_incident_done) {
+                create_textevent([
+                    "ELEVATOR INTERLOCK: INCIDENT CLEARANCE REQUIRED!",
+                    "The extraction cab is on forensic lockdown! I need to find evidence, work out who the culprit is on the Case Board [TAB], and accuse them at their desk first!"
+                ], [obj_jack.id, obj_jack.id]);
+            } else if (!_overridden) {
                 create_textevent([
                     "I found the Extraction Elevator, but the cab is locked down!",
                     "I need to search the other Encrypted Doors to find the Security Control Room and hit the Red Lockdown Override Button first!"

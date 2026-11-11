@@ -61,8 +61,9 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
 
     var _mcx = _gui_w * 0.5;
     var _mcy = _gui_h * 0.47;
-    var _mw  = 410;
-    var _mh  = 204;
+    var _is_board = (variable_global_exists("pc_screen_mode") && global.pc_screen_mode == 3);
+    var _mw  = _is_board ? 500 : 410;
+    var _mh  = _is_board ? 262 : 204;
     var _mx1 = _mcx - _mw * 0.5;
     var _my1 = _mcy - _mh * 0.5;
     var _mx2 = _mcx + _mw * 0.5;
@@ -126,18 +127,227 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
     }
     draw_set_alpha(1.0);
 
-    // Centered Main Clue Box
-    draw_set_halign(fa_center);
-    draw_set_valign(fa_middle);
-    draw_set_color(c_white);
-    draw_text_ext(_mcx, _my1 + 92, global.pc_screen_body, 20, _mw - 48);
+    var _case   = variable_global_exists("floor_case") ? global.floor_case : scr_get_floor_incident_case(0);
+    var _mode   = variable_global_exists("pc_screen_mode") ? global.pc_screen_mode : 0;
+    var _solved = (variable_global_exists("incident_solved") && global.incident_solved);
 
-    // Compact Radar Pill at bottom of monitor
-    draw_set_color(make_color_rgb(14, 30, 44));
-    draw_rectangle(_mcx - 135, _my2 - 52, _mcx + 135, _my2 - 28, false);
-    draw_set_color(c_aqua);
-    draw_rectangle(_mcx - 135, _my2 - 52, _mcx + 135, _my2 - 28, true);
-    draw_text_transformed(_mcx, _my2 - 40, global.pc_screen_radar, 0.85, 0.85, 0);
+    // Returning to the culprit's desk after a correct accusation resumes at the attack-vector question
+    if (_mode == 1 && !_solved && variable_global_exists("case_culprit_confirmed") && global.case_culprit_confirmed
+        && instance_exists(global.pc_screen_target) && global.pc_screen_target.suspect_idx == global.case_culprit_idx) {
+        global.pc_screen_mode = 2;
+        global.pc_screen_select = 0;
+        _mode = 2;
+    }
+
+    if (_mode == 3) {
+        // =====================================================
+        // CASE BOARD: suspects + evidence trail
+        // =====================================================
+        draw_set_font(fnt_dialogue);
+        draw_set_halign(fa_left);
+        draw_set_valign(fa_middle);
+        var _bd_y = _my1 + 36;
+        draw_set_color(make_color_rgb(255, 210, 55));
+        draw_text_transformed(_mx1 + 12, _bd_y, "SUSPECTS  (accuse at their desk)", 0.76, 0.76, 0);
+        _bd_y += 16;
+
+        var _bd_n = array_length(global.case_suspects);
+        for (var _bs = 0; _bs < _bd_n; _bs++) {
+            var _sp = global.case_suspects[_bs];
+            var _st_txt = "UNKNOWN";
+            var _st_col = make_color_rgb(190, 205, 220);
+            if (_sp.status == 1) { _st_txt = "CLEARED";       _st_col = make_color_rgb(120, 140, 150); }
+            if (_sp.status == 2) { _st_txt = "PRIME SUSPECT"; _st_col = make_color_rgb(255, 95, 95); }
+            if (_solved && _bs == global.case_culprit_idx) { _st_txt = "PATIENT ZERO"; _st_col = c_lime; }
+            draw_set_color(_st_col);
+            draw_text_transformed(_mx1 + 18, _bd_y, _sp.name + "  -  " + _sp.dept + "  [desk " + _sp.nameplate + "]", 0.70, 0.70, 0);
+            draw_set_halign(fa_right);
+            draw_text_transformed(_mx2 - 14, _bd_y, _st_txt, 0.70, 0.70, 0);
+            draw_set_halign(fa_left);
+            if (_sp.status == 1 && !(_solved && _bs == global.case_culprit_idx)) {
+                var _tw = string_width(_sp.name + "  -  " + _sp.dept + "  [desk " + _sp.nameplate + "]") * 0.70;
+                draw_line(_mx1 + 18, _bd_y, _mx1 + 18 + _tw, _bd_y);
+            }
+            _bd_y += 15;
+        }
+
+        _bd_y += 6;
+        draw_set_color(make_color_rgb(115, 220, 255));
+        draw_text_transformed(_mx1 + 12, _bd_y, "EVIDENCE  (" + string(global.evidence_found) + "/" + string(global.evidence_needed) + ")", 0.76, 0.76, 0);
+        _bd_y += 15;
+
+        var _bd_ne = array_length(global.case_evidence);
+        for (var _be = 0; _be < _bd_ne; _be++) {
+            var _evi = global.case_evidence[_be];
+            if (_evi.found) {
+                var _line = string_replace_all(_evi.text, "\n", " - ");
+                if (string_length(_line) > 84) _line = string_copy(_line, 1, 82) + "..";
+                draw_set_color(make_color_rgb(215, 235, 225));
+                draw_text_transformed(_mx1 + 18, _bd_y, string(_be + 1) + ". " + _line, 0.62, 0.62, 0);
+            } else {
+                draw_set_color(make_color_rgb(95, 110, 125));
+                draw_text_transformed(_mx1 + 18, _bd_y, string(_be + 1) + ". ??? (not found yet - search the offices, memos and coworkers)", 0.62, 0.62, 0);
+            }
+            _bd_y += 13;
+        }
+
+        draw_set_halign(fa_center);
+        draw_set_color(make_color_rgb(150, 200, 175));
+        draw_text_transformed(_mcx, _my2 - 25, "Wrong accusations: " + string(global.case_wrong_accusations) + "     [TAB] / [ESC] Close", 0.72, 0.72, 0);
+
+    } else if (_mode == 1 || _mode == 2) {
+        // =====================================================
+        // SUSPECT DESK: ACCUSE -> pick the attack vector
+        // =====================================================
+        var _labels = [];
+        var _desc   = "";
+        var _tgt    = instance_exists(global.pc_screen_target) ? global.pc_screen_target : noone;
+        var _tg_sus = (_tgt != noone && _tgt.suspect_idx >= 0) ? global.case_suspects[_tgt.suspect_idx] : noone;
+        var _min_ev = min(2, global.evidence_needed);
+
+        if (_mode == 1) {
+            _desc = (_tg_sus != noone ? ("Desk of " + _tg_sus.name + "  (" + _tg_sus.dept + ")") : "Desk")
+                + "\nEvidence on file: " + string(global.evidence_found) + "/" + string(global.evidence_needed);
+            _labels = _solved ? ["CASE CLOSED - step away"] : [(_tg_sus != noone ? ("ACCUSE " + _tg_sus.name) : "ACCUSE"), "Step away"];
+        } else {
+            _desc   = "CORRECT SUSPECT! Now prove HOW they got in.\nWhich attack vector was used?";
+            _labels = global.case_vectors;
+        }
+        var _num_items = array_length(_labels);
+
+        if (keyboard_check_pressed(vk_up) || keyboard_check_pressed(ord("W"))) {
+            global.pc_screen_select = max(0, global.pc_screen_select - 1);
+            audio_play_sound(select1, 6, false);
+        }
+        if (keyboard_check_pressed(vk_down) || keyboard_check_pressed(ord("S"))) {
+            global.pc_screen_select = min(_num_items - 1, global.pc_screen_select + 1);
+            audio_play_sound(select1, 6, false);
+        }
+        global.pc_screen_select = clamp(global.pc_screen_select, 0, _num_items - 1);
+
+        draw_set_font(fnt_dialogue);
+        draw_set_halign(fa_center);
+        draw_set_valign(fa_middle);
+        draw_set_color(c_white);
+        draw_text_ext_transformed(_mcx, _my1 + 42, _desc, 14, (_mw - 30) / 0.78, 0.78, 0.78, 0);
+
+        draw_set_halign(fa_left);
+        for (var _ii = 0; _ii < _num_items; _ii++) {
+            var _iy = _my1 + 72 + (_ii * 24);
+            var _is_sel = (global.pc_screen_select == _ii);
+
+            var _gmx2 = device_mouse_x_to_gui(0);
+            var _gmy2 = device_mouse_y_to_gui(0);
+            var _hover_item = point_in_rectangle(_gmx2, _gmy2, _mx1 + 10, _iy - 10, _mx2 - 10, _iy + 10);
+            if (_hover_item && mouse_check_button_pressed(mb_left)) {
+                global.pc_screen_select = _ii;
+                _is_sel = true;
+            }
+
+            draw_set_color(_is_sel ? make_color_rgb(18, 45, 60) : make_color_rgb(12, 22, 28));
+            draw_rectangle(_mx1 + 10, _iy - 10, _mx2 - 10, _iy + 10, false);
+            draw_set_color(_is_sel ? c_aqua : make_color_rgb(60, 90, 110));
+            draw_rectangle(_mx1 + 10, _iy - 10, _mx2 - 10, _iy + 10, true);
+            draw_set_color(_is_sel ? c_white : make_color_rgb(180, 200, 215));
+            draw_text_transformed(_mx1 + 16, _iy + 1, (_is_sel ? "> " : "  ") + _labels[_ii], 0.76, 0.76, 0);
+        }
+
+        // Decrement PC input cooldown so opening with [E] does not immediately trigger option 0 in the same frame!
+        if (variable_global_exists("pc_input_cooldown") && global.pc_input_cooldown > 0) {
+            global.pc_input_cooldown--;
+        }
+
+        var _can_input    = (!variable_global_exists("pc_input_cooldown") || global.pc_input_cooldown <= 0);
+        var _trigger_flag = _can_input && (keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space));
+        if (_trigger_flag) {
+            if (_mode == 1) {
+                if (_solved || global.pc_screen_select == 1) {
+                    global.pc_screen_open = false;
+                    audio_play_sound(snd_button_click, 5, false);
+                } else if (global.evidence_found < _min_ev) {
+                    audio_play_sound(wrong1, 8, false);
+                    global.pc_screen_feedback     = "Not enough evidence to accuse anyone yet! Gather more (" + string(global.evidence_found) + "/" + string(_min_ev) + ").";
+                    global.pc_screen_feedback_col = make_color_rgb(255, 215, 60);
+                } else if (_tgt != noone && _tgt.suspect_idx == global.case_culprit_idx) {
+                    audio_play_sound(snd_correct_ping, 10, false);
+                    global.case_culprit_confirmed = true;
+                    global.pc_screen_mode         = 2;
+                    global.pc_screen_select       = 0;
+                    global.pc_screen_feedback     = "The evidence points here. This desk was the hacker's entry point!";
+                    global.pc_screen_feedback_col = c_lime;
+                    global.pc_screen_badge        = "PATIENT ZERO FOUND";
+                } else {
+                    audio_play_sound(wrong1, 10, false);
+                    global.case_wrong_accusations++;
+                    global.scrap_count = max(0, global.scrap_count - 2);
+                    if (_tg_sus != noone) _tg_sus.accused_wrong = true;
+                    scr_case_recompute();
+                    global.pc_screen_feedback     = "WRONG PERSON! " + (_tg_sus != noone ? _tg_sus.name : "They") + " is innocent. -2 SCRAP. Re-check the Case Board [TAB].";
+                    global.pc_screen_feedback_col = make_color_rgb(255, 110, 95);
+                }
+            } else {
+                if (global.pc_screen_select == global.case_vector_correct) {
+                    global.incident_solved        = true;
+                    global.scrap_count           += 3;
+                    global.floor_scrap_collected += 3;
+                    global.hr_scrap_count        += 1;
+
+                    var _scrap = global.hr_scrap_count;
+                    var _is_compliant = (_scrap >= 4 && _scrap <= 6);
+                    global.intern_duty_flagged = !_is_compliant;
+
+                    audio_play_sound(snd_objective_complete, 10, false);
+                    global.pc_screen_mode         = 1;
+                    global.pc_screen_feedback     = "CASE SOLVED! +3 SCRAP. " + _case.kyle_debrief;
+                    global.pc_screen_feedback_col = c_lime;
+                    global.pc_screen_badge        = "CASE CLOSED [OVERRIDE AUTHORIZED]";
+                } else {
+                    audio_play_sound(wrong1, 8, false);
+                    global.case_wrong_accusations++;
+                    var _how_found = false;
+                    for (var _hi = 0; _hi < array_length(global.case_evidence); _hi++) {
+                        if (global.case_evidence[_hi].type == "how" && global.case_evidence[_hi].found) _how_found = true;
+                    }
+                    global.pc_screen_feedback     = _how_found
+                        ? "NOT QUITE. Re-read the IT FORENSICS evidence on the Case Board [TAB]."
+                        : "NOT QUITE. Find the IT FORENSICS evidence first - it shows how they got in!";
+                    global.pc_screen_feedback_col = make_color_rgb(255, 110, 95);
+                }
+            }
+        }
+
+        // Feedback / Educational debrief line
+        draw_set_halign(fa_center);
+        draw_set_valign(fa_middle);
+        var _fb_txt = (variable_global_exists("pc_screen_feedback") && global.pc_screen_feedback != "")
+            ? global.pc_screen_feedback
+            : (_mode == 2 ? "Think about the technical trace you found." : "Use the Case Board [TAB] to decide who to accuse.");
+        var _fb_col = (variable_global_exists("pc_screen_feedback_col") && global.pc_screen_feedback != "") ? global.pc_screen_feedback_col : make_color_rgb(255, 215, 60);
+        draw_set_color(_fb_col);
+        draw_text_ext_transformed(_mcx, _my1 + 146, _fb_txt, 12, (_mw - 30) / 0.68, 0.68, 0.68, 0);
+
+        // Action prompt pill
+        draw_set_color(make_color_rgb(14, 30, 44));
+        draw_rectangle(_mcx - 155, _my2 - 40, _mcx + 155, _my2 - 22, false);
+        draw_set_color(c_aqua);
+        draw_rectangle(_mcx - 155, _my2 - 40, _mcx + 155, _my2 - 22, true);
+        draw_set_color(c_white);
+        draw_text_transformed(_mcx, _my2 - 31, "[W/S or ARROWS] Select   [E / ENTER] Confirm", 0.72, 0.72, 0);
+
+    } else {
+        // Centered Main Clue Box
+        draw_set_halign(fa_center);
+        draw_set_valign(fa_middle);
+        draw_set_color(c_white);
+        draw_text_ext_transformed(_mcx, _my1 + 92, global.pc_screen_body, 18, (_mw - 48) / 0.82, 0.82, 0.82, 0);
+
+        // Compact Radar Pill at bottom of monitor
+        draw_set_color(make_color_rgb(14, 30, 44));
+        draw_rectangle(_mcx - 135, _my2 - 52, _mcx + 135, _my2 - 28, false);
+        draw_set_color(c_aqua);
+        draw_rectangle(_mcx - 135, _my2 - 52, _mcx + 135, _my2 - 28, true);
+        draw_text_transformed(_mcx, _my2 - 40, global.pc_screen_radar, 0.85, 0.85, 0);
+    }
 
     // Minimal close prompt
     draw_set_color(make_color_rgb(150, 200, 175));
@@ -145,12 +355,14 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
 
     if (keyboard_check_pressed(ord("X"))
         || keyboard_check_pressed(vk_escape)
+        || (global.pc_screen_mode == 3 && keyboard_check_pressed(vk_tab))
         || (_hover_x && mouse_check_button_pressed(mb_left)))
     {
         if (keyboard_check_pressed(vk_escape)) {
             global.esc_block_frames = 2;
             keyboard_clear(vk_escape);
         }
+        if (global.pc_screen_mode == 3) keyboard_clear(vk_tab);
         global.pc_screen_open = false;
         audio_play_sound(snd_button_click, 5, false);
     }
@@ -164,6 +376,32 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
 
 // Hide regular HUD while dialogue box is active so the greyed-out dialogue background is clean
 if (instance_exists(obj_textbox) || instance_exists(obj_textevent)) exit;
+
+// [TAB] opens the Case Board (suspects + evidence trail) from anywhere on the floor
+if (keyboard_check_pressed(vk_tab)
+    && variable_global_exists("case_suspects")
+    && instance_exists(obj_jack)
+    && !instance_exists(obj_dungeon_victory)
+    && !instance_exists(obj_dungeon_quiz)
+    && !instance_exists(obj_cipher)
+    && !(variable_global_exists("is_paused") && global.is_paused)
+    && !(variable_global_exists("player_in_locker") && global.player_in_locker)
+    && !(variable_global_exists("bot_grapple_active") && global.bot_grapple_active))
+{
+    keyboard_clear(vk_tab);
+    audio_play_sound(snd_button_click, 5, false);
+    global.pc_screen_open     = true;
+    global.pc_screen_mode     = 3;
+    global.pc_screen_is_pz    = false;
+    global.pc_screen_target   = noone;
+    global.pc_screen_select   = 0;
+    global.pc_screen_feedback = "";
+    global.pc_screen_title    = "CASE BOARD";
+    global.pc_screen_badge    = "TAB TO CLOSE";
+    global.pc_screen_body     = "";
+    global.pc_screen_radar    = "";
+    exit;
+}
 
 draw_set_font(fnt_dialogue);
 draw_set_halign(fa_left);
@@ -215,43 +453,61 @@ if (_has_key) {
     draw_text_transformed(15, 34, _ch_short + " KEY:  LOCKED IN VAULT", 0.84, 0.84, 0);
 }
 
-// Line 3: Incident Case Clue Tracker
-var _clues_cur = variable_global_exists("clues_found")  ? global.clues_found  : 0;
-var _clues_req = variable_global_exists("clues_needed") ? global.clues_needed : 2;
-if (_clues_cur >= _clues_req) {
-    draw_set_color(c_lime);
-    draw_text_transformed(15, 50, "CLUES: " + string(_clues_cur) + "/" + string(_clues_req) + " [READY FOR VAULT!]", 0.84, 0.84, 0);
+// Line 3: 5-Step Whodunit Pipeline (evidence -> narrow suspects -> accuse -> override -> extract)
+var _ev_cur    = variable_global_exists("evidence_found")  ? global.evidence_found  : 0;
+var _ev_req    = variable_global_exists("evidence_needed") ? global.evidence_needed : 0;
+var _pz_solved = variable_global_exists("incident_solved") && global.incident_solved;
+var _ov_done   = (variable_global_exists("lockdown_overridden") && global.lockdown_overridden);
+var _gate_ev   = min(2, _ev_req);
+var _left_susp = 0;
+if (variable_global_exists("case_suspects")) {
+    for (var _ls = 0; _ls < array_length(global.case_suspects); _ls++) {
+        if (global.case_suspects[_ls].status != 1) _left_susp++;
+    }
+}
+
+if (!_pz_solved && _ev_cur < _gate_ev) {
+    draw_set_color(make_color_rgb(255, 215, 60));
+    draw_text_transformed(15, 50, "CASE: 1. FIND EVIDENCE (" + string(_ev_cur) + "/" + string(_ev_req) + ")  [TAB] BOARD", 0.70, 0.70, 0);
+} else if (!_pz_solved && _left_susp > 1) {
+    draw_set_color(make_color_rgb(255, 160, 90));
+    draw_text_transformed(15, 50, "CASE: 2. NARROW SUSPECTS (" + string(_left_susp) + " LEFT)  [TAB] BOARD", 0.70, 0.70, 0);
+} else if (!_pz_solved) {
+    draw_set_color(make_color_rgb(255, 115, 160));
+    draw_text_transformed(15, 50, "CASE: 3. ACCUSE THE CULPRIT AT THEIR DESK", 0.70, 0.70, 0);
+} else if (!_ov_done) {
+    draw_set_color(make_color_rgb(255, 95, 115));
+    draw_text_transformed(15, 50, "CASE: 4. OPERATE LOCKDOWN OVERRIDE TO DISARM BOTS", 0.68, 0.68, 0);
 } else {
-    draw_set_color(make_color_rgb(115, 220, 255));
-    draw_text_transformed(15, 50, "CLUES: " + string(_clues_cur) + "/" + string(_clues_req) + " (Inspect PCs / NPCs)", 0.84, 0.84, 0);
+    draw_set_color(c_lime);
+    draw_text_transformed(15, 50, "CASE: 5. PROCEED TO EXTRACTION ELEVATOR", 0.74, 0.74, 0);
 }
 
 // Line 4: 4-Stage Facility Recovery Checklist (1.KEY -> 2.OVERRIDE -> 3.POWER -> 4.ELEVATOR)
-var _ov_done  = (variable_global_exists("lockdown_overridden") && global.lockdown_overridden);
-var _pwr_done = (variable_global_exists("power_restored")      && global.power_restored);
-var _s1_txt   = _has_key  ? "[x]1.KEY"      : "[ ]1.KEY";
-var _s2_txt   = _ov_done  ? "[x]2.OVERRIDE" : "[ ]2.OVERRIDE";
-var _s3_txt   = _pwr_done ? "[x]3.POWER"    : "[ ]3.POWER";
+var _pwr_done = (variable_global_exists("power_restored") && global.power_restored);
+var _s1_txt   = _has_key   ? "[x]1.KEY"      : "[ ]1.KEY";
+var _s2_txt   = _ov_done   ? "[x]2.OVERRIDE" : "[ ]2.OVERRIDE";
+var _s3_txt   = _pwr_done  ? "[x]3.POWER"    : "[ ]3.POWER";
 draw_set_color((_has_key && _ov_done && _pwr_done) ? c_lime : make_color_rgb(185, 210, 235));
 draw_text_transformed(15, 66, _s1_txt + "  " + _s2_txt + "  " + _s3_txt, 0.72, 0.72, 0);
 
-// Line 5: Wrench Scrap Counter & HR 3-Property Limit Tracker
+// Line 5: Wrench Scrap Counter & Drone Jammer Status
 var _scrp_cur = variable_global_exists("scrap_count")    ? global.scrap_count    : 0;
 var _hr_cur   = variable_global_exists("hr_scrap_count") ? global.hr_scrap_count : 0;
-var _hr_lim   = variable_global_exists("hr_scrap_limit") ? global.hr_scrap_limit : 3;
-var _hr_col   = (_hr_cur > _hr_lim)
-    ? ((current_time mod 400 < 220) ? make_color_rgb(255, 75, 75) : c_yellow)
-    : ((_hr_cur == _hr_lim) ? make_color_rgb(255, 205, 55) : c_lime);
-var _hr_lbl   = (_hr_cur > _hr_lim)
-    ? ("HR: " + string(_hr_cur) + "/" + string(_hr_lim) + " [INTERN DUTY!]")
-    : ("HR LIMIT: " + string(_hr_cur) + "/" + string(_hr_lim) + ((_hr_cur == _hr_lim) ? " [MAX]" : " [SAFE]"));
+var _jam_t    = variable_global_exists("drone_jammed_timer") ? global.drone_jammed_timer : 0;
 
 draw_set_color(c_aqua);
 draw_text_transformed(15, 82, "SCRAP: " + string(_scrp_cur), 0.78, 0.78, 0);
-draw_set_halign(fa_right);
-draw_set_color(_hr_col);
-draw_text_transformed(262, 82, _hr_lbl, 0.74, 0.74, 0);
-draw_set_halign(fa_left);
+
+if (_jam_t > 0) {
+    var _jam_sec = ceil(_jam_t / 60);
+    draw_set_halign(fa_right);
+    draw_set_color(c_lime);
+    draw_text_transformed(262, 82, "DRONES JAMMED: " + string(_jam_sec) + "s", 0.76, 0.76, 0);
+    draw_set_halign(fa_left);
+}
+
+
 
 // =========================================================
 // FLOOR INTENT BANNER (Top-Right / Center-Right on Floor Start)
@@ -398,7 +654,7 @@ if (variable_instance_exists(id, "room_discovered")) {
     var _tk_y1   = _map_y + _map_h + 6;
     var _tk_y2   = _tk_y1 + 48;
     var _tk_w    = 196;
-    var _t1_done = (_hr_cur >= 3);
+    var _t1_done = (_hr_cur >= 4 && _hr_cur <= 6);
     var _t2_done = ((variable_global_exists("task_bots_scrapped") && global.task_bots_scrapped > 0)
                  || (variable_global_exists("task_servers_scrapped") && global.task_servers_scrapped > 0));
 
@@ -412,11 +668,15 @@ if (variable_instance_exists(id, "room_discovered")) {
     draw_set_color(make_color_rgb(255, 210, 65));
     draw_text_transformed(_map_x + 6, _tk_y1 + 9, "SALVAGE TASKS [RMB=WRENCH]", 0.68, 0.68, 0);
 
-    draw_set_color(_t1_done ? c_lime : make_color_rgb(190, 215, 235));
-    draw_text_transformed(_map_x + 6, _tk_y1 + 24, (_t1_done ? "[x] " : "[ ] ") + "Scrap 3 Assets (" + string(min(3, _hr_cur)) + "/3 Quota)", 0.66, 0.66, 0);
+    var _t1_label = (_t1_done ? "[x] " : "[ ] ") + "Corporate Recovery: Compliant (4-6 Pcs)";
+    if (!_t1_done && _hr_cur > 6) {
+        _t1_label = "[!] Over-Salvaged: " + string(_hr_cur) + " Pcs (Exceeded!)";
+    }
+    draw_set_color(_t1_done ? c_lime : (_hr_cur > 6 ? make_color_rgb(255, 100, 100) : make_color_rgb(190, 215, 235)));
+    draw_text_transformed(_map_x + 6, _tk_y1 + 24, _t1_label, 0.64, 0.64, 0);
 
     draw_set_color(_t2_done ? c_lime : make_color_rgb(190, 215, 235));
-    draw_text_transformed(_map_x + 6, _tk_y1 + 38, (_t2_done ? "[x] " : "[ ] ") + "Scrap Bot [E] or Decoy Server", 0.66, 0.66, 0);
+    draw_text_transformed(_map_x + 6, _tk_y1 + 38, (_t2_done ? "[x] " : "[ ] ") + "Tactical Salvage: Scrap Bot or Server", 0.64, 0.64, 0);
 }
 draw_set_alpha(1.0);
 
@@ -484,10 +744,12 @@ if (instance_exists(obj_jack)) {
                         _prompt = "[RMB / R] Fix Fried Circuits (-1 Scrap) & Wrench Scrap";
                         _pcol   = make_color_rgb(255, 130, 65);
                     } else if (has_clue && !is_scrapped) {
-                        _prompt = "[E] Inspect Clue   |   [RMB / R] Wrench Scrap (+1 Scrap)";
-                        _pcol   = c_aqua;
+                        _prompt = (suspect_idx >= 0)
+                            ? ("[E] Inspect Desk: " + nameplate + "   |   [RMB / R] Wrench Scrap (+1 Scrap)")
+                            : "[E] Read Evidence   |   [RMB / R] Wrench Scrap (+1 Scrap)";
+                        _pcol   = (suspect_idx >= 0) ? make_color_rgb(255, 150, 80) : c_aqua;
                     } else if (has_clue && is_scrapped) {
-                        _prompt = "[E] Inspect Clue Terminal (Hardware Scrapped)";
+                        _prompt = (suspect_idx >= 0) ? ("[E] Inspect Desk: " + nameplate + " (Hardware Scrapped)") : "[E] Read Evidence (Hardware Scrapped)";
                         _pcol   = c_aqua;
                     } else if (is_server_rack) {
                         _prompt = "[RMB / R] Wrench Scrap Prototype Server (+3 Scrap, +1 Core!)";
@@ -532,7 +794,7 @@ if (instance_exists(obj_jack)) {
     if (_prompt != "") {
         draw_set_halign(fa_center);
         var _pw = string_width(_prompt) + 24;
-        var _py = _gui_h - 26;
+        var _py = _gui_h - 52;
         draw_set_alpha(0.82);
         draw_set_color(make_color_rgb(10, 14, 22));
         draw_rectangle((_gui_w - _pw) * 0.5, _py - 12, (_gui_w + _pw) * 0.5, _py + 12, false);
@@ -542,6 +804,106 @@ if (instance_exists(obj_jack)) {
         draw_text(_gui_w * 0.5, _py, _prompt);
     }
 }
+
+// =========================================================
+// CORPORATE COMPLIANCE SCRAP METER (RDR2 Honor-Style Gauge)
+// Positioned at Bottom-Center of Screen
+// =========================================================
+var _mc_w = 260;
+var _mc_x1 = (_gui_w - _mc_w) * 0.5;
+var _mc_x2 = _mc_x1 + _mc_w;
+var _mc_y1 = _gui_h - 38;
+var _mc_y2 = _gui_h - 4;
+
+draw_set_alpha(0.85);
+draw_set_color(make_color_rgb(10, 14, 22));
+draw_rectangle(_mc_x1, _mc_y1, _mc_x2, _mc_y2, false);
+draw_set_alpha(1.0);
+draw_set_color(make_color_rgb(45, 65, 90));
+draw_rectangle(_mc_x1, _mc_y1, _mc_x2, _mc_y2, true);
+
+// Header line
+draw_set_halign(fa_left);
+draw_set_color(make_color_rgb(175, 205, 230));
+draw_text_transformed(_mc_x1 + 10, _mc_y1 + 7, "RECOVERY COMPLIANCE", 0.70, 0.70, 0);
+
+draw_set_halign(fa_right);
+draw_set_color(c_aqua);
+draw_text_transformed(_mc_x2 - 10, _mc_y1 + 7, "HARVEST: " + string(_hr_cur) + " Pcs", 0.70, 0.70, 0);
+draw_set_halign(fa_left);
+
+// The Symmetrical Meter Bar (Width = 236px, centered inside the box)
+var _bx = floor((_gui_w - 236) * 0.5);
+var _by = _mc_y1 + 14;
+var _bh = 7;
+
+// Segments: Black (24px) | Red (32px) | Yellow (24px) | GREEN (76px) | Yellow (24px) | Red (32px) | Black (24px)
+draw_set_color(make_color_rgb(35, 40, 50));   draw_rectangle(_bx,       _by, _bx + 24,  _by + _bh, false); // Black 0
+draw_set_color(make_color_rgb(220, 50, 50));  draw_rectangle(_bx + 24,  _by, _bx + 56,  _by + _bh, false); // Red 1-2
+draw_set_color(make_color_rgb(240, 200, 35)); draw_rectangle(_bx + 56,  _by, _bx + 80,  _by + _bh, false); // Yellow 3
+draw_set_color(make_color_rgb(45, 215, 85));  draw_rectangle(_bx + 80,  _by, _bx + 156, _by + _bh, false); // GREEN 4-6
+draw_set_color(make_color_rgb(240, 200, 35)); draw_rectangle(_bx + 156, _by, _bx + 180, _by + _bh, false); // Yellow 7-8
+draw_set_color(make_color_rgb(220, 50, 50));  draw_rectangle(_bx + 180, _by, _bx + 212, _by + _bh, false); // Red 9-11
+draw_set_color(make_color_rgb(35, 40, 50));   draw_rectangle(_bx + 212, _by, _bx + 236, _by + _bh, false); // Black 12+
+
+// Outer border of bar
+draw_set_color(c_white);
+draw_rectangle(_bx, _by, _bx + 236, _by + _bh, true);
+
+// Calculate Needle X based on _hr_cur
+var _needle_x = _bx;
+if (_hr_cur <= 0) {
+    _needle_x = _bx + 12;
+} else if (_hr_cur <= 2) {
+    _needle_x = _bx + 24 + ((_hr_cur - 1) / 1.0) * 32;
+} else if (_hr_cur == 3) {
+    _needle_x = _bx + 68;
+} else if (_hr_cur <= 6) {
+    _needle_x = _bx + 80 + ((_hr_cur - 4) / 2.0) * 76;
+} else if (_hr_cur <= 8) {
+    _needle_x = _bx + 156 + ((_hr_cur - 7) / 1.0) * 24;
+} else if (_hr_cur <= 11) {
+    _needle_x = _bx + 180 + ((_hr_cur - 9) / 2.0) * 32;
+} else {
+    _needle_x = _bx + 224;
+}
+
+// Draw needle triangle
+draw_set_color(c_white);
+draw_triangle(_needle_x - 3, _by - 4, _needle_x + 3, _by - 4, _needle_x, _by, false);
+draw_set_color(c_black);
+draw_triangle(_needle_x - 3, _by - 4, _needle_x + 3, _by - 4, _needle_x, _by, true);
+
+// Status Badge below bar
+var _stat_txt = "";
+var _stat_col = c_white;
+if (_hr_cur >= 4 && _hr_cur <= 6) {
+    _stat_txt = "STATUS: COMPLIANT [NO INTERN DUTY]";
+    _stat_col = c_lime;
+} else if (_hr_cur == 3) {
+    _stat_txt = "STATUS: MINOR DEFICIT [EASY DUTY]";
+    _stat_col = make_color_rgb(255, 215, 60);
+} else if (_hr_cur >= 1 && _hr_cur <= 2) {
+    _stat_txt = "STATUS: SEVERE DEFICIT [MEDIUM DUTY]";
+    _stat_col = make_color_rgb(255, 140, 40);
+} else if (_hr_cur == 0) {
+    _stat_txt = "STATUS: CRITICAL NEGLIGENCE [CHAOS DUTY]";
+    _stat_col = make_color_rgb(255, 75, 75);
+} else if (_hr_cur >= 7 && _hr_cur <= 8) {
+    _stat_txt = "STATUS: MINOR OVERFLOW [EASY DUTY]";
+    _stat_col = make_color_rgb(255, 215, 60);
+} else if (_hr_cur >= 9 && _hr_cur <= 11) {
+    _stat_txt = "STATUS: HAZARDOUS OVERFLOW [MEDIUM DUTY]";
+    _stat_col = make_color_rgb(255, 140, 40);
+} else {
+    _stat_txt = "STATUS: BIOHAZARD OVERLOAD [CHAOS DUTY]";
+    _stat_col = make_color_rgb(255, 75, 75);
+}
+
+draw_set_halign(fa_center);
+draw_set_color(_stat_col);
+draw_text_transformed(_gui_w * 0.5, _mc_y1 + 27, _stat_txt, 0.65, 0.65, 0);
+draw_set_halign(fa_left);
 
 draw_set_font(fnt_default);
 draw_set_color(c_white);

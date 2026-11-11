@@ -169,11 +169,13 @@ function scr_dungeon_spawn(logic_map, path_list) {
                                 _pr.has_clue = true;
                             }
                         } else if (tile_val == TILE_PROP_PC) {
-                            if (room_type == ROOM_NORMAL && instance_exists(obj_dungeon_generator)
+                            var _in_enc = (room_type == ROOM_CAESAR_LOCKED) || (room_type == ROOM_NORMAL && instance_exists(obj_dungeon_generator)
                                 && variable_instance_exists(obj_dungeon_generator, "room_is_encrypted")
-                                && obj_dungeon_generator.room_is_encrypted[logic_col][logic_row])
-                            {
-                                // Encrypted Decoy Rooms contain High-Yield Prototype Servers (+3 Scrap, +1 Rare Core)!
+                                && obj_dungeon_generator.room_is_encrypted[logic_col][logic_row]);
+                            _pr.spawn_room_type = room_type;
+                            _pr.spawn_in_enc    = _in_enc;
+                            if (_in_enc) {
+                                // Encrypted Security / Decoy Rooms contain High-Yield Prototype Servers
                                 _pr.is_server_rack = true;
                             }
                             array_push(pc_list, _pr);
@@ -323,20 +325,122 @@ function scr_dungeon_spawn(logic_map, path_list) {
 
     } // path index
 
-    // Select ONLY 2 specific computers across the floor to hold Case Clues
-    var _num_pcs = array_length(pc_list);
-    if (_num_pcs > 0) {
-        // Shuffle pc_list
-        for (var _pi = _num_pcs - 1; _pi > 0; _pi--) {
-            var _pj  = irandom(_pi);
-            var _tmp = pc_list[_pi];
-            pc_list[_pi] = pc_list[_pj];
-            pc_list[_pj] = _tmp;
+    // =====================================================================
+    // WHODUNIT PLACEMENT: suspect desks + evidence trail + IT help-desk tips
+    // =====================================================================
+    var _susp_n = variable_global_exists("case_suspects") ? array_length(global.case_suspects) : 0;
+    var _ev_n   = variable_global_exists("case_evidence") ? array_length(global.case_evidence) : 0;
+
+    if (_susp_n > 0) {
+        // Split eligible PCs (ordinary offices only - never the Override/Breaker/Key/Elevator rooms)
+        var _open_pool = [];
+        var _enc_pool  = [];
+        for (var _pi = 0; _pi < array_length(pc_list); _pi++) {
+            var _cpc = pc_list[_pi];
+            if (_cpc.spawn_room_type != ROOM_NORMAL) continue;
+            if (_cpc.spawn_in_enc) array_push(_enc_pool, _cpc); else array_push(_open_pool, _cpc);
         }
-        var _clue_pc_count = min(2, _num_pcs);
-        for (var _ci = 0; _ci < _clue_pc_count; _ci++) {
-            pc_list[_ci].has_clue    = true;
-            pc_list[_ci].log_variant = _ci;
+        for (var _sh = 0; _sh < 2; _sh++) {
+            var _arr = (_sh == 0) ? _open_pool : _enc_pool;
+            for (var _a = array_length(_arr) - 1; _a > 0; _a--) {
+                var _b = irandom(_a);
+                var _t = _arr[_a];
+                _arr[_a] = _arr[_b];
+                _arr[_b] = _t;
+            }
+        }
+
+        var _ov_x = (variable_global_exists("override_prop_inst") && instance_exists(global.override_prop_inst)) ? global.override_prop_inst.x : -9999;
+        var _ov_y = (variable_global_exists("override_prop_inst") && instance_exists(global.override_prop_inst)) ? global.override_prop_inst.y : -9999;
+
+        // Culprit's desk first: prefer a far-away encrypted room, never next to the Override console
+        var _cul_i  = global.case_culprit_idx;
+        var _cul_pc = scr_case_pick_pc(_enc_pool, _ov_x, _ov_y, 220);
+        if (_cul_pc == noone) _cul_pc = scr_case_pick_pc(_open_pool, _ov_x, _ov_y, 220);
+        var _desk_pcs = array_create(_susp_n, noone);
+        _desk_pcs[_cul_i] = _cul_pc;
+
+        // Innocent suspects: prefer open offices so the player can clear them early
+        for (var _si = 0; _si < _susp_n; _si++) {
+            if (_si == _cul_i) continue;
+            var _ipc = scr_case_pick_pc(_open_pool, 0, 0, 0);
+            if (_ipc == noone) _ipc = scr_case_pick_pc(_enc_pool, 0, 0, 0);
+            _desk_pcs[_si] = _ipc;
+        }
+
+        var _desks_ok = true;
+        for (var _si2 = 0; _si2 < _susp_n; _si2++) {
+            var _dpc = _desk_pcs[_si2];
+            if (_dpc == noone) { _desks_ok = false; continue; }
+            _dpc.suspect_idx    = _si2;
+            _dpc.nameplate      = global.case_suspects[_si2].nameplate;
+            _dpc.has_clue       = true;
+            _dpc.is_server_rack = false;
+        }
+        // Safety net: if the floor has too few PCs, auto-solve so the player is never soft-locked
+        if (!_desks_ok) {
+            global.incident_solved = true;
+            global.case_culprit_confirmed = true;
+            show_debug_message("[scr_dungeon_spawn] Not enough PCs for suspect desks; case auto-solved.");
+        }
+
+        // Gather NPC coworkers & memos that can deliver evidence (keeping enough as Key Vault IT tips)
+        var _npcs   = [];
+        var _papers = [];
+        var _mentor = variable_global_exists("floor_mentor_inst") ? global.floor_mentor_inst : noone;
+        with (obj_dungeon_prop) {
+            if (is_holding_clue) continue;
+            if (prop_type == TILE_PROP_NPC && id != _mentor) array_push(_npcs, id);
+            if (prop_type == TILE_PROP_PAPER) array_push(_papers, id);
+        }
+        var _tips_needed = variable_global_exists("clues_needed") ? global.clues_needed : 2;
+
+        // 1) Witness statements -> NPCs (while enough tip sources remain)
+        var _placed = array_create(_ev_n, false);
+        for (var _e = 0; _e < _ev_n; _e++) {
+            if (global.case_evidence[_e].type != "witness") continue;
+            if (array_length(_npcs) > 0 && (array_length(_npcs) - 1 + array_length(_papers)) >= _tips_needed) {
+                var _wn = array_pop(_npcs);
+                _wn.evidence_idx = _e;
+                _placed[_e] = true;
+            }
+        }
+        // 2) Everything else -> open-office terminals
+        for (var _e2 = 0; _e2 < _ev_n; _e2++) {
+            if (_placed[_e2]) continue;
+            var _epc = scr_case_pick_pc(_open_pool, 0, 0, 0);
+            if (_epc != noone) {
+                _epc.evidence_idx = _e2;
+                _epc.has_clue     = true;
+                _placed[_e2]      = true;
+            }
+        }
+        // 3) Overflow -> memos / NPCs (still leaving enough IT tips for the Key Vault)
+        for (var _e3 = 0; _e3 < _ev_n; _e3++) {
+            if (_placed[_e3]) continue;
+            if (array_length(_papers) > 0 && (array_length(_papers) - 1 + array_length(_npcs)) >= _tips_needed) {
+                var _pp = array_pop(_papers);
+                _pp.evidence_idx = _e3;
+                _placed[_e3] = true;
+            } else if (array_length(_npcs) > 0 && (array_length(_npcs) - 1 + array_length(_papers)) >= _tips_needed) {
+                var _nn = array_pop(_npcs);
+                _nn.evidence_idx = _e3;
+                _placed[_e3] = true;
+            }
+        }
+        // 4) Still unplaced -> pre-filed in the case briefing so the case stays solvable
+        for (var _e4 = 0; _e4 < _ev_n; _e4++) {
+            if (!_placed[_e4]) {
+                scr_log_evidence(_e4);
+                show_debug_message("[scr_dungeon_spawn] Evidence " + string(_e4) + " pre-filed (no free prop).");
+            }
+        }
+
+        // Key Vault IT tips = remaining memos + coworkers; never demand more than exist
+        var _tips = array_length(_papers) + array_length(_npcs);
+        if (variable_global_exists("clues_needed")) {
+            global.clues_needed = min(global.clues_needed, _tips);
+            if (_tips <= 0) global.clues_found = global.clues_needed;
         }
     }
 

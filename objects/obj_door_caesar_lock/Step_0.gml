@@ -68,7 +68,7 @@ if (locked && instance_exists(obj_jack)) {
                     global.e_dialogue_intro_shown = true;
                     create_textevent([
                         "ENCRYPTED DOOR LOCKED — CIPHER KEY REQUIRED!",
-                        "I can't try to solve this encrypted door without the Floor Key! I need to find the Cyber Clues and unlock the Gold Key Vault first."
+                        "I can't try to solve this encrypted door without the Floor Key! I need to search the hallways for the Gold Key Vault and collect the Cipher Key first."
                     ], [obj_jack.id, obj_jack.id]);
                     exit;
                 }

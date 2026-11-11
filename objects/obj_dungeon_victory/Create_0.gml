@@ -20,17 +20,22 @@ is_final_exam = (cleared_floor >= CHAPTER_MAX_FLOORS);
 
 clues_total = variable_global_exists("clues_found")          ? global.clues_found          : 0;
 clues_req   = variable_global_exists("clues_needed")         ? global.clues_needed         : 2;
+case_wrong  = variable_global_exists("case_wrong_accusations") ? global.case_wrong_accusations : 0;
+case_ev     = variable_global_exists("evidence_found")       ? global.evidence_found       : 0;
+case_ev_req = variable_global_exists("evidence_needed")      ? global.evidence_needed      : 0;
 floor_key   = variable_global_exists("dungeon_cipher_key")   ? global.dungeon_cipher_key   : 3;
 vig_key     = variable_global_exists("dungeon_vigenere_key") ? global.dungeon_vigenere_key : "CAB";
 
-// Evaluate Floor Salvage Tasks & HR Property Limit Status
-hr_scrapped   = variable_global_exists("hr_scrap_count")   ? global.hr_scrap_count   : 0;
-hr_limit      = variable_global_exists("hr_scrap_limit")   ? global.hr_scrap_limit   : 3;
-hr_violation  = (hr_scrapped > hr_limit);
-task1_done    = (hr_scrapped >= 3);
+// Evaluate Floor Salvage Compliance Status (4..6 Scrap = GREEN / Compliant)
+hr_scrapped   = variable_global_exists("hr_scrap_count") ? global.hr_scrap_count : 0;
+hr_limit      = 6;
+is_compliant  = (hr_scrapped >= 4 && hr_scrapped <= 6);
+hr_violation  = !is_compliant;
+global.intern_duty_flagged = hr_violation;
+task1_done    = is_compliant;
 task2_done    = ((variable_global_exists("task_bots_scrapped") && global.task_bots_scrapped > 0)
               || (variable_global_exists("task_servers_scrapped") && global.task_servers_scrapped > 0));
-bonus_scrap   = (task1_done ? 2 : 0) + (task2_done ? 2 : 0);
+bonus_scrap   = (task1_done ? 3 : 0) + (task2_done ? 2 : 0);
 bonus_cash    = 0; // Salvage payouts are now part of the itemized Corporate Paycheck below
 
 if (bonus_scrap > 0) global.scrap_count += bonus_scrap;

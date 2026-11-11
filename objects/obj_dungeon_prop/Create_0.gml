@@ -49,3 +49,10 @@ grapple_meter    = 0.45;  // 0.0 = Bot breaks free & busts Jack; 1.0 = Bot pinne
 can_sneak_ambush = false; // True when Jack is behind the bot outside its front vision cone
 scrap_pop_timer  = 0;     // Floating world-space status text timer
 scrap_pop_text   = "";
+
+// Whodunit case dossier fields (assigned by scr_dungeon_spawn after the floor is built)
+evidence_idx     = -1;    // >= 0: this prop delivers that piece of case evidence
+suspect_idx      = -1;    // >= 0: this PC is that suspect's desk (accuse here!)
+nameplate        = "";    // Desk nameplate shown on suspect desks
+spawn_room_type  = -1;    // Room type this PC spawned in
+spawn_in_enc     = false; // True if spawned inside an encrypted room
