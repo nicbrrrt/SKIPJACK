@@ -240,7 +240,7 @@ function scr_spawn_intern_ward() {
     // Downsized Observation Deck Interior floor (cols 35..40, rows 9..15)
     for (var _c = 35; _c <= 40; _c++) {
         for (var _r = 9; _r <= 15; _r++) {
-            _grid[_c][_r] = 5; // executive blue carpet
+            _grid[_c][_r] = 4; // executive blue carpet
         }
     }
     _grid[34][12] = 5; // door threshold floor
@@ -296,7 +296,7 @@ function scr_spawn_intern_ward() {
             var _wx = _ox + _c * 16;
             var _wy = _oy + _r * 16;
 
-            if (_t == 0 || _t == 3 || _t == 5) {
+            if (_t == 0 || _t == 3 || _t == 4 || _t == 5) {
                 var _flr = instance_create_layer(_wx, _wy, _layer, obj_floor);
                 _flr.depth       = 50;
                 _flr.floor_style = _t;
