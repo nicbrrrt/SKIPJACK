@@ -7,17 +7,56 @@ var _by = y + 16;
 // 1. HAZARD: SHELF
 // -----------------------------------------------------------------
 if (hazard_type == HAZARD_SHELF) {
-    if (is_fallen) {
-        // Tipped over shelf on floor
-        draw_set_alpha(0.85);
-        draw_set_color(make_color_rgb(50, 55, 65));
-        draw_rectangle(x - 6, y + 8, x + 22, y + 15, false);
-        draw_set_color(c_dkgray);
-        draw_rectangle(x - 6, y + 8, x + 22, y + 15, true);
+    var _shelf_spr = (((x div 16) mod 2) == 0 && sprite_exists(spr_intern_shelf_1)) ? spr_intern_shelf_1 : spr_intern_shelf;
+    if (!sprite_exists(_shelf_spr)) {
+        _shelf_spr = sprite_exists(spr_intern_shelf) ? spr_intern_shelf : -1;
+    }
 
-        // Scattered boxes
-        draw_sprite_ext(spr_box, 0, x - 2, y + 6, 0.45, 0.45, 15, c_white, 1.0);
-        draw_sprite_ext(spr_box, 0, x + 14, y + 7, 0.40, 0.40, -25, c_white, 1.0);
+    if (is_fallen) {
+        if (_shelf_spr != -1) {
+            // Tipped over storage shelf on floor
+            var _ox = sprite_get_xoffset(_shelf_spr);
+            var _oy = sprite_get_yoffset(_shelf_spr);
+            var _pdx = 8 - _ox;
+            var _pdy = 17 - _oy;
+            var _dist = point_distance(0, 0, _pdx, _pdy);
+            var _dir  = point_direction(0, 0, _pdx, _pdy);
+            var _draw_x = _cx - lengthdir_x(_dist, _dir + 90);
+            var _draw_y = (y + 8) - lengthdir_y(_dist, _dir + 90);
+
+            // Floor contact shadow
+            draw_set_alpha(0.35);
+            draw_set_color(c_black);
+            draw_ellipse(_cx - 16, y + 12, _cx + 16, y + 16, false);
+
+            draw_set_alpha(1.0);
+            draw_sprite_ext(_shelf_spr, 0, _draw_x, _draw_y, 1.0, 1.0, 90, c_white, 1.0);
+
+            // Scattered scrap from fallen shelf
+            if (sprite_exists(spr_terminal_scrap)) {
+                draw_sprite_ext(spr_terminal_scrap, 0, x - 5, y + 5, 0.9, 0.9, 10, c_white, 1.0);
+                draw_sprite_ext(spr_terminal_scrap, 0, x + 15, y + 6, 0.8, 0.8, -15, c_white, 0.95);
+            } else {
+                draw_sprite_ext(spr_box, 0, x - 4, y + 6, 0.45, 0.45, 15, c_white, 1.0);
+                draw_sprite_ext(spr_box, 0, x + 16, y + 7, 0.40, 0.40, -25, c_white, 1.0);
+            }
+        } else {
+            // Tipped over shelf on floor (Procedural Fallback)
+            draw_set_alpha(0.85);
+            draw_set_color(make_color_rgb(50, 55, 65));
+            draw_rectangle(x - 6, y + 8, x + 22, y + 15, false);
+            draw_set_color(c_dkgray);
+            draw_rectangle(x - 6, y + 8, x + 22, y + 15, true);
+
+            // Scattered scrap
+            if (sprite_exists(spr_terminal_scrap)) {
+                draw_sprite_ext(spr_terminal_scrap, 0, x - 4, y + 5, 0.9, 0.9, 10, c_white, 1.0);
+                draw_sprite_ext(spr_terminal_scrap, 0, x + 13, y + 6, 0.8, 0.8, -15, c_white, 0.95);
+            } else {
+                draw_sprite_ext(spr_box, 0, x - 2, y + 6, 0.45, 0.45, 15, c_white, 1.0);
+                draw_sprite_ext(spr_box, 0, x + 14, y + 7, 0.40, 0.40, -25, c_white, 1.0);
+            }
+        }
 
         if (is_interact_target) {
             var _bw = 32;
@@ -42,35 +81,55 @@ if (hazard_type == HAZARD_SHELF) {
             draw_set_font(fnt_default);
         }
     } else {
-        // Standing shelf (wobbles around bottom center _by)
-        var _rad = degtorad(wobble_angle);
-        var _cos = cos(_rad);
-        var _sin = sin(_rad);
+        if (_shelf_spr != -1) {
+            // Standing shelf grounded at y + 16, wobbles around bottom center (_cx, _by)
+            var _ox = sprite_get_xoffset(_shelf_spr);
+            var _oy = sprite_get_yoffset(_shelf_spr);
+            var _pdx = 8 - _ox;
+            var _pdy = 34 - _oy;
+            var _dist = point_distance(0, 0, _pdx, _pdy);
+            var _dir  = point_direction(0, 0, _pdx, _pdy);
+            var _draw_x = _cx - lengthdir_x(_dist, _dir + wobble_angle);
+            var _draw_y = _by - lengthdir_y(_dist, _dir + wobble_angle);
 
-        // Draw metal frame
-        draw_set_alpha(0.95);
-        draw_set_color(make_color_rgb(45, 50, 60));
-        draw_rectangle(x + 1, y - 6, x + 15, y + 15, false);
-        draw_set_color(make_color_rgb(90, 100, 120));
-        draw_rectangle(x + 1, y - 6, x + 15, y + 15, true);
+            // Ground shadow
+            draw_set_alpha(0.35);
+            draw_set_color(c_black);
+            draw_ellipse(_cx - 8, y + 13, _cx + 8, y + 16, false);
 
-        // Shelves and boxes
-        draw_set_color(make_color_rgb(110, 120, 140));
-        draw_line(x + 1, y, x + 15, y);
-        draw_line(x + 1, y + 7, x + 15, y + 7);
-        draw_sprite_ext(spr_box, 0, _cx, y - 2, 0.35, 0.35, wobble_angle, c_white, 1.0);
-        draw_sprite_ext(spr_box, 0, _cx, y + 5, 0.35, 0.35, wobble_angle, c_white, 1.0);
+            draw_set_alpha(1.0);
+            draw_sprite_ext(_shelf_spr, 0, _draw_x, _draw_y, 1.0, 1.0, wobble_angle, c_white, 1.0);
+        } else {
+            // Standing shelf (wobbles around bottom center _by) (Procedural Fallback)
+            var _rad = degtorad(wobble_angle);
+            var _cos = cos(_rad);
+            var _sin = sin(_rad);
+
+            // Draw metal frame
+            draw_set_alpha(0.95);
+            draw_set_color(make_color_rgb(45, 50, 60));
+            draw_rectangle(x + 1, y - 6, x + 15, y + 15, false);
+            draw_set_color(make_color_rgb(90, 100, 120));
+            draw_rectangle(x + 1, y - 6, x + 15, y + 15, true);
+
+            // Shelves and boxes
+            draw_set_color(make_color_rgb(110, 120, 140));
+            draw_line(x + 1, y, x + 15, y);
+            draw_line(x + 1, y + 7, x + 15, y + 7);
+            draw_sprite_ext(spr_box, 0, _cx, y - 2, 0.35, 0.35, wobble_angle, c_white, 1.0);
+            draw_sprite_ext(spr_box, 0, _cx, y + 5, 0.35, 0.35, wobble_angle, c_white, 1.0);
+        }
 
         if (is_wobbling) {
             // Telegraph exclamation & steady prompt
             var _bob = sin(current_time / 80) * 2;
-            draw_sprite_ext(spr_exclamation, 0, _cx, y - 16 + _bob, 0.5, 0.5, 0, c_white, 1.0);
+            draw_sprite_ext(spr_exclamation, 0, _cx, y - 24 + _bob, 0.5, 0.5, 0, c_white, 1.0);
 
             if (is_interact_target) {
                 var _bw = 32;
                 var _bh = 4;
                 var _bx1 = _cx - _bw * 0.5;
-                var _by1 = y - 24;
+                var _by1 = y - 30;
                 draw_set_halign(fa_center);
                 draw_set_valign(fa_bottom);
                 draw_set_font(fnt_dialogue);
@@ -104,11 +163,23 @@ else if (hazard_type == HAZARD_LOCKER) {
         draw_set_color(c_black);
         draw_ellipse(_cx - 8, y + 12, _cx + 8, y + 16, false);
 
+        // Auto-detect wall orientation or use locker_variant:
+        var _variant = variable_instance_exists(id, "locker_variant") ? locker_variant : 0;
+        if (_variant == 0) {
+            var _has_north = position_meeting(x + 8, y - 8, obj_dungeon_wall);
+            var _has_other = position_meeting(x + 8, y + 24, obj_dungeon_wall) || position_meeting(x - 8, y + 8, obj_dungeon_wall) || position_meeting(x + 24, y + 8, obj_dungeon_wall);
+            if (!_has_north && _has_other) {
+                _variant = 1;
+            }
+        }
+
         // Sprite selection:
-        // - When empty (no intern inside): spr_dungeon_locker
-        // - When an intern is trapped inside: spr_dungeon_locker_hidden
+        // - Variant 1 (East, West, or South wall): spr_dungeon_locker_1
+        // - Variant 0 (North wall): spr_dungeon_locker (empty) / spr_dungeon_locker_hidden (trapped intern)
         var _spr = is_trapped ? spr_dungeon_locker_hidden : spr_dungeon_locker;
-        if (!sprite_exists(_spr)) {
+        if (_variant == 1 && sprite_exists(spr_dungeon_locker_1)) {
+            _spr = spr_dungeon_locker_1;
+        } else if (!sprite_exists(_spr)) {
             _spr = sprite_exists(spr_dungeon_locker) ? spr_dungeon_locker : spr_dungeon_locker_hidden;
         }
 

@@ -1,30 +1,7 @@
 /// @description obj_floor — Draw Event
 /// Renders corporate office tiles, hallway carpet runners, or brushed steel elevator flooring.
 
-if (floor_style == 0 || floor_style == 1) {
-    // Alternating checkerboard floor tile panel pattern
-    var _tile_x = x div 16;
-    var _tile_y = y div 16;
-    var _is_dark = (((_tile_x + _tile_y) mod 2) != 0);
-
-    draw_set_alpha(1.0);
-
-    // 1. Solid panel face: base (#b1b1b1) or dark (#7d7d7d)
-    if (_is_dark) {
-        // Dark variant panel: #7d7d7d / RGB: 125, 125, 125
-        draw_set_color(make_color_rgb(125, 125, 125));
-    } else {
-        // Base variant panel: #b1b1b1 / RGB: 177, 177, 177
-        draw_set_color(make_color_rgb(177, 177, 177));
-    }
-    draw_rectangle(x, y, x + 15, y + 15, false);
-
-    // 2. Deliberate 1px inline seam (in-between color: #949494 / RGB: 148, 148, 148)
-    // Ensures clean panel borders with zero transparency
-    draw_set_color(make_color_rgb(148, 148, 148));
-    draw_rectangle(x, y, x + 15, y + 15, true);
-}
-else if (floor_style == 2) {
+if (floor_style == 2) {
     // Brushed steel elevator cab floor
     draw_set_alpha(0.92);
     draw_set_color(make_color_rgb(62, 72, 86));
@@ -88,6 +65,29 @@ else if (floor_style == 3) {
         draw_set_color(make_color_rgb(140, 100, 60)); // planter pot
         draw_rectangle(x + 5, y + 9, x + 10, y + 12, false);
     }
+}
+else {
+    // Default: Corporate office & hallway alternating checkerboard pattern (styles 0, 1, 5)
+    var _tile_x = x div 16;
+    var _tile_y = y div 16;
+    var _is_dark = (((_tile_x + _tile_y) mod 2) != 0);
+
+    draw_set_alpha(1.0);
+
+    // 1. Solid panel face: base (#b1b1b1) or dark (#7d7d7d)
+    if (_is_dark) {
+        // Dark variant panel: #7d7d7d / RGB: 125, 125, 125
+        draw_set_color(make_color_rgb(125, 125, 125));
+    } else {
+        // Base variant panel: #b1b1b1 / RGB: 177, 177, 177
+        draw_set_color(make_color_rgb(177, 177, 177));
+    }
+    draw_rectangle(x, y, x + 15, y + 15, false);
+
+    // 2. Deliberate 1px inline seam (in-between color: #949494 / RGB: 148, 148, 148)
+    // Ensures clean panel borders with zero transparency
+    draw_set_color(make_color_rgb(148, 148, 148));
+    draw_rectangle(x, y, x + 15, y + 15, true);
 }
 
 draw_set_color(c_white);

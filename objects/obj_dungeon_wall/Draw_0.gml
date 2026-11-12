@@ -24,6 +24,14 @@ if (!variable_instance_exists(id, "wall_type_init") || !wall_type_init) {
 
     var _w_right = instance_position(x + 24, y + 8, obj_dungeon_wall);
     has_wall_right = (_w_right != noone && variable_instance_exists(_w_right, "wall_style") && _w_right.wall_style != 1);
+
+    var _floor_north = instance_position(x + 8, y - 8, obj_floor);
+    var _floor_south = instance_position(x + 8, y + 24, obj_floor);
+    is_south_wall    = (_floor_north != noone) && (_floor_south == noone);
+
+    if (is_south_wall && wall_style != 1) {
+        depth = 18; // In front of props (depth 24) to overlap them, but behind lighting/shadow overlay (depth 10)
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -147,16 +155,32 @@ if (_use_spr_dungeon_wall && sprite_exists(spr_dungeon_wall)) {
 
 // 5. Mounted Corporate Monitor / Briefing Screen on wall (wall_style == 2)
 if (wall_style == 2) {
-    var _lifted = (variable_global_exists("lockdown_lifted") && global.lockdown_lifted);
-    draw_set_alpha(_vis);
-    draw_set_color(make_color_rgb(12, 18, 28));
-    draw_rectangle(x + 1, y + 3, x + 14, y + 12, false);
-    draw_set_color(_lifted ? c_lime : make_color_rgb(255, 60, 75));
-    draw_rectangle(x + 1, y + 3, x + 14, y + 12, true);
-    draw_set_alpha(_vis * 0.8);
-    draw_line(x + 3, y + 6, x + 12, y + 6);
-    draw_set_color(c_aqua);
-    draw_line(x + 3, y + 9, x + 10, y + 9);
+    if (board_prop_spr == -1) {
+        var _prop_choices = [
+            spr_dungeon_wall_prop,
+            spr_dungeon_wall_prop_1,
+            spr_dungeon_wall_prop_2,
+            spr_dungeon_wall_prop_3,
+            spr_dungeon_wall_prop_4
+        ];
+        var _r_idx = irandom(array_length(_prop_choices) - 1);
+        board_prop_spr = _prop_choices[_r_idx];
+    }
+
+    if (sprite_exists(board_prop_spr)) {
+        draw_sprite_ext(board_prop_spr, 0, x, y, 1.0, 1.0, 0, c_white, _vis);
+    } else {
+        var _lifted = (variable_global_exists("lockdown_lifted") && global.lockdown_lifted);
+        draw_set_alpha(_vis);
+        draw_set_color(make_color_rgb(12, 18, 28));
+        draw_rectangle(x + 1, y + 3, x + 14, y + 12, false);
+        draw_set_color(_lifted ? c_lime : make_color_rgb(255, 60, 75));
+        draw_rectangle(x + 1, y + 3, x + 14, y + 12, true);
+        draw_set_alpha(_vis * 0.8);
+        draw_line(x + 3, y + 6, x + 12, y + 6);
+        draw_set_color(c_aqua);
+        draw_line(x + 3, y + 9, x + 10, y + 9);
+    }
 }
 
 draw_set_color(c_white);

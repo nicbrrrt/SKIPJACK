@@ -1,11 +1,6 @@
 /// @description obj_doorway — Draw Event
-/// Renders a Corporate Automatic Sliding Door matching the visual style of the facility's locked doors.
-/// Uses a brushed steel frame, sliding door leaves, and a green/teal "UNLOCKED" status indicator.
-
-if (has_lock_overlay) {
-    // Locked doors (obj_door_quiz_lock / obj_door_caesar_lock) render their own security gate on top
-    exit;
-}
+/// Renders a Corporate Automatic Sliding Door matching facility security protocols.
+/// Uses specific panel sprites (breaker, lockdown, locked, unlocked) with smooth biparting sliding animation.
 
 // Check chunk fog alpha so doorways in unlit rooms/hallways stay completely dimmed under shadow!
 var _chunk_c = x div 144;
@@ -38,42 +33,105 @@ draw_set_alpha(0.45 * _vis);
 draw_set_color(make_color_rgb(65, 95, 130));
 draw_rectangle(_x1, _y1, _x2, _y2, true);
 
-// 2. Sliding door leaves (retract toward the edges as open_amt -> 1.0)
-var _slide = round(open_amt * 6);
-var _leaf_w = 7 - _slide;
+// 2. Select door panel sprite according to door function and lock state
+var _panel_spr = spr_door_panel;
 
-if (_leaf_w > 0) {
-    var _pulse = 0.5 + 0.5 * sin(anim_t * 0.08);
-
-    // Left & Right sliding steel/glass door leaves
-    draw_set_alpha(0.90 * _vis);
-    draw_set_color(make_color_rgb(22, 36, 54));
-    draw_rectangle(_x1 + 1, _y1 + 2, _x1 + _leaf_w, _y2 - 2, false);
-    draw_rectangle(_x2 - _leaf_w, _y1 + 2, _x2 - 1, _y2 - 2, false);
-
-    // Metallic door frame & horizontal reinforcement rails (matches Key Vault / Breaker door style)
-    draw_set_alpha((0.85 + _pulse * 0.15) * _vis);
-    draw_set_color(make_color_rgb(75, 165, 215));
-    draw_rectangle(_x1, _y1, _x2, _y2, true);
-    draw_line(_x1 + 1, _y1 + 6, _x1 + _leaf_w, _y1 + 6);
-    draw_line(_x1 + 1, _y1 + 9, _x1 + _leaf_w, _y1 + 9);
-    draw_line(_x2 - _leaf_w, _y1 + 6, _x2 - 1, _y1 + 6);
-    draw_line(_x2 - _leaf_w, _y1 + 9, _x2 - 1, _y1 + 9);
-
-    // Center seam & green/teal "UNLOCKED OFFICE DOOR" status LED node when closed
-    if (_slide <= 2) {
-        draw_set_color(make_color_rgb(40, 65, 90));
-        draw_line(_x1 + 8, _y1 + 2, _x1 + 8, _y2 - 2);
-
-        draw_set_color(make_color_rgb(75, 240, 155));
-        draw_rectangle(_x1 + 6, _y1 + 5, _x1 + 9, _y1 + 10, false);
+if (door_type == "breaker") {
+    // Breaker room door: uses spr_door_panel_breaker_room both locked and unlocked
+    _panel_spr = sprite_exists(spr_door_panel_breaker_room) ? spr_door_panel_breaker_room : spr_door_panel;
+} else if (door_type == "lockdown") {
+    // Lockdown room door: uses spr_door_panel_lockdown both locked and unlocked
+    _panel_spr = sprite_exists(spr_door_panel_lockdown) ? spr_door_panel_lockdown : spr_door_panel;
+} else if (starts_locked) {
+    // Doors that start locked (Quiz / Cipher): spr_door_panel_locked when locked, spr_door_panel_unlocked when unlocked
+    if (is_locked) {
+        _panel_spr = sprite_exists(spr_door_panel_locked) ? spr_door_panel_locked : spr_door_panel;
+    } else {
+        _panel_spr = sprite_exists(spr_door_panel_unlocked) ? spr_door_panel_unlocked : spr_door_panel;
     }
 } else {
-    // Fully open doorway: glowing green sensor side jambs
-    draw_set_alpha(0.75 * _vis);
-    draw_set_color(make_color_rgb(75, 240, 155));
-    draw_rectangle(_x1, _y1 + 1, _x1 + 1, _y2 - 1, false);
-    draw_rectangle(_x2 - 1, _y1 + 1, _x2, _y2 - 1, false);
+    // Doors that are already unlocked at the start of the room: use standard spr_door_panel
+    _panel_spr = spr_door_panel;
+}
+
+// 3. Detect Door Orientation: Horizontal (Left-to-Right slide) vs Vertical (Top-to-Bottom slide)
+var _has_door_vert = position_meeting(x + 8, y - 8, obj_doorway) || position_meeting(x + 8, y + 24, obj_doorway);
+var _has_door_horz = position_meeting(x - 8, y + 8, obj_doorway) || position_meeting(x + 24, y + 8, obj_doorway);
+var _is_vert = _has_door_vert;
+if (!_has_door_vert && !_has_door_horz) {
+    // Single-tile doorway: orient based on surrounding walls
+    var _has_wall_vert = position_meeting(x + 8, y - 8, obj_dungeon_wall) && position_meeting(x + 8, y + 24, obj_dungeon_wall);
+    _is_vert = _has_wall_vert;
+}
+
+if (_is_vert) {
+    // =========================================================
+    // VERTICAL DOOR: Whole tile slides from top to bottom
+    // =========================================================
+    var _slide_y = round(open_amt * 16);
+    var _draw_h  = 16 - _slide_y;
+
+    if (sprite_exists(_panel_spr)) {
+        if (_draw_h > 0) {
+            // Slide whole tile from top to bottom without any center seam
+            draw_sprite_part_ext(_panel_spr, 0, 0, 0, 16, _draw_h, _x1, _y1 + _slide_y, 1.0, 1.0, c_white, _vis);
+        } else {
+            // Fully open doorway: subtle sensor side jambs
+            draw_set_alpha(0.45 * _vis);
+            draw_set_color(make_color_rgb(75, 240, 155));
+            draw_rectangle(_x1, _y1, _x2, _y1 + 1, false);
+            draw_rectangle(_x1, _y2 - 1, _x2, _y2, false);
+        }
+    } else {
+        // Procedural Fallback
+        if (_draw_h > 0) {
+            draw_set_alpha(0.90 * _vis);
+            draw_set_color(make_color_rgb(22, 36, 54));
+            draw_rectangle(_x1 + 1, _y1 + _slide_y, _x2 - 1, _y2, false);
+            draw_set_alpha(0.85 * _vis);
+            draw_set_color(make_color_rgb(75, 165, 215));
+            draw_rectangle(_x1, _y1 + _slide_y, _x2, _y2, true);
+        } else {
+            draw_set_alpha(0.45 * _vis);
+            draw_set_color(make_color_rgb(75, 240, 155));
+            draw_rectangle(_x1, _y1, _x2, _y1 + 1, false);
+            draw_rectangle(_x1, _y2 - 1, _x2, _y2, false);
+        }
+    }
+} else {
+    // =========================================================
+    // HORIZONTAL DOOR: Whole tile slides from left to right
+    // =========================================================
+    var _slide_x = round(open_amt * 16);
+    var _draw_w  = 16 - _slide_x;
+
+    if (sprite_exists(_panel_spr)) {
+        if (_draw_w > 0) {
+            // Slide whole tile from left to right without any center seam
+            draw_sprite_part_ext(_panel_spr, 0, 0, 0, _draw_w, 16, _x1 + _slide_x, _y1, 1.0, 1.0, c_white, _vis);
+        } else {
+            // Fully open doorway: subtle sensor side jambs
+            draw_set_alpha(0.45 * _vis);
+            draw_set_color(make_color_rgb(75, 240, 155));
+            draw_rectangle(_x1, _y1, _x1 + 1, _y2, false);
+            draw_rectangle(_x2 - 1, _y1, _x2, _y2, false);
+        }
+    } else {
+        // Procedural Fallback
+        if (_draw_w > 0) {
+            draw_set_alpha(0.90 * _vis);
+            draw_set_color(make_color_rgb(22, 36, 54));
+            draw_rectangle(_x1 + _slide_x, _y1 + 1, _x2, _y2 - 1, false);
+            draw_set_alpha(0.85 * _vis);
+            draw_set_color(make_color_rgb(75, 165, 215));
+            draw_rectangle(_x1 + _slide_x, _y1, _x2, _y2, true);
+        } else {
+            draw_set_alpha(0.45 * _vis);
+            draw_set_color(make_color_rgb(75, 240, 155));
+            draw_rectangle(_x1, _y1, _x1 + 1, _y2, false);
+            draw_rectangle(_x2 - 1, _y1, _x2, _y2, false);
+        }
+    }
 }
 
 draw_set_color(c_white);

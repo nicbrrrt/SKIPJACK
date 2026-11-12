@@ -6,3 +6,7 @@ depth            = 26; // Draws above floor (50) and below room fog (10)
 has_lock_overlay = false;
 open_amt         = 0.0;
 anim_t           = irandom(100);
+door_type        = "normal"; // "normal", "quiz", "caesar", "breaker", "lockdown"
+is_locked        = false;
+starts_locked    = false;
+lock_inst        = noone;

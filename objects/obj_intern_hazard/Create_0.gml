@@ -14,5 +14,5 @@ struggle_meter  = 0;    // for prying open locker / lifting shelf
 near_player        = false;
 is_interact_target = false;
 mischief_intern    = noone;
-depth           = 25;
+depth           = 35 - (y div 16); // Y-sorted: lower/front hazards draw on top of hazards behind them
 mask_index      = spr_wall_tile;

@@ -71,7 +71,8 @@ var _pwr_on = (variable_global_exists("power_restored")      && global.power_res
 // 1. Stranded Coworker NPC Animation & Facing
 // ---------------------------------------------------------------------------
 if (prop_type == TILE_PROP_NPC) {
-    depth = 22; // Beneath room fog overlay (depth 10) so NPCs in adjacent rooms stay hidden
+    var _row = (y div 16) mod 9;
+    depth = 28 - _row; // Beneath room fog overlay (depth 10), Y-sorted with other props
     if (instance_exists(obj_jack)) {
         var _dx = obj_jack.x - (x + 8);
         var _dy = obj_jack.y - (y + 12);

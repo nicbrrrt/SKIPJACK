@@ -157,7 +157,7 @@ function scr_dungeon_spawn(logic_map, path_list) {
                         _pf.floor_style = (tile_val == TILE_PROP_OVERRIDE || tile_val == TILE_PROP_BREAKER) ? 1 : 0;
                         _pf.room_theme  = room_type;
                         var _pr = instance_create_layer(px, py, layer_name, obj_dungeon_prop);
-                        _pr.depth       = (tile_val == TILE_PROP_PAPER) ? 45 : 24;
+                        _pr.depth       = (tile_val == TILE_PROP_PAPER) ? 45 : (28 - tile_row);
                         _pr.prop_type   = tile_val;
                         if (tile_val == TILE_PROP_OVERRIDE) {
                             global.override_prop_inst = _pr;
@@ -168,12 +168,30 @@ function scr_dungeon_spawn(logic_map, path_list) {
                             if (tile_val == TILE_PROP_PC) {
                                 _pr.has_clue = true;
                             }
+                        } else if (tile_val == TILE_PROP_CHAIR) {
+                            var _left_wall  = (tile_col > 0 && template[tile_row][tile_col - 1] == TILE_WALL);
+                            var _right_wall = (tile_col < CHUNK_SIZE - 1 && template[tile_row][tile_col + 1] == TILE_WALL);
+                            var _south_wall = (tile_row < CHUNK_SIZE - 1 && template[tile_row + 1][tile_col] == TILE_WALL);
+                            var _north_wall = (tile_row > 0 && template[tile_row - 1][tile_col] == TILE_WALL);
+
+                            if (_left_wall && !_right_wall) {
+                                _pr.cabinet_variant = 1; // side_left
+                            } else if (_right_wall && !_left_wall) {
+                                _pr.cabinet_variant = 2; // side_right
+                            } else if (_south_wall && !_north_wall) {
+                                _pr.cabinet_variant = 3; // back
+                            } else if (_north_wall && !_south_wall) {
+                                _pr.cabinet_variant = 0; // front
+                            } else {
+                                _pr.cabinet_variant = (tile_row >= 4) ? 3 : 0;
+                            }
                         } else if (tile_val == TILE_PROP_PC) {
                             var _in_enc = (room_type == ROOM_CAESAR_LOCKED) || (room_type == ROOM_NORMAL && instance_exists(obj_dungeon_generator)
                                 && variable_instance_exists(obj_dungeon_generator, "room_is_encrypted")
                                 && obj_dungeon_generator.room_is_encrypted[logic_col][logic_row]);
                             _pr.spawn_room_type = room_type;
                             _pr.spawn_in_enc    = _in_enc;
+                            _pr.is_south_facing = (tile_row >= 4);
                             if (_in_enc) {
                                 // Encrypted Security / Decoy Rooms contain High-Yield Prototype Servers
                                 _pr.is_server_rack = true;
@@ -188,8 +206,10 @@ function scr_dungeon_spawn(logic_map, path_list) {
                         _df.floor_style = 1;
                         _df.room_theme  = room_type;
                         var _d = instance_create_layer(px, py, layer_name, obj_doorway);
-                        _d.depth            = 26;
-                        _d.has_lock_overlay = false;
+                        _d.depth         = 26;
+                        _d.door_type     = "normal";
+                        _d.is_locked     = false;
+                        _d.starts_locked = false;
                         break;
 
                     case TILE_LOCK_QUIZ:
@@ -198,10 +218,14 @@ function scr_dungeon_spawn(logic_map, path_list) {
                         _qf.floor_style = 1;
                         _qf.room_theme  = room_type;
                         var _qd = instance_create_layer(px, py, layer_name, obj_doorway);
-                        _qd.depth            = 40;
-                        _qd.has_lock_overlay = true;
+                        _qd.depth         = 26;
+                        _qd.door_type     = "quiz";
+                        _qd.is_locked     = true;
+                        _qd.starts_locked = true;
                         var _ql = instance_create_layer(px, py, layer_name, obj_door_quiz_lock);
-                        _ql.depth = 25;
+                        _ql.depth        = 25;
+                        _ql.doorway_inst = _qd;
+                        _qd.lock_inst    = _ql;
                         break;
 
                     case TILE_LOCK_CAESAR:
@@ -210,13 +234,18 @@ function scr_dungeon_spawn(logic_map, path_list) {
                         _cf.floor_style = 1;
                         _cf.room_theme  = room_type;
                         var _cd = instance_create_layer(px, py, layer_name, obj_doorway);
-                        _cd.depth            = 40;
-                        _cd.has_lock_overlay = true;
+                        _cd.depth         = 26;
+                        _cd.door_type     = (room_type == ROOM_POWER) ? "breaker" : ((room_type == ROOM_CAESAR_LOCKED) ? "lockdown" : "caesar");
+                        _cd.is_locked     = true;
+                        _cd.starts_locked = true;
                         var _cl = instance_create_layer(px, py, layer_name, obj_door_caesar_lock);
                         _cl.depth            = 25;
+                        _cl.doorway_inst     = _cd;
+                        _cd.lock_inst        = _cl;
                         _cl.is_elevator_door = (room_type == ROOM_END);
                         _cl.is_holding_door  = (room_type == ROOM_HOLDING);
                         _cl.is_breaker_door  = (room_type == ROOM_POWER);
+                        _cl.is_lockdown_door = (room_type == ROOM_CAESAR_LOCKED);
                         break;
 
                     default:
@@ -276,22 +305,28 @@ function scr_dungeon_spawn(logic_map, path_list) {
             // Place a Hiding Locker against a non-doorway wall of this hallway segment
             var _lx = world_x + 3 * TILE_SIZE;
             var _ly = world_y + 3 * TILE_SIZE;
+            var _lvariant = 0;
             if (top_tile == TILE_WALL) {
                 _lx = world_x + 4 * TILE_SIZE;
                 _ly = world_y + 3 * TILE_SIZE;
+                _lvariant = 0; // North wall: front door faces player
             } else if (bottom_tile == TILE_WALL) {
                 _lx = world_x + 4 * TILE_SIZE;
                 _ly = world_y + 5 * TILE_SIZE;
+                _lvariant = 1; // South wall: side/back profile
             } else if (left_tile == TILE_WALL) {
                 _lx = world_x + 3 * TILE_SIZE;
                 _ly = world_y + 4 * TILE_SIZE;
+                _lvariant = 1; // West wall: side profile
             } else if (right_tile == TILE_WALL) {
                 _lx = world_x + 5 * TILE_SIZE;
                 _ly = world_y + 4 * TILE_SIZE;
+                _lvariant = 1; // East wall: side profile
             }
             var _locker = instance_create_layer(_lx, _ly, layer_name, obj_dungeon_prop);
-            _locker.prop_type = TILE_PROP_LOCKER;
-            _locker.depth     = 26;
+            _locker.prop_type      = TILE_PROP_LOCKER;
+            _locker.locker_variant = _lvariant;
+            _locker.depth          = 26;
         }
 
         // Populate Normal Office rooms with stranded coworkers (safe from hallway drones)
@@ -462,6 +497,33 @@ function scr_dungeon_spawn(logic_map, path_list) {
         with (obj_door_caesar_lock) {
             if (point_distance(draw_x + 8, draw_y + 8, _bx, _by) <= 85) {
                 is_breaker_door = true;
+                if (variable_instance_exists(id, "doorway_inst") && instance_exists(doorway_inst)) {
+                    doorway_inst.door_type = "breaker";
+                }
+            }
+        }
+        with (obj_doorway) {
+            if (point_distance(x + 8, y + 8, _bx, _by) <= 85) {
+                door_type = "breaker";
+            }
+        }
+    }
+
+    // Mark both sides of the Security / Lockdown Room's doorway threshold as is_lockdown_door = true
+    if (variable_global_exists("override_prop_inst") && instance_exists(global.override_prop_inst)) {
+        var _ox = global.override_prop_inst.x + 8;
+        var _oy = global.override_prop_inst.y + 8;
+        with (obj_door_caesar_lock) {
+            if (point_distance(draw_x + 8, draw_y + 8, _ox, _oy) <= 85) {
+                is_lockdown_door = true;
+                if (variable_instance_exists(id, "doorway_inst") && instance_exists(doorway_inst)) {
+                    doorway_inst.door_type = "lockdown";
+                }
+            }
+        }
+        with (obj_doorway) {
+            if (point_distance(x + 8, y + 8, _ox, _oy) <= 85) {
+                door_type = "lockdown";
             }
         }
     }
@@ -473,6 +535,18 @@ function scr_dungeon_spawn(logic_map, path_list) {
         with (obj_door_caesar_lock) {
             if (point_distance(draw_x + 8, draw_y + 8, _gx, _gy) <= 85) {
                 is_elevator_door = true;
+            }
+        }
+    }
+
+    // Set south walls to depth = 18 so they overlap objects (depth 24) but stay behind lighting/shadow (depth 10)
+    with (obj_dungeon_wall) {
+        if (wall_style != 1) {
+            var _floor_north = instance_position(x + 8, y - 8, obj_floor);
+            var _floor_south = instance_position(x + 8, y + 24, obj_floor);
+            if (_floor_north != noone && _floor_south == noone) {
+                is_south_wall = true;
+                depth = 18;
             }
         }
     }

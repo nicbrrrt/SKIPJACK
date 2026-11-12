@@ -33,22 +33,34 @@ if (instance_exists(obj_jack)) {
     var _jy = obj_jack.y;
 
     if (variable_global_exists("player_has_mop") && global.player_has_mop) {
-        // Wooden handle angled over Jack's shoulder
-        draw_set_color(make_color_rgb(180, 130, 70));
-        draw_line_width(_jx + 6, _jy - 16, _jx + 12, _jy + 6, 2);
-        // Fluffy mop head
-        draw_set_color(make_color_rgb(230, 240, 255));
-        draw_circle(_jx + 12, _jy + 6, 3, false);
+        var _spr_mop = sprite_exists(spr_intern_mop) ? spr_intern_mop : (sprite_exists(spr_mop) ? spr_mop : -1);
+        if (_spr_mop != -1) {
+            // Draw mop carried over Jack's shoulder
+            draw_sprite_ext(_spr_mop, 0, _jx + 1, _jy - 16, 1.0, 1.0, 0, c_white, 1.0);
+        } else {
+            // Wooden handle angled over Jack's shoulder (Procedural Fallback)
+            draw_set_color(make_color_rgb(180, 130, 70));
+            draw_line_width(_jx + 6, _jy - 16, _jx + 12, _jy + 6, 2);
+            // Fluffy mop head
+            draw_set_color(make_color_rgb(230, 240, 255));
+            draw_circle(_jx + 12, _jy + 6, 3, false);
+        }
     }
     else if (variable_global_exists("player_has_wrench") && global.player_has_wrench) {
-        // Heavy steel mechanic's wrench holstered at Jack's belt
-        draw_set_color(make_color_rgb(210, 220, 230));
-        draw_line_width(_jx + 8, _jy - 10, _jx + 13, _jy + 2, 2.5);
-        // Chrome wrench jaw head
-        draw_set_color(make_color_rgb(240, 245, 255));
-        draw_circle(_jx + 8, _jy - 10, 2.5, false);
-        draw_set_color(make_color_rgb(45, 55, 65));
-        draw_circle(_jx + 8, _jy - 10, 1.2, false);
+        var _spr_wr = sprite_exists(spr_intern_wrench) ? spr_intern_wrench : (sprite_exists(spr_wrench) ? spr_wrench : -1);
+        if (_spr_wr != -1) {
+            // Draw wrench holstered / carried by Jack
+            draw_sprite_ext(_spr_wr, 0, _jx + 2, _jy - 12, 1.0, 1.0, 0, c_white, 1.0);
+        } else {
+            // Heavy steel mechanic's wrench holstered at Jack's belt (Procedural Fallback)
+            draw_set_color(make_color_rgb(210, 220, 230));
+            draw_line_width(_jx + 8, _jy - 10, _jx + 13, _jy + 2, 2.5);
+            // Chrome wrench jaw head
+            draw_set_color(make_color_rgb(240, 245, 255));
+            draw_circle(_jx + 8, _jy - 10, 2.5, false);
+            draw_set_color(make_color_rgb(45, 55, 65));
+            draw_circle(_jx + 8, _jy - 10, 1.2, false);
+        }
     }
 
     // Hands full overhead warning banner

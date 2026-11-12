@@ -4,7 +4,46 @@ var _cy = y + 8;
 var _shake_x = (hit_anim > 0) ? irandom_range(-1, 1) : 0;
 var _shake_y = (hit_anim > 0) ? irandom_range(-1, 1) : 0;
 
+var _hp_ratio = glass_hp / max_hp;
+
+// Select appropriate sprite based on window state / damage ratio
+var _win_spr = -1;
 if (is_shattered) {
+    if (sprite_exists(spr_intern_window_broken)) {
+        _win_spr = spr_intern_window_broken;
+    }
+} else if (_hp_ratio <= 0.25) {
+    if (sprite_exists(spr_intern_window_breaking_2)) {
+        _win_spr = spr_intern_window_breaking_2;
+    } else if (sprite_exists(spr_intern_window_breaking_1)) {
+        _win_spr = spr_intern_window_breaking_1;
+    } else if (sprite_exists(spr_intern_window_breaking)) {
+        _win_spr = spr_intern_window_breaking;
+    }
+} else if (_hp_ratio <= 0.50) {
+    if (sprite_exists(spr_intern_window_breaking_1)) {
+        _win_spr = spr_intern_window_breaking_1;
+    } else if (sprite_exists(spr_intern_window_breaking)) {
+        _win_spr = spr_intern_window_breaking;
+    }
+} else if (_hp_ratio <= 0.75) {
+    if (sprite_exists(spr_intern_window_breaking)) {
+        _win_spr = spr_intern_window_breaking;
+    }
+} else {
+    if (sprite_exists(spr_intern_window)) {
+        _win_spr = spr_intern_window;
+    }
+}
+
+if (_win_spr != -1) {
+    var _tint = (hit_anim > 0 && !is_shattered) ? make_color_rgb(255, 130, 130) : c_white;
+    var _sw = sprite_get_width(_win_spr);
+    var _sh = sprite_get_height(_win_spr);
+    var _xscale = (_sw > 0) ? (16.0 / _sw) : 1.0;
+    var _yscale = (_sh > 0) ? (16.0 / _sh) : 1.0;
+    draw_sprite_ext(_win_spr, 0, x + _shake_x, y + _shake_y, _xscale, _yscale, 0, _tint, 1.0);
+} else if (is_shattered) {
     // Open shattered void breach
     draw_set_alpha(0.88);
     draw_set_color(make_color_rgb(10, 14, 24));

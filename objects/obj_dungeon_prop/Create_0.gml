@@ -1,12 +1,13 @@
 /// @description obj_dungeon_prop — Create Event
 /// Renders and controls interactive dungeon props, terminals, memos, coworker NPCs, and rogue drones:
 ///   TILE_PROP_PC    (7)  = Corporate Computer Terminal (only has_clue == true terminals are inspectable)
-///   TILE_PROP_CHAIR (8)  = Office chair (spr_class_chair)
+///   TILE_PROP_CHAIR (8)  = Corporate filing cabinet (spr_dungeon_cabinet)
 ///   TILE_PROP_PAPER (10) = Inspectable Scattered Lockdown Memo (spr_paper)
 ///   TILE_PROP_NPC   (12) = Stranded Corporate Coworker NPC
 ///   TILE_PROP_DRONE (13) = Roaming Rogue Security / Virus Drone (patrols Hallway centerline)
 
-depth           = 24; // Below room fog (10) and Jack (-y), above floor (50)
+var _row        = (y div 16) mod 9;
+depth           = 28 - _row; // Y-sorted: front props (larger Y) draw on top of props behind them
 prop_type       = TILE_PROP_PC;
 has_clue        = false; // Only specific computers hold a clue & look distinct
 is_holding_clue = false; // True for props inside ROOM_HOLDING (displays the Math Equation for the Holding Room key!)
@@ -16,6 +17,8 @@ log_variant = irandom(5);
 talked_once = false;
 player_near = false;
 locker_variant = 0;
+cabinet_variant = -1;
+is_south_facing = false;
 
 // Dialogue speaker defaults (used by create_textevent)
 myName         = "Terminal";

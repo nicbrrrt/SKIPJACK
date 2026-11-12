@@ -36,23 +36,37 @@ for (var _i = 0; _i < _total_rooms; _i++) {
             draw_rectangle(_x1, _y1, _x2, _y2, false);
         }
 
-        // 2. RED LOCKDOWN SIREN WASH & CEILING LED (Turns OFF as soon as the Lockdown Override Button is pressed!)
-        if (!_lockdown_overridden && !_lockdown_lifted) {
-            var _siren_pulse = 0.5 + 0.5 * sin(siren_timer * 0.06 + (_c * 0.9) + (_r * 0.6));
+        // 2. RED LOCKDOWN SIREN LIGHTS (Turns OFF when Lockdown is lifted!)
+        if (!_lockdown_lifted) {
+            // Center ceiling light for the room / hallway segment
+            var _lx = _x1 + 72;
+            var _ly = _y1 + 72;
 
-            // Pulsing red emergency lockdown wash in the room
-            draw_set_alpha(_vis * (0.03 + 0.06 * _siren_pulse));
-            draw_set_color(make_color_rgb(255, 18, 36));
-            draw_rectangle(_x1 + 16, _y1 + 16, _x2 - 16, _y2 - 16, false);
+            // Pulse that sweeps / pulses across chunks
+            var _pulse = 0.5 + 0.5 * sin((current_time * 0.0035) + (_lx * 0.02) + (_ly * 0.02));
 
-            // Ceiling emergency blinking LED point at center of chunk
-            var _bx = _x1 + 72;
-            var _by = _y1 + 72;
-            draw_set_alpha(_vis * (0.35 + 0.45 * _siren_pulse));
-            draw_set_color(make_color_rgb(255, 130, 140));
-            draw_circle(_bx, _by, 2.0, false);
+            // 3 Concentric Rings for Radial Gradient:
+            // Outer ring: dark red, gentle ambient reach
+            draw_set_alpha(_vis * (0.04 + 0.04 * _pulse));
+            draw_set_color(make_color_rgb(140, 10, 20));
+            draw_circle(_lx, _ly, 46, false);
+
+            // Middle ring: medium red
+            draw_set_alpha(_vis * (0.08 + 0.07 * _pulse));
+            draw_set_color(make_color_rgb(215, 25, 35));
+            draw_circle(_lx, _ly, 26, false);
+
+            // Inner ring: lightest red glow
+            draw_set_alpha(_vis * (0.16 + 0.12 * _pulse));
+            draw_set_color(make_color_rgb(255, 90, 100));
+            draw_circle(_lx, _ly, 10, false);
+
+            // Center ceiling fixture diode / bulb
+            draw_set_alpha(_vis * (0.45 + 0.45 * _pulse));
+            draw_set_color(make_color_rgb(255, 210, 215));
+            draw_circle(_lx, _ly, 2.5, false);
         } else {
-            // Lockdown overridden / power restored: calm white ceiling indicator
+            // Lockdown lifted: calm white/green ceiling indicator
             var _bx = _x1 + 72;
             var _by = _y1 + 72;
             draw_set_alpha(_vis * 0.35);
