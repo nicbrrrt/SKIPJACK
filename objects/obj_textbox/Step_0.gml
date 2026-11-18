@@ -1,9 +1,9 @@
 // Scroll support
 if (variable_global_exists("is_paused") && global.is_paused) exit;
 
-if (mouse_wheel_down()) scroll_y += stringHeight;
-if (mouse_wheel_up())   scroll_y  = max(scroll_y - stringHeight, 0);
-var _max_scroll = max(0, (cy_max * stringHeight) - (boxHeight - y_buffer * 2));
+if (mouse_wheel_down() || (type[page] == 0 && (keyboard_check_pressed(down_key) || keyboard_check_pressed(vk_down)))) scroll_y += stringHeight;
+if (mouse_wheel_up()   || (type[page] == 0 && (keyboard_check_pressed(up_key)   || keyboard_check_pressed(vk_up))))   scroll_y  = max(scroll_y - stringHeight, 0);
+var _max_scroll = max(0, ((cy_max + 1) * stringHeight) - (boxHeight - y_buffer * 2));
 scroll_y = min(scroll_y, _max_scroll);
 
 // Advance full-body portrait animation every frame while text is typing
@@ -63,14 +63,16 @@ if(type[page] == 0){
 #region TYPE 1: DIALOGUE CHOICE
 else {
 	if(chosen) exit;
-	if(keyboard_check_pressed(interact_key)){ 
+	if(keyboard_check_pressed(interact_key) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space)){ 
 		chosen = true; 
 		alarm[2] = 10; 
 		audio_play_sound(select_snd_effect, priority_snd_effect, false);
 	} 
 	
 	//Change Choice 
-	var change_choice = keyboard_check_pressed(down_key) - keyboard_check_pressed(up_key);
+	var _down = keyboard_check_pressed(down_key) || keyboard_check_pressed(vk_down);
+	var _up   = keyboard_check_pressed(up_key)   || keyboard_check_pressed(vk_up);
+	var change_choice = _down - _up;
 	if(change_choice != 0){ 
 		choice += change_choice; 
 		audio_play_sound(choice_snd_effect, priority_snd_effect, false); 

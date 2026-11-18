@@ -70,10 +70,12 @@ var _case = variable_global_exists("floor_case")
     ? global.floor_case
     : scr_get_floor_incident_case(0);
 
-case_word     = _case.word;
-case_title    = _case.title;
-case_hint     = _case.hint;
-case_takeaway = _case.takeaway;
+case_word       = _case.word;
+case_title      = _case.title;
+case_hint       = _case.hint;
+case_takeaway   = _case.takeaway;
+case_lesson     = variable_struct_exists(_case, "lesson_story")    ? _case.lesson_story    : ("WHAT HAPPENED: " + _case.kyle_debrief);
+case_prevention = variable_struct_exists(_case, "prevention_rule") ? _case.prevention_rule : ("HOW TO PREVENT IT: " + _case.takeaway);
 
 // Chapter-specific Cryptography / Cryptanalysis facts for the debrief card
 var _caesar_facts = [

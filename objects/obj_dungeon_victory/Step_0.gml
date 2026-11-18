@@ -32,8 +32,8 @@ switch (phase) {
                     phase_timer  = 0;
                 }
             }
-            // Visit the Homeroom (Wall Telephone & Statue Display Table) between workdays
-            else if (page == 1 && keyboard_check_pressed(ord("H"))) {
+            // Visit the Homeroom (Wall Telephone & Statue Display Table) between workdays — disabled when Intern Duty is flagged!
+            else if (page == 1 && !(variable_global_exists("intern_duty_flagged") && global.intern_duty_flagged) && keyboard_check_pressed(ord("H"))) {
                 next_action = "homeroom";
                 phase       = "fade_out";
                 phase_timer = 0;

@@ -6,6 +6,27 @@
 if (variable_instance_exists(id, "is_intern_mode") && is_intern_mode) exit;
 if (!gen_complete) exit;
 
+// Ensure Jack is snapped into ROOM_START even if inst_DT_JACK was created after obj_dungeon_generator
+if (variable_instance_exists(id, "jack_spawn_snapped") && !jack_spawn_snapped && instance_exists(obj_jack)) {
+    obj_jack.x = start_spawn_x;
+    obj_jack.y = start_spawn_y;
+    obj_jack.isInCutscene = false;
+    jack_spawn_snapped = true;
+}
+
+// Reset non-hint terminal indicators to yellow once when Phase 2 (Investigation) begins
+if (!variable_instance_exists(id, "phase2_pc_indicators_reset")) {
+    phase2_pc_indicators_reset = false;
+}
+if (!phase2_pc_indicators_reset && variable_global_exists("has_dungeon_cipher_key") && global.has_dungeon_cipher_key) {
+    phase2_pc_indicators_reset = true;
+    with (obj_dungeon_prop) {
+        if (prop_type == TILE_PROP_PC && !is_vault_hint_pc && !is_holding_clue) {
+            talked_once = false;
+        }
+    }
+}
+
 siren_timer++;
 if (banner_timer > 0) banner_timer--;
 if (variable_global_exists("drone_jammed_timer") && global.drone_jammed_timer > 0) {
@@ -65,28 +86,21 @@ if (intro_pending && siren_timer >= 12 && instance_exists(obj_jack) && !_any_ui_
     }
 
     if (curriculum.guided_ui) {
-        // Guided Tutorial Floors (Floors 1-3):
-        // Page 0: Camera stays on Jack & Kyle in the Start Room!
-        // Page 1: Pan to Gold Key Vault
-        // Page 2: Pan to real Pink Encrypted Door
-        // Page 3: Pan to Cyan Power Breaker Room
-        // Page 4: Pan back toward Jack & Kyle for Elevator / Drone wrap-up
-        var _lesson_intro = (array_length(_m_lines) > 0) ? _m_lines[0] : "Welcome to the floor! Let me show you how this sector works.";
+        // Guided Tutorial Floors (Floors 1-3): 5-Stop Comprehensive Mechanics Tour
+        var _lesson_intro = (array_length(_m_lines) > 0) ? _m_lines[0] : "Welcome to the floor! Let me show you how everything works.";
         var _tour_lines = [
-            _lesson_intro + " Let's review our 4-step emergency recovery protocol for this sector.",
-            "Step 1: Read sticky notes and chat with coworkers [E] for IT Help-Desk tips, then unlock this Gold Key Vault room to calibrate the floor's Cipher Key! Separately, collect case evidence and press [TAB] for the Case Board to hunt down the culprit!",
-            "Step 2: Use that Cipher Key to decode these Pink Encrypted Doors (shrouded in 100% black fog) to search the rooms and find the Lockdown Override Console!",
-            "Step 3: Overriding the lockdown unseals this Cyan Power Breaker Room—head inside and flip the 2 matching fuses to restore facility power!",
-            (global.chapter_floor == 3)
-                ? "Finally, once power is restored, one of the encrypted doors leads to the Extraction Elevator to clear the floor! Watch out for the patrol drone—press [E] on blue Lockers to hide!"
-                : "Finally, once power is restored, one of the encrypted doors leads to the Extraction Elevator to clear the floor!"
+            _lesson_intro + " Watch your Dynamic Quest Tracker in the top-left corner—it updates with your current goal at every phase! First, talk to coworkers with [E] ('Say Hello' -> 'Ask about...') and search the offices for the 1 unlocked Security Sector Terminal [E] holding the Key Vault hint.",
+            "PHASE 1 — UNLOCK THE KEY VAULT: All regular computers are locked right now! Once you read the hint on the Security Sector Terminal [E], come to this Gold Key Vault room, pass the door quiz, and grab the floor's Cipher Key inside.",
+            "PHASE 2 — DETECTIVE INVESTIGATION: Grabbing the Cipher Key unlocks all office computers and these Pink Encrypted Doors! Talk to coworkers [E] for Level 1 & 2 clues, and inspect Suspect Desks (with nameplates) [E] for Level 3 Critical Proof showing whose accidental slip-up let the hackers in!",
+            "CASE BOARD [TAB] & WRENCH SCRAPPING [RMB]: Press [TAB] anytime to open your Case Board, scroll through your clues, and click 'ACCUSE A SUSPECT'! Also, Right-Click [RMB] (or press [R]) on terminals to Wrench Scrap—you need 2 Scrap to fix the Breaker, and you must finish in the GREEN ZONE (4 to 6 Scrap) on the bottom bar to avoid Intern Babysitting Duty!",
+            "PHASE 3 & 4 — OVERRIDE, BREAKER & EXTRACTION: Solving the case on [TAB] unlocks the Red Lockdown Override Console! Hit the Override to disarm the patrol bots and unseal the Cyan Power Breaker Room, spend 2 Scrap to fix the 3 fuses, and escape via the Extraction Elevator! (Use blue Lockers [E] to hide from patrol bots, or sneak behind a bot and press [RMB] to scrap it!)"
         ];
         var _tour_targets = [
-            { tx: _start_cx, ty: _start_cy, label: "SECTOR BRIEFING",                     sublabel: "Kyle (Security Analyst)",                                  col: c_white },
-            { tx: _key_tx,   ty: _key_ty,   label: "STEP 1: GOLD KEY VAULT ROOM",          sublabel: "Read Memos/Coworkers [E] -> Pass Door Quiz -> Calibrate Floor Key",  col: make_color_rgb(255, 215, 55) },
-            { tx: _enc_tx,   ty: _enc_ty,   label: "STEP 2: SEARCH ENCRYPTED DOORS",       sublabel: "Unlock Pink Encrypted Doors [E] -> Find Lockdown Override", col: make_color_rgb(255, 80, 95) },
-            { tx: _brk_tx,   ty: _brk_ty,   label: "STEP 3: POWER BREAKER ROOM",           sublabel: "Unseals After Override -> Flip 2 Valid Fuses [ON]",         col: c_aqua },
-            { tx: _start_cx, ty: _start_cy, label: "STEP 4: EXTRACTION ELEVATOR SEARCH",   sublabel: "Explore Encrypted Doors to Find Elevator & Clear Sector!", col: c_lime }
+            { tx: _start_cx, ty: _start_cy, label: "PHASE 1: FIND SECURITY SECTOR PC",     sublabel: "Talk to NPCs [E] & Find the 1 Unlocked Security PC Hint!", col: c_white },
+            { tx: _key_tx,   ty: _key_ty,   label: "PHASE 1B: GOLD KEY VAULT ROOM",         sublabel: "Use Security PC Hint -> Pass Door Quiz -> Grab Cipher Key",  col: make_color_rgb(255, 215, 55) },
+            { tx: _enc_tx,   ty: _enc_ty,   label: "PHASE 2: DETECTIVE INVESTIGATION",      sublabel: "Check NPCs & Suspect Desks [E] -> Accuse on [TAB] Board!",   col: make_color_rgb(255, 80, 95) },
+            { tx: _brk_tx,   ty: _brk_ty,   label: "SCRAP [RMB] & POWER BREAKER ROOM",      sublabel: "Right-Click [RMB] for 4-6 Scrap (Green Zone) & Fix Breaker", col: c_aqua },
+            { tx: _start_cx, ty: _start_cy, label: "PHASE 3 & 4: OVERRIDE & EXTRACTION",    sublabel: "Solve Case [TAB] -> Hit Override -> Fix Breaker -> Elevator!", col: c_lime }
         ];
         scr_trigger_dungeon_camera_cutscene(_tour_lines, _tour_targets);
         _pan_active = true;
@@ -110,23 +124,63 @@ if (!intro_pending && instance_exists(obj_jack) && !_any_ui_busy && !_pan_active
     var _elv_r    = clamp(floor(_elv_ty / _chunk_sz), 0, LOGIC_GRID_H - 1);
     var _elv_disc = (room_discovered[_elv_c][_elv_r] == 2) || (variable_global_exists("elevator_room_found") && global.elevator_room_found);
 
-    // Milestone A (Tutorial Floors 1-3): All Clues Gathered -> Pan to Gold Key Vault
+    // Count Level 3 Critical Proof clues found for Tutorial Milestone B2
+    var _tut_ev_cur  = variable_global_exists("evidence_found")  ? global.evidence_found  : 0;
+    var _tut_ev_req  = variable_global_exists("evidence_needed") ? global.evidence_needed : 2;
+    var _tut_min_ev  = min(2, _tut_ev_req);
+    var _tut_crit    = 0;
+    if (variable_global_exists("case_evidence")) {
+        for (var _tci = 0; _tci < array_length(global.case_evidence); _tci++) {
+            var _tce = global.case_evidence[_tci];
+            if (_tce.found && variable_struct_exists(_tce, "tier") && _tce.tier == 3) _tut_crit++;
+        }
+    }
+    var _tut_ready_acc = (_tut_ev_cur >= _tut_min_ev && _tut_crit >= 1);
+    var _tut_solved    = (variable_global_exists("incident_solved") && global.incident_solved);
+
+    // Milestone A (Tutorial Floors 1-3): Security Sector PC Hint Found -> Pan to Gold Key Vault
     if (curriculum.guided_ui && !cutscene_clues_shown && global.clues_found >= global.clues_needed && !global.has_dungeon_cipher_key) {
         cutscene_clues_shown = true;
         scr_trigger_dungeon_camera_cutscene(
-            ["There we go—you've found the Cyber Clues! Now head to the Gold Key Vault Room, pass the security quiz on its door, and calibrate the Floor Key inside!"],
-            [{ tx: _key_tx, ty: _key_ty, label: "CLUES GATHERED! -> UNLOCK GOLD KEY VAULT", sublabel: "Pass the Door Quiz & Calibrate the Floor Key [E]", col: make_color_rgb(255, 215, 55) }]
+            ["You found the Key Vault hint on the Security Sector Terminal! Now head to the Gold Key Vault Room, pass the security quiz on its door, and grab the Floor Cipher Key inside!"],
+            [{ tx: _key_tx, ty: _key_ty, label: "HINT FOUND! -> UNLOCK GOLD KEY VAULT", sublabel: "Pass the Door Quiz & Grab the Cipher Key [E]", col: make_color_rgb(255, 215, 55) }]
         );
         _pan_active = true;
     }
-    // Milestone B (Tutorial Floors 1-3): Cipher Key Calibrated -> Prompt player to search the Encrypted Doors
+    // Milestone B (Tutorial Floors 1-3): Cipher Key Collected -> Teach Phase 2 Investigation & Wrench Scrapping!
     else if (curriculum.guided_ui && !cutscene_key_shown && global.has_dungeon_cipher_key && !global.lockdown_overridden) {
         cutscene_key_shown = true;
         var _jack_cx = obj_jack.x;
         var _jack_cy = obj_jack.y - 12;
         scr_trigger_dungeon_camera_cutscene(
-            ["Great job calibrating the Floor Key! Now you can decode the Pink Encrypted Doors in the hallway—unlock and explore the encrypted rooms to find the Red Lockdown Override Console!"],
-            [{ tx: _jack_cx, ty: _jack_cy, label: "KEY CALIBRATED! -> SEARCH ENCRYPTED DOORS", sublabel: "Decode Pink Encrypted Doors [E] to Find Lockdown Override!", col: make_color_rgb(255, 80, 95) }]
+            [
+                "Awesome—grabbing the Cipher Key unlocked every office computer and lets you decode the Pink Encrypted Doors! Now PHASE 2 (THE INVESTIGATION) begins: talk to coworkers [E] ('Say Hello' -> 'Ask about...') for Level 1 & 2 clues, and inspect Suspect Desks (with nameplates) [E] for Level 3 Critical Proof!",
+                "At the same time, Right-Click [RMB] (or press [R]) on terminals to Wrench Scrap! You need 2 Scrap to repair the Power Breaker later, and you MUST finish with 4 to 6 scrapped assets (the GREEN ZONE on your bottom Compliance Bar) or HR will send you to Intern Babysitting Duty!"
+            ],
+            [
+                { tx: _jack_cx, ty: _jack_cy, label: "PHASE 2: INVESTIGATE COWORKERS & DESKS", sublabel: "Talk to NPCs [E] & Check Suspect Desks for Lvl 3 Proof!", col: make_color_rgb(255, 80, 95) },
+                { tx: _jack_cx, ty: _jack_cy, label: "WRENCH SCRAP [RMB] -> GREEN ZONE (4-6)", sublabel: "Right-Click [RMB] Terminals -> Keep Bottom Bar in GREEN!", col: c_lime }
+            ]
+        );
+        _pan_active = true;
+    }
+    // Milestone B2 (Tutorial Floors 1-3): Ready to Accuse (2+ Clues including 1 Level 3 Critical Proof) -> Teach [TAB] Case Board!
+    else if (curriculum.guided_ui && !cutscene_ready_accuse_shown && global.has_dungeon_cipher_key && _tut_ready_acc && !_tut_solved) {
+        cutscene_ready_accuse_shown = true;
+        var _jack_cx2 = obj_jack.x;
+        var _jack_cy2 = obj_jack.y - 12;
+        scr_trigger_dungeon_camera_cutscene(
+            ["You've found Level 3 Critical Proof! Press [TAB] right now to open your Case Board, use [W/S] or the Mouse Wheel to read your clues, and click 'ACCUSE A SUSPECT' to identify whose accidental slip-up caused the breach!"],
+            [{ tx: _jack_cx2, ty: _jack_cy2, label: "READY TO ACCUSE! -> PRESS [TAB] CASE BOARD", sublabel: "Open [TAB] -> Click 'ACCUSE A SUSPECT' to Solve the Case!", col: make_color_rgb(135, 255, 165) }]
+        );
+        _pan_active = true;
+    }
+    // Milestone B3 (Tutorial Floors 1-3): Case Solved on [TAB] -> Pan to Lockdown Override Console!
+    else if (curriculum.guided_ui && !cutscene_case_solved_shown && _tut_solved && !global.lockdown_overridden) {
+        cutscene_case_solved_shown = true;
+        scr_trigger_dungeon_camera_cutscene(
+            ["Case solved! Identifying Patient Zero and their accidental slip-up just unlocked the Red Lockdown Override Console! Decode the Pink Encrypted Doors to find the Security Control Room and activate the Override Console [E]!"],
+            [{ tx: _ovr_tx, ty: _ovr_ty, label: "CASE SOLVED! -> ACTIVATE LOCKDOWN OVERRIDE", sublabel: "Find the Security Control Room & Hit the Red Override [E]!", col: make_color_rgb(255, 95, 115) }]
         );
         _pan_active = true;
     }
@@ -134,8 +188,8 @@ if (!intro_pending && instance_exists(obj_jack) && !_any_ui_busy && !_pan_active
     else if (!cutscene_override_shown && global.lockdown_overridden) {
         cutscene_override_shown = true;
         scr_trigger_dungeon_camera_cutscene(
-            ["There we go, you've successfully overridden the lockdown protocol! The red alarms and patrol drones are offline, and the Power Breaker Room is now unsealed—head inside to restore floor power!"],
-            [{ tx: _brk_tx, ty: _brk_ty, label: "LOCKDOWN OVERRIDDEN! -> BREAKER ROOM UNSEALED", sublabel: "Door Unsealed! Enter & Flip the Power Breaker Panel [E]", col: c_aqua }]
+            ["Lockdown overridden! The patrol bots are now harmless, and the Power Breaker Room door just unsealed—make sure you have at least 2 Scrap (Right-Click [RMB] on terminals) and head inside to fix the 3 fuses!"],
+            [{ tx: _brk_tx, ty: _brk_ty, label: "LOCKDOWN OVERRIDDEN! -> BREAKER ROOM UNSEALED", sublabel: "Need 2 Scrap [RMB] -> Enter & Fix the 3 Breaker Fuses [E]!", col: c_aqua }]
         );
         _pan_active = true;
     }
@@ -146,15 +200,15 @@ if (!intro_pending && instance_exists(obj_jack) && !_any_ui_busy && !_pan_active
             // Player already found the Elevator Room earlier while exploring encrypted doors -> lift lockdown & pan to it!
             global.lockdown_lifted = true;
             scr_trigger_dungeon_camera_cutscene(
-                ["There we go! You've brought power back to the floor! The Extraction Elevator you discovered earlier is now online—head inside the Elevator to clear the floor!"],
-                [{ tx: _elv_tx, ty: _elv_ty, label: "POWER RESTORED! -> EXTRACTION ELEVATOR ONLINE", sublabel: "Elevator Powered Up! Head Inside to Clear the Floor", col: c_lime }]
+                ["Floor power is 100% restored! Make sure your bottom Recovery Compliance Bar is in the GREEN ZONE (4 to 6 scrapped assets) so HR doesn't assign Intern Duty, then board the Extraction Elevator!"],
+                [{ tx: _elv_tx, ty: _elv_ty, label: "POWER RESTORED! -> EXTRACTION ELEVATOR ONLINE", sublabel: "Check Green Zone (4-6 Scrap) & Board the Elevator!", col: c_lime }]
             );
         } else {
             var _p_tx = obj_jack.x;
             var _p_ty = obj_jack.y - 12;
             scr_trigger_dungeon_camera_cutscene(
-                ["There we go! You've brought power back to the floor! The Extraction Elevator is now online behind one of the Pink Encrypted Doors—decode and explore the encrypted rooms to find the Elevator!"],
-                [{ tx: _p_tx, ty: _p_ty, label: "POWER RESTORED! -> SEARCH ENCRYPTED DOORS", sublabel: "Unlock the Remaining Encrypted Doors [E] to Find the Elevator!", col: c_lime }]
+                ["Floor power is 100% restored! Make sure your bottom Recovery Compliance Bar is in the GREEN ZONE (4 to 6 scrapped assets), then unlock the remaining Pink Encrypted Doors to find and board the Extraction Elevator!"],
+                [{ tx: _p_tx, ty: _p_ty, label: "POWER RESTORED! -> FIND EXTRACTION ELEVATOR", sublabel: "Check Green Zone (4-6 Scrap) & Search Encrypted Doors [E]!", col: c_lime }]
             );
         }
         _pan_active = true;

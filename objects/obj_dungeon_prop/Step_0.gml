@@ -96,8 +96,14 @@ if (prop_type == TILE_PROP_DRONE) {
     if (!is_scrapped) hover_t += 0.08;
     if (zap_cd > 0) zap_cd--;
 
-    // --- Active Spam [E] Apprehend Struggle Minigame ---
-    if (grapple_active) {
+    // --- Active Spam [E] Apprehend Struggle Minigame (disabled once lockdown is overridden) ---
+    if (_lifted) {
+        if (grapple_active) {
+            grapple_active            = false;
+            global.bot_grapple_active = false;
+        }
+        grapple_meter = 0.45;
+    } else if (grapple_active) {
         global.bot_grapple_active = true;
         grapple_meter -= 0.0065;
 
@@ -128,7 +134,7 @@ if (prop_type == TILE_PROP_DRONE) {
         }
     }
 
-    if (!is_scrapped && !_lifted) {
+    if (!is_scrapped) {
         var _is_jammed = (variable_global_exists("drone_jammed_timer") && global.drone_jammed_timer > 0);
         if (_is_jammed) {
             patrol_vx = 0;
@@ -136,7 +142,7 @@ if (prop_type == TILE_PROP_DRONE) {
             can_sneak_ambush = true;
         }
 
-        var _trigger_bot_capture = (grapple_meter <= 0.0 && zap_cd == 60);
+        var _trigger_bot_capture = (!_lifted && grapple_meter <= 0.0 && zap_cd == 60);
         if (_trigger_bot_capture) {
             grapple_meter = 0.45;
         }
@@ -174,9 +180,9 @@ if (prop_type == TILE_PROP_DRONE) {
             }
         }
 
-        // Raycast Flashlight Vision Check & Rear Stealth Ambush Check
+        // Raycast Flashlight Vision Check & Rear Stealth Ambush Check (only hostile before lockdown override!)
         var _in_locker = (variable_global_exists("player_in_locker") && global.player_in_locker);
-        if (!_in_locker && instance_exists(obj_jack) && instance_exists(obj_dungeon_generator)) {
+        if (!_lifted && !_in_locker && instance_exists(obj_jack) && instance_exists(obj_dungeon_generator)) {
             var _cx = x + 8;
             var _cy = y + 8;
             var _jx = obj_jack.x;
@@ -479,18 +485,10 @@ if (player_near && keyboard_check_pressed(ord("E"))) {
         exit;
     }
 
-    var _is_new_clue = !talked_once && !_lifted && evidence_idx < 0 && (prop_type == TILE_PROP_PAPER || prop_type == TILE_PROP_NPC);
-    talked_once = true;
     audio_play_sound(snd_button_click, 5, false);
     global.e_dialogue_intro_shown = true;
-
-    var _clue_prefix = "";
-    if (_is_new_clue) {
-        if (!variable_global_exists("clues_found")) global.clues_found = 0;
-        global.clues_found++;
-        var _ping = audio_play_sound(snd_correct_ping, 6, false);
-        audio_sound_gain(_ping, 0.45, 0);
-        _clue_prefix = "[IT TIP #" + string(global.clues_found) + " LOGGED] ";
+    if (prop_type != TILE_PROP_NPC && prop_type != TILE_PROP_PC) {
+        talked_once = true;
     }
 
     var _case = variable_global_exists("floor_case") ? global.floor_case : scr_get_floor_incident_case(0);
@@ -535,35 +533,69 @@ if (player_near && keyboard_check_pressed(ord("E"))) {
         global.pc_screen_feedback = "";
 
         if (is_holding_clue) {
+            talked_once = true;
             var _eq = variable_global_exists("holding_math_clue") ? global.holding_math_clue : "SHIFT KEY (X) = (3 * 3) - 6";
             global.pc_screen_title = "HOLDING CELL TERMINAL";
             global.pc_screen_body  = "Solve for the cell door's Shift Key (X):\n\n" + _eq;
             global.pc_screen_radar = "+X = Shift UP   |   -X = Shift DOWN";
             global.pc_screen_badge = "CELL DOOR KEY CLUE";
-        } else if (suspect_idx >= 0) {
-            // Suspect's desk: shows the owner and lets the player ACCUSE
-            var _sp = global.case_suspects[suspect_idx];
-            global.pc_screen_mode  = 1;
-            global.pc_screen_title = "DESK: " + nameplate + "  [" + _sp.dept + "]";
-            global.pc_screen_body  = "";
+        } else if (is_vault_hint_pc) {
+            // Dedicated Security Sector PC holding the Key Vault Cipher Hint (stays green once read!)
+            talked_once = true;
+            if (!variable_global_exists("clues_found")) global.clues_found = 0;
+            if (global.clues_found < 1) {
+                global.clues_found = 1;
+                var _vping = audio_play_sound(snd_correct_ping, 6, false);
+                audio_sound_gain(_vping, 0.45, 0);
+            }
+            var _plogs = _case.pc_logs;
+            var _plog  = _plogs[log_variant mod array_length(_plogs)];
+            global.pc_screen_title = "SECURITY SECTOR TERMINAL";
+            global.pc_screen_body  = _plog + "\n\n[KEY VAULT BRIEFING LOGGED]";
             global.pc_screen_radar = _radar_hint;
-            global.pc_screen_badge = (variable_global_exists("incident_solved") && global.incident_solved)
-                ? "CASE CLOSED"
-                : "SUSPECT DESK";
+            global.pc_screen_badge = "KEY VAULT HINT";
+        } else if (!_has_key) {
+            // Phase 1 Lock: all non-hint terminals stay locked (and keep yellow indicator) until the Key Vault Cipher Key is obtained!
+            audio_play_sound(wrong1, 6, false);
+            global.pc_screen_title = "TERMINAL LOCKED — CIPHER KEY REQUIRED";
+            global.pc_screen_body  = "WORKSTATION ENCRYPTED BY FLOOR LOCKDOWN.\n\nLocate the Security Sector Terminal for the vault hint, then unlock the Gold Key Vault and retrieve the Cipher Key first!";
+            global.pc_screen_radar = _radar_hint;
+            global.pc_screen_badge = "KEY REQUIRED";
+        } else if (suspect_idx >= 0) {
+            talked_once = true;
+            // Suspect's desk terminal: provides Level 3 Critical Evidence (accusation happens in [TAB] Case Board!)
+            var _sp = global.case_suspects[suspect_idx];
+            var _s_new = (evidence_idx >= 0) ? scr_log_evidence(evidence_idx) : false;
+            if (_s_new) {
+                var _sping = audio_play_sound(snd_correct_ping, 6, false);
+                audio_sound_gain(_sping, 0.45, 0);
+            }
+            var _s_txt = (evidence_idx >= 0)
+                ? global.case_evidence[evidence_idx].text
+                : ("[LVL 3: CRITICAL] Desk " + nameplate + " (" + _sp.name + ") workstation audit complete.");
+            global.pc_screen_title = "SUSPECT DESK: " + nameplate + "  [" + _sp.dept + "]";
+            global.pc_screen_body  = _s_txt + "\n\n"
+                + (_s_new ? "CRITICAL EVIDENCE ADDED TO CASE BOARD!" : "(Already recorded on Case Board.)")
+                + "\nPress [TAB] to open the Case Board and ACCUSE a suspect.";
+            global.pc_screen_radar = "EVIDENCE " + string(global.evidence_found) + "/" + string(global.evidence_needed) + "   [TAB] ACCUSE ON BOARD";
+            global.pc_screen_badge = "LVL 3: CRITICAL";
         } else if (evidence_idx >= 0) {
-            // Evidence terminal: readable proof that clears or implicates a suspect
+            // Evidence terminal: Level 1 / Level 2 proof
+            talked_once = true;
             var _ev_new = scr_log_evidence(evidence_idx);
             var _evd    = global.case_evidence[evidence_idx];
             if (_ev_new) {
                 var _ep = audio_play_sound(snd_correct_ping, 6, false);
                 audio_sound_gain(_ep, 0.45, 0);
             }
-            global.pc_screen_title = "EVIDENCE: " + string_upper(_evd.type);
+            var _t_lvl = variable_struct_exists(_evd, "tier") ? _evd.tier : 2;
+            global.pc_screen_title = "FORENSIC TERMINAL  [LEVEL " + string(_t_lvl) + "]";
             global.pc_screen_body  = _evd.text + "\n\n" + (_ev_new ? "NEW EVIDENCE ADDED TO CASE BOARD." : "(Already on the Case Board.)") + "\nOpen the Case Board with [TAB].";
             global.pc_screen_radar = "EVIDENCE " + string(global.evidence_found) + "/" + string(global.evidence_needed) + "   [TAB] CASE BOARD";
-            global.pc_screen_badge = "CASE FILE";
+            global.pc_screen_badge = "LVL " + string(_t_lvl) + " CLUE";
         } else {
             // Ordinary coworker workstation (flavor only)
+            talked_once = true;
             var _flav = [
                 "Q3 sales slides, a half-written email, and a coffee order.\n\nNothing about the breach here.",
                 "A spreadsheet of office snack votes.\n\nNothing about the breach here.",
@@ -594,49 +626,161 @@ if (player_near && keyboard_check_pressed(ord("E"))) {
                 "Noted. [TAB] opens the Case Board (" + string(global.evidence_found) + "/" + string(global.evidence_needed) + " pieces)."
             ], [obj_jack.id, obj_jack.id]);
         } else {
-            var _notes = _case.memo_notes;
-            var _memo  = _notes[log_variant mod array_length(_notes)];
+            var _memo_flav = [
+                "[OFFICE MEMO]: 'Please stop leaving half-empty mugs in the conference room sink.'",
+                "[STICKY NOTE]: 'Remember to check suspect workstations and interview coworkers for breach clues!'"
+            ];
             create_textevent([
-                _clue_prefix + _memo,
-                "I'll keep '" + _case.word + "' in mind for the Gold Key Vault lock."
-            ], [obj_jack.id, obj_jack.id]);
+                _memo_flav[log_variant mod 2]
+            ], [obj_jack.id]);
         }
     }
     else if (prop_type == TILE_PROP_NPC) {
-        if (_lifted) {
-            var _l1 = "";
-            switch (npc_id) {
-                case 0: _l1 = "The red lockdown alarms just shut off! You stopped the " + _case.word + " breach!"; break;
-                case 1: _l1 = "The monitors stopped flashing red! " + _case.takeaway; break;
-                case 2: _l1 = "All security grid locks on the elevator are green! Head to the Extraction Elevator!"; break;
-                case 3: _l1 = "Network traffic is back to normal! That Caesar cipher stood no chance against you."; break;
-                default: _l1 = "Power is restored across the floor! I owe you a coffee once we get out of here."; break;
+        keyboard_clear(ord("E"));
+        var _mentor      = variable_global_exists("floor_mentor_inst") ? global.floor_mentor_inst : noone;
+        var _is_mentor   = (id == _mentor);
+        var _case_solved = (variable_global_exists("incident_solved") && global.incident_solved);
+        var _greet       = "";
+        var _ask_opt     = "";
+        var _npc_ans     = "";
+        var _jack_ack    = "";
+
+        // =================================================================
+        // PHASE 1: Finding the Security Sector PC Hint & Unlocking Key Vault
+        // =================================================================
+        if (!_has_key) {
+            if (_is_mentor) {
+                _greet    = "Jack! Every workstation on this floor is locked down until you retrieve the Cipher Key from the Gold Key Vault.";
+                _ask_opt  = "Ask where to find the Key Vault hint...";
+                _npc_ans  = "The Key Vault password hint is stored on the dedicated Security Sector Terminal in one of the open offices. Find that PC first, then unlock the Gold Key Vault! (" + _radar_hint + ")";
+                _jack_ack = "Got it—I'll find the Security Sector Terminal and unlock the Key Vault first!";
+            } else {
+                var _p1_greets = [
+                    "Hey Jack! My terminal is completely locked out—it's asking for the floor's Cipher Key!",
+                    "Jack! None of the office PCs will let us log in while the Gold Key Vault is still sealed.",
+                    "Thank goodness you're here! We're trying to figure out the password for the Key Vault door."
+                ];
+                var _p1_ans = [
+                    "All the regular workstations are locked until you get the Cipher Key from the Key Vault! Look for the Security Sector Terminal in the offices—it has the hint for the Key Vault door. (" + _radar_hint + ")",
+                    "I heard the Security Sector PC is the only terminal still unlocked right now. Check it to get the Key Vault hint, then come talk to us once you have the Cipher Key!",
+                    "Once you unlock the Key Vault using the hint on the Security Sector PC, the workstation locks will lift and we can help you investigate who caused the breach!"
+                ];
+                _greet    = _p1_greets[npc_id mod 3];
+                _ask_opt  = "Ask about the Key Vault hint...";
+                _npc_ans  = _p1_ans[npc_id mod 3];
+                _jack_ack = "Thanks—I'll track down the Security Sector PC and get the Key Vault open first.";
             }
-            create_textevent([
-                _l1,
-                "All clear—let's get to the Extraction Elevator and secure the building."
-            ], [id, obj_jack.id]);
-        } else if (evidence_idx >= 0) {
-            var _ne_new = scr_log_evidence(evidence_idx);
-            if (_ne_new) {
-                var _nep = audio_play_sound(snd_correct_ping, 6, false);
-                audio_sound_gain(_nep, 0.45, 0);
-            }
-            create_textevent([
-                (_ne_new ? "[EVIDENCE LOGGED] " : "[ALREADY ON CASE BOARD] ") + global.case_evidence[evidence_idx].text,
-                "Thanks. I'll add that to the Case Board [TAB] (" + string(global.evidence_found) + "/" + string(global.evidence_needed) + " pieces)."
-            ], [id, obj_jack.id]);
-        } else {
-            var _nclues = _case.npc_clues;
-            var _npc_open  = _nclues[npc_id mod array_length(_nclues)];
-            var _jack_line = variable_struct_exists(_case, "jack_reply") ? _case.jack_reply : ("So the security keyword for this floor is " + _case.word + "!");
-            var _npc_close = _clue_prefix + "Use '" + _case.word + "' at the Key Vault! (" + _radar_hint + ")";
-            create_textevent([
-                _npc_open,
-                _jack_line,
-                _npc_close
-            ], [id, obj_jack.id, id]);
         }
+        // =================================================================
+        // PHASE 2: Whodunit Investigation (Have Key, Case Not Yet Solved)
+        // =================================================================
+        else if (!_case_solved) {
+            if (_is_mentor) {
+                _greet    = "Nice work getting the Cipher Key, Jack! Now we need to find out who triggered this breach.";
+                _ask_opt  = "Ask about the investigation...";
+                _npc_ans  = "With the Cipher Key in hand, the office terminals are unlocked! Interview the coworkers, inspect the Suspect Desk Terminals for Level 3 Critical Evidence, and accuse the culprit on your Case Board [TAB].";
+                _jack_ack = "On it—I'll gather the evidence and make my accusation on the Case Board [TAB]!";
+            } else if (evidence_idx >= 0) {
+                var _ev_item = global.case_evidence[evidence_idx];
+                var _ev_tier = variable_struct_exists(_ev_item, "tier") ? _ev_item.tier : 2;
+                _greet = (_ev_tier == 1)
+                    ? "Hey Jack... now that you have the Cipher Key, let me tell you what I noticed before the lockdown."
+                    : "Jack! You're investigating the breach, right? I have key witness information about one of the suspects.";
+                _ask_opt  = (_ev_tier == 1) ? "Ask if they noticed anything..." : "Ask for their witness testimony...";
+                _npc_ans  = variable_struct_exists(_ev_item, "npc_speech") ? _ev_item.npc_speech : _ev_item.text;
+                _jack_ack = "Thanks—I'll add that to the Case Board [TAB].";
+            } else {
+                var _unaware_greets = [
+                    "Oh, hey Jack! You got the Cipher Key? I'm still trying to make sense of this whole investigation.",
+                    "Hi Jack... everyone's whispering about who caused the security breach on this floor.",
+                    "Hey! Are you interviewing people for the breach investigation?"
+                ];
+                var _unaware_ans = [
+                    "Honestly, I had my headphones on the whole time. I didn't see what happened—maybe check the suspect desks?",
+                    "I've been stuck in here sorting invoices since morning. Try asking some of the other coworkers or checking [TAB] once you have more clues!",
+                    "I really don't know anything about the hack! All I know is the suspect desks have nameplates on them—try inspecting their PCs."
+                ];
+                _greet    = _unaware_greets[npc_id mod 3];
+                _ask_opt  = "Ask about the investigation...";
+                _npc_ans  = _unaware_ans[npc_id mod 3];
+                _jack_ack = "No worries—I'll check with the other coworkers and inspect the suspect terminals.";
+            }
+        }
+        // =================================================================
+        // PHASE 3: Case Solved -> Override Console & Breaker Room Repair
+        // =================================================================
+        else if (!_pw_done && !_lifted) {
+            if (_is_mentor) {
+                _greet    = "You nailed the culprit, Jack! The incident report is verified, so we can finally restore the floor.";
+                _ask_opt  = "Ask about restoring the floor...";
+                _npc_ans  = !_ov_done
+                    ? ("First, head into the encrypted Security Control Room and activate the Red Lockdown Override Console to disarm the patrol bots and unseal the Breaker Room! (" + _radar_hint + ")")
+                    : ("The Lockdown Override is active! Now head to the Electrical Breaker Room and calibrate the 3 fuses on the Power Breaker Panel to bring the floor's power back online! (" + _radar_hint + ")");
+                _jack_ack = !_ov_done
+                    ? "Got it—heading to the Lockdown Override Console first, then the Breaker Room!"
+                    : "Heading straight to the Breaker Room to restore floor power!";
+            } else {
+                var _p3_greets = [
+                    "Jack! Word just spread that you solved the case and identified Patient Zero!",
+                    "Hey Jack! The emergency lights are still flickering—are we close to getting the power back?",
+                    "Awesome detective work, Jack! Now we just need the building systems restored so we can evacuate."
+                ];
+                var _p3_ans = !_ov_done
+                    ? "Since you solved the case, the Lockdown Override Console is unlocked! Hit the Override first so the Electrical Breaker Room unseals, then fix the breaker! (" + _radar_hint + ")"
+                    : "The security bots just powered down! All that's left is flipping the fuses on the Power Breaker Panel in the Breaker Room so the lights and elevator come back on! (" + _radar_hint + ")";
+                _greet    = _p3_greets[npc_id mod 3];
+                _ask_opt  = "Ask about the Breaker Room...";
+                _npc_ans  = _p3_ans;
+                _jack_ack = "Almost there—I'll get the Breaker Room online right away!";
+            }
+        }
+        // =================================================================
+        // PHASE 4: Power Restored -> Head to the Extraction Elevator!
+        // =================================================================
+        else {
+            talked_once = true;
+            if (_is_mentor) {
+                _greet    = "Floor power is 100% restored and the lockdown is lifted! Outstanding work today, Jack.";
+                _ask_opt  = "Ask about extraction...";
+                _npc_ans  = _case.kyle_debrief + " The Extraction Elevator is powered up—unlock its door and head on up! (" + _radar_hint + ")";
+                _jack_ack = "All clear—heading to the Extraction Elevator now!";
+            } else {
+                var _p4_greets = [
+                    "The office lights and A/C are finally back on! You saved the whole floor, Jack!",
+                    "Hey Jack! The red lockdown alarms stopped and power is completely restored!",
+                    "We're free! The elevator grid just came back online!"
+                ];
+                var _p4_ans = [
+                    "You solved the " + _case.word + " case and fixed the breaker! The Extraction Elevator is waiting for you—go on and head out! (" + _radar_hint + ")",
+                    "Power is back across the entire sector! " + _case.takeaway + " Head to the Extraction Elevator whenever you're ready!",
+                    "All security locks on the Extraction Elevator are ready for you. I owe you a coffee once we're out of here!"
+                ];
+                _greet    = _p4_greets[npc_id mod 3];
+                _ask_opt  = "Ask about leaving the floor...";
+                _npc_ans  = _p4_ans[npc_id mod 3];
+                _jack_ack = "Glad everyone's safe—I'm heading to the Extraction Elevator now!";
+            }
+        }
+
+        // 7-Page Branching Dialogue across all 4 phases:
+        // 0: ["Say Hello"] -> 1: NPC Greeting -> 2: ["Ask about...", "Leave"] -> 3: NPC Info -> 4: Jack Note -> 5: ["Leave"] -> 6: "Goodbye!"
+        var _texts = [
+            ["Say Hello"],
+            _greet,
+            [_ask_opt, "Leave"],
+            _npc_ans,
+            _jack_ack,
+            ["Leave"],
+            "Goodbye! Stay safe in here."
+        ];
+        var _speakers  = [obj_jack.id, id, obj_jack.id, id, obj_jack.id, obj_jack.id, obj_jack.id];
+        var _effects   = [0, 0, 0, 0, 0, 0, 0];
+        var _speeds    = [0, 0, 0, 0, 0, 0, 0];
+        var _types     = [1, 0, 1, 0, 0, 1, 0];
+        var _nextlines = [[1], 2, [3, 6], 4, 5, [6], -1];
+        var _scripts   = [-1, -1, [[scr_npc_commit_clue, id], -1], -1, -1, -1, -1];
+
+        create_dialogue(_texts, _speakers, _effects, _speeds, _types, _nextlines, _scripts);
     }
     else if (prop_type == TILE_PROP_DRONE && _lifted) {
         create_textevent([

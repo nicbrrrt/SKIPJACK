@@ -449,54 +449,53 @@ else {
 		}
 
 		var _draw_y = yy + (cy * stringHeight);
-		draw_set_alpha((_draw_y >= pos_y + y_buffer && _draw_y < pos_y + boxHeight - y_buffer) ? 1 : 0);
-
-		switch (effect) {
-			case 0: draw_text_color(xx + (cx * charSize), yy + (cy * stringHeight), letter, col, col, col, col, 1); break;
-			case 1: draw_text_color(xx + (cx * charSize) + random_range(-1, 1), yy + (cy * stringHeight) + random_range(-1, 1), letter, col, col, col, col, 1); break;
-			case 2:
-				var shift = sin((t + cc) * pi * freq / room_speed) * amplitude;
-				draw_text_color(xx + (cx * charSize), yy + (cy * stringHeight) + shift, letter, col, col, col, col, 1);
-				break;
-			case 3:
-				var c1 = make_colour_hsv(t + cc, 255, 255);
-				var c2 = make_colour_hsv(t + cc + 34, 255, 255);
-				draw_text_color(xx + (cx * charSize), yy + (cy * stringHeight), letter, c1, c1, c2, c2, 1);
-				break;
-			case 4:
-				var so = t + cc;
-				var shift = sin(so * pi * freq / room_speed) * amplitude;
-				var c1 = make_colour_hsv(t + cc, 255, 255);
-				var c2 = make_colour_hsv(t + cc + 45, 255, 255);
-				draw_text_color(xx + (cx * charSize), yy + (cy * stringHeight) + shift, letter, c1, c1, c2, c2, 1);
-				break;
-			case 5:
-				var so = t + cc;
-				var shift = sin(so * pi * freq / room_speed);
-				var mv = charSize / 2;
-				draw_set_valign(fa_middle);
-				draw_set_halign(fa_middle);
-				draw_text_transformed_color(xx + (cx * charSize) + mv, yy + (cy * stringHeight) + (stringHeight / 2), letter, 1, 1, shift * 20, col, col, col, col, 1);
-				draw_set_valign(fa_top);
-				draw_set_halign(fa_left);
-				break;
-			case 6:
-				var so = t + cc;
-				var shift = abs(sin(so * pi * freq / room_speed));
-				var mv = charSize / 2;
-				draw_set_valign(fa_middle);
-				draw_set_halign(fa_middle);
-				draw_text_transformed_color(xx + (cx * charSize) + mv, yy + (cy * stringHeight) + (stringHeight / 2), letter, shift, shift, 0, col, col, col, col, 1);
-				draw_set_valign(fa_top);
-				draw_set_halign(fa_left);
-				break;
-			case 7:
-				var so = t + cc;
-				var shift = sin(so * pi * freq / room_speed);
-				draw_text_color(xx + (cx * charSize), yy + (cy * stringHeight), letter, col, col, col, col, shift + random_range(-1, 1));
-				break;
+		if (_draw_y >= pos_y + y_buffer && _draw_y + stringHeight <= pos_y + boxHeight - y_buffer) {
+			switch (effect) {
+				case 0: draw_text_color(xx + (cx * charSize), _draw_y, letter, col, col, col, col, 1); break;
+				case 1: draw_text_color(xx + (cx * charSize) + random_range(-1, 1), _draw_y + random_range(-1, 1), letter, col, col, col, col, 1); break;
+				case 2:
+					var shift = sin((t + cc) * pi * freq / room_speed) * amplitude;
+					draw_text_color(xx + (cx * charSize), _draw_y + shift, letter, col, col, col, col, 1);
+					break;
+				case 3:
+					var c1 = make_colour_hsv(t + cc, 255, 255);
+					var c2 = make_colour_hsv(t + cc + 34, 255, 255);
+					draw_text_color(xx + (cx * charSize), _draw_y, letter, c1, c1, c2, c2, 1);
+					break;
+				case 4:
+					var so = t + cc;
+					var shift = sin(so * pi * freq / room_speed) * amplitude;
+					var c1 = make_colour_hsv(t + cc, 255, 255);
+					var c2 = make_colour_hsv(t + cc + 45, 255, 255);
+					draw_text_color(xx + (cx * charSize), _draw_y + shift, letter, c1, c1, c2, c2, 1);
+					break;
+				case 5:
+					var so = t + cc;
+					var shift = sin(so * pi * freq / room_speed);
+					var mv = charSize / 2;
+					draw_set_valign(fa_middle);
+					draw_set_halign(fa_middle);
+					draw_text_transformed_color(xx + (cx * charSize) + mv, _draw_y + (stringHeight / 2), letter, 1, 1, shift * 20, col, col, col, col, 1);
+					draw_set_valign(fa_top);
+					draw_set_halign(fa_left);
+					break;
+				case 6:
+					var so = t + cc;
+					var shift = abs(sin(so * pi * freq / room_speed));
+					var mv = charSize / 2;
+					draw_set_valign(fa_middle);
+					draw_set_halign(fa_middle);
+					draw_text_transformed_color(xx + (cx * charSize) + mv, _draw_y + (stringHeight / 2), letter, shift, shift, 0, col, col, col, col, 1);
+					draw_set_valign(fa_top);
+					draw_set_halign(fa_left);
+					break;
+				case 7:
+					var so = t + cc;
+					var shift = sin(so * pi * freq / room_speed);
+					draw_text_color(xx + (cx * charSize), _draw_y, letter, col, col, col, col, shift + random_range(-1, 1));
+					break;
+			}
 		}
-		draw_set_alpha(1);
 		cc += 1;
 		cx += 1;
 	}
@@ -516,6 +515,19 @@ if (_total_pages > 1) {
 	draw_set_alpha(0.70);
 	draw_set_color(make_color_rgb(160, 180, 210));
 	draw_text_transformed(vn_panel_x1 + 44, vn_panel_y1 + 92, string(page + 1) + " / " + string(_total_pages), 0.75, 0.75, 0);
+}
+
+// Scroll indicator when current dialogue page overflows the box
+if (type[page] == 0) {
+	var _tb_max_scroll = max(0, ((cy_max + 1) * stringHeight) - (boxHeight - y_buffer * 2));
+	if (_tb_max_scroll > 0) {
+		var _sc_more = (scroll_y < _tb_max_scroll);
+		var _sc_txt  = _sc_more ? "[W/S / WHEEL] SCROLL FOR MORE v" : "[W/S / WHEEL] TOP ^";
+		draw_set_halign(fa_left);
+		draw_set_alpha(0.75 + sin(current_time / 160) * 0.25);
+		draw_set_color(_sc_more ? make_color_rgb(255, 215, 65) : c_aqua);
+		draw_text_transformed(pos_x + x_buffer, vn_panel_y2 - 12, _sc_txt, 0.72, 0.72, 0);
+	}
 }
 
 // Pulsing [E] prompt inside bottom-right of VN box

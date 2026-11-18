@@ -53,8 +53,9 @@ function scr_dungeon_spawn(logic_map, path_list) {
 
     var path_len = array_length(path_list);
     var links    = variable_instance_exists(id, "door_links") ? door_links : [];
-    var npc_seq  = 0;
-    var hall_seq = 0;
+    var npc_seq          = 0;
+    var normal_npc_count = 0;
+    var hall_seq         = 0;
     var pc_list  = [];
 
     show_debug_message("[scr_dungeon_spawn] Spawning " + string(path_len) + " rooms...");
@@ -266,10 +267,14 @@ function scr_dungeon_spawn(logic_map, path_list) {
 
         // Place Jack at the center of the Start room on every new floor, plus a receptionist coworker NPC
         if (room_type == ROOM_START) {
+            start_spawn_x      = center_x;
+            start_spawn_y      = center_y;
+            jack_spawn_snapped = false;
             if (instance_exists(obj_jack)) {
                 obj_jack.x = center_x;
                 obj_jack.y = center_y;
                 obj_jack.isInCutscene = false;
+                jack_spawn_snapped = true;
             }
             // Spawn Kyle beside Jack on the central carpet
             var _start_npc = instance_create_layer(center_x - 24, center_y - 4, layer_name, obj_dungeon_prop);
@@ -330,12 +335,13 @@ function scr_dungeon_spawn(logic_map, path_list) {
             _locker.depth          = 26;
         }
 
-        // Populate Normal Office rooms with stranded coworkers (safe from hallway drones)
+        // Populate Normal Office rooms with stranded coworkers (guarantee at least 3 office NPCs per floor for 3-tier variety)
         if (room_type == ROOM_NORMAL) {
-            if ((npc_seq mod 2) == 0) {
+            if ((npc_seq mod 2) == 0 || normal_npc_count < 3) {
                 var _office_npc = instance_create_layer(world_x + 4 * TILE_SIZE, world_y + 4 * TILE_SIZE, layer_name, obj_dungeon_prop);
                 _office_npc.prop_type = TILE_PROP_NPC;
                 _office_npc.npc_id    = (npc_seq++) mod 5;
+                normal_npc_count++;
             } else {
                 npc_seq++;
             }
@@ -404,6 +410,7 @@ function scr_dungeon_spawn(logic_map, path_list) {
             _desk_pcs[_si] = _ipc;
         }
 
+        var _placed   = array_create(_ev_n, false);
         var _desks_ok = true;
         for (var _si2 = 0; _si2 < _susp_n; _si2++) {
             var _dpc = _desk_pcs[_si2];
@@ -412,6 +419,15 @@ function scr_dungeon_spawn(logic_map, path_list) {
             _dpc.nameplate      = global.case_suspects[_si2].nameplate;
             _dpc.has_clue       = true;
             _dpc.is_server_rack = false;
+            // Bind this suspect's Level 3 Critical Evidence directly to their desk terminal
+            for (var _ce = 0; _ce < _ev_n; _ce++) {
+                if (variable_struct_exists(global.case_evidence[_ce], "suspect_desk_idx")
+                    && global.case_evidence[_ce].suspect_desk_idx == _si2) {
+                    _dpc.evidence_idx = _ce;
+                    _placed[_ce]      = true;
+                    break;
+                }
+            }
         }
         // Safety net: if the floor has too few PCs, auto-solve so the player is never soft-locked
         if (!_desks_ok) {
@@ -420,7 +436,7 @@ function scr_dungeon_spawn(logic_map, path_list) {
             show_debug_message("[scr_dungeon_spawn] Not enough PCs for suspect desks; case auto-solved.");
         }
 
-        // Gather NPC coworkers & memos that can deliver evidence (keeping enough as Key Vault IT tips)
+        // Gather NPC coworkers & memos for Level 1 & Level 2 clues (leaving at least 1 Unaware Coworker when possible)
         var _npcs   = [];
         var _papers = [];
         var _mentor = variable_global_exists("floor_mentor_inst") ? global.floor_mentor_inst : noone;
@@ -429,19 +445,37 @@ function scr_dungeon_spawn(logic_map, path_list) {
             if (prop_type == TILE_PROP_NPC && id != _mentor) array_push(_npcs, id);
             if (prop_type == TILE_PROP_PAPER) array_push(_papers, id);
         }
-        var _tips_needed = variable_global_exists("clues_needed") ? global.clues_needed : 2;
 
-        // 1) Witness statements -> NPCs (while enough tip sources remain)
-        var _placed = array_create(_ev_n, false);
+        // 1) Level 2 Witness testimonies -> Coworker NPCs
         for (var _e = 0; _e < _ev_n; _e++) {
-            if (global.case_evidence[_e].type != "witness") continue;
-            if (array_length(_npcs) > 0 && (array_length(_npcs) - 1 + array_length(_papers)) >= _tips_needed) {
+            if (_placed[_e] || global.case_evidence[_e].type != "witness") continue;
+            if (array_length(_npcs) > 0) {
                 var _wn = array_pop(_npcs);
-                _wn.evidence_idx = _e;
-                _placed[_e] = true;
+                _wn.evidence_idx  = _e;
+                _wn.npc_info_tier = 2;
+                _placed[_e]       = true;
             }
         }
-        // 2) Everything else -> open-office terminals
+        // 2) Level 1 Surface Leads -> Coworker NPC (keeping 1 Unaware NPC if possible) or Floor Memo
+        for (var _e1 = 0; _e1 < _ev_n; _e1++) {
+            if (_placed[_e1] || global.case_evidence[_e1].type != "lead") continue;
+            if (array_length(_npcs) > 1) {
+                var _ln = array_pop(_npcs);
+                _ln.evidence_idx  = _e1;
+                _ln.npc_info_tier = 1;
+                _placed[_e1]      = true;
+            } else if (array_length(_papers) > 0) {
+                var _lp = array_pop(_papers);
+                _lp.evidence_idx  = _e1;
+                _placed[_e1]      = true;
+            } else if (array_length(_npcs) > 0) {
+                var _ln2 = array_pop(_npcs);
+                _ln2.evidence_idx  = _e1;
+                _ln2.npc_info_tier = 1;
+                _placed[_e1]       = true;
+            }
+        }
+        // 3) Level 2 Firewall Logs & any remaining clues -> Open-Office Terminals
         for (var _e2 = 0; _e2 < _ev_n; _e2++) {
             if (_placed[_e2]) continue;
             var _epc = scr_case_pick_pc(_open_pool, 0, 0, 0);
@@ -451,20 +485,28 @@ function scr_dungeon_spawn(logic_map, path_list) {
                 _placed[_e2]      = true;
             }
         }
-        // 3) Overflow -> memos / NPCs (still leaving enough IT tips for the Key Vault)
+        // 4) Overflow -> Memos / remaining NPCs / Encrypted-Room Terminals
         for (var _e3 = 0; _e3 < _ev_n; _e3++) {
             if (_placed[_e3]) continue;
-            if (array_length(_papers) > 0 && (array_length(_papers) - 1 + array_length(_npcs)) >= _tips_needed) {
-                var _pp = array_pop(_papers);
-                _pp.evidence_idx = _e3;
+            if (array_length(_papers) > 0) {
+                var _pp2 = array_pop(_papers);
+                _pp2.evidence_idx = _e3;
                 _placed[_e3] = true;
-            } else if (array_length(_npcs) > 0 && (array_length(_npcs) - 1 + array_length(_papers)) >= _tips_needed) {
-                var _nn = array_pop(_npcs);
-                _nn.evidence_idx = _e3;
+            } else if (array_length(_npcs) > 0) {
+                var _nn2 = array_pop(_npcs);
+                _nn2.evidence_idx  = _e3;
+                _nn2.npc_info_tier = global.case_evidence[_e3].tier;
                 _placed[_e3] = true;
+            } else {
+                var _epc2 = scr_case_pick_pc(_enc_pool, 0, 0, 0);
+                if (_epc2 != noone) {
+                    _epc2.evidence_idx = _e3;
+                    _epc2.has_clue     = true;
+                    _placed[_e3]       = true;
+                }
             }
         }
-        // 4) Still unplaced -> pre-filed in the case briefing so the case stays solvable
+        // 5) Still unplaced -> pre-filed safety net
         for (var _e4 = 0; _e4 < _ev_n; _e4++) {
             if (!_placed[_e4]) {
                 scr_log_evidence(_e4);
@@ -472,11 +514,14 @@ function scr_dungeon_spawn(logic_map, path_list) {
             }
         }
 
-        // Key Vault IT tips = remaining memos + coworkers; never demand more than exist
-        var _tips = array_length(_papers) + array_length(_npcs);
+        // Dedicated Security Sector Terminal for the Key Vault Hint (in addition to Kyle in ROOM_START)
+        var _sec_pc = scr_case_pick_pc(_open_pool, 0, 0, 0);
+        if (_sec_pc != noone) {
+            _sec_pc.is_vault_hint_pc = true;
+            _sec_pc.has_clue         = true;
+        }
         if (variable_global_exists("clues_needed")) {
-            global.clues_needed = min(global.clues_needed, _tips);
-            if (_tips <= 0) global.clues_found = global.clues_needed;
+            global.clues_needed = 1;
         }
     }
 

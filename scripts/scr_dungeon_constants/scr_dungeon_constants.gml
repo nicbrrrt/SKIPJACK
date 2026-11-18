@@ -131,7 +131,7 @@ function scr_get_floor_curriculum(_chapter, _floor_num) {
     var _room_extensions  = 4;
     var _spawn_drone      = true;
     var _drone_speed      = 0.92;
-    var _clues_needed     = 2;
+    var _clues_needed     = 1;
     var _guided_ui        = false;
     var _hide_shift_match = false;
     var _is_final_exam    = false;
@@ -144,9 +144,9 @@ function scr_get_floor_curriculum(_chapter, _floor_num) {
         _phase_badge      = "[TUTORIAL 1/3]";
         _hall_min         = 6;
         _hall_max         = 7;
-        _side_rooms       = 8;
+        _side_rooms       = 9;
         _encrypted_decoys = 2; // 2 extra encrypted rooms so player explores all encrypted doors to find Elevator!
-        _room_extensions  = 3; // Multi-chunk long rooms & annex filler rooms
+        _room_extensions  = 4; // Multi-chunk long rooms & annex filler rooms
         _spawn_drone      = true;  // Slow patrol bot so player can practice sneaking behind & apprehending!
         _drone_speed      = 0.65;
         _clues_needed     = 1;
@@ -173,7 +173,7 @@ function scr_get_floor_curriculum(_chapter, _floor_num) {
         _room_extensions  = 4;
         _spawn_drone      = true;  // Introduce hallway drone & hiding lockers!
         _drone_speed      = 0.72;
-        _clues_needed     = 2;
+        _clues_needed     = 1;
         _guided_ui        = true;
     } else if (_flr <= 6) {
         _phase_name       = "PRACTICE";
@@ -185,7 +185,7 @@ function scr_get_floor_curriculum(_chapter, _floor_num) {
         _room_extensions  = 5;
         _spawn_drone      = true;
         _drone_speed      = 0.92;
-        _clues_needed     = 2;
+        _clues_needed     = 1;
         _guided_ui        = false;
     } else if (_flr <= 9) {
         _phase_name       = "MASTERY";
@@ -197,7 +197,7 @@ function scr_get_floor_curriculum(_chapter, _floor_num) {
         _room_extensions  = 6;
         _spawn_drone      = true;
         _drone_speed      = 1.05;
-        _clues_needed     = 2;
+        _clues_needed     = 1;
         _guided_ui        = false;
         _hide_shift_match = true; // Training wheels off!
     } else {
@@ -210,7 +210,7 @@ function scr_get_floor_curriculum(_chapter, _floor_num) {
         _room_extensions  = 6;
         _spawn_drone      = true;
         _drone_speed      = 1.08;
-        _clues_needed     = 2;
+        _clues_needed     = 1;
         _guided_ui        = false;
         _hide_shift_match = true;
         _is_final_exam    = true;
@@ -221,21 +221,17 @@ function scr_get_floor_curriculum(_chapter, _floor_num) {
         if (_flr == 1) {
             _objective_title = "Guided Lesson: Forward Alphabet Shifts (+1 to +3)";
             _mentor_intro = [
-                "Welcome to Chapter 1 (Caesar Cipher)! On Floors 1 to 3, I'll guide you step-by-step.",
-                "Step 1: Find 1 Clue [E] to unlock the Gold Key Vault and get the floor's Shift Key.",
-                "Step 2: Unlock the Security Room & hit the Lockdown Override Button, then flip the Power Breaker to unlock the Elevator!"
+                "Welcome to Chapter 1 (Caesar Cipher)! On Floors 1 to 3, I'll guide you through every mechanic—from unlocking the Key Vault to solving the detective case and managing your Scrap quota!"
             ];
         } else if (_flr == 2) {
             _objective_title = "Guided Lesson: Reverse Alphabet Shifts (-1 to -3)";
             _mentor_intro = [
-                "Tutorial Floor 2/3! Caesar keys can also be NEGATIVE (-1 to -3), shifting letters backward toward 'A'.",
-                "Find 1 Clue to open the Key Vault, then follow the green guide on the ruler to shift backward!"
+                "Tutorial Floor 2/3! Caesar keys can also be NEGATIVE (-1 to -3), shifting letters backward toward 'A'. Follow your top-left Quest Tracker as we investigate this floor!"
             ];
         } else if (_flr == 3) {
             _objective_title = "Guided Lesson: Security Drones, Lockers & Brig Math";
             _mentor_intro = [
-                "Tutorial Floor 3/3! Watch out—a rogue Security Drone is now patrolling the main hallway.",
-                "Press [E] on blue Hallway Lockers to hide when it passes! If caught, solve the Brig's math clue to escape."
+                "Tutorial Floor 3/3! Watch out—a rogue Security Drone is patrolling the hallway! Press [E] on blue Lockers to hide, or sneak behind it and press [RMB] / [E] to apprehend and scrap it!"
             ];
         } else if (_flr <= 6) {
             _objective_title = "Caesar Practice: Decode Locks Using the A-Z Ruler";
@@ -245,7 +241,7 @@ function scr_get_floor_curriculum(_chapter, _floor_num) {
             _objective_title = "CHAPTER 1 FINAL EXAM: Caesar Cipher & Cyber Mastery";
             _mentor_intro = [
                 "This is Floor 10 — the CHAPTER 1 FINAL EXAM! All training wheels and ruler hints are off.",
-                "Crack the 5-letter Exam Lock on the Extraction Elevator to pass Chapter 1 and unlock Vigenere!"
+                "Solve the breach case on [TAB], keep your Scrap in the 4-6 Green Zone, and crack the 5-letter Exam Lock on the Extraction Elevator!"
             ];
         }
     }
@@ -253,21 +249,17 @@ function scr_get_floor_curriculum(_chapter, _floor_num) {
         if (_flr == 1) {
             _objective_title = "Guided Lesson: 2-Letter Keyword Shifts (B=+1, C=+2...)";
             _mentor_intro = [
-                "Welcome to Chapter 2 (Vigenere Cipher)! Instead of one shift number, Vigenere uses a KEYWORD.",
-                "Each letter in the keyword gives its own shift: A = +0, B = +1, C = +2, D = +3, E = +4, F = +5.",
-                "Find 1 Clue to open the Key Vault, calibrate the Keyword, and follow the green guide on the door lock!"
+                "Welcome to Chapter 2 (Vigenere Cipher)! Instead of one shift number, Vigenere uses a repeating KEYWORD where A=+0, B=+1, C=+2, D=+3, E=+4, F=+5."
             ];
         } else if (_flr == 2) {
             _objective_title = "Guided Lesson: Repeating 3-Letter Keywords (CAB / BED)";
             _mentor_intro = [
-                "Tutorial Floor 2/3! When a 3-letter keyword like 'CAB' encrypts a 4-letter word, the keyword repeats: C-A-B-C.",
-                "Watch the purple Keyword badge above each slot—it tells you that slot's exact shift!"
+                "Tutorial Floor 2/3! When a 3-letter keyword like 'CAB' encrypts a 4-letter word, the keyword repeats (C-A-B-C). Watch the purple Keyword badge above each slot!"
             ];
         } else if (_flr == 3) {
             _objective_title = "Guided Lesson: Vigenere Field Stealth & Lockers";
             _mentor_intro = [
-                "Tutorial Floor 3/3! Security drones are back on patrol—use Hallway Lockers [E] to stay unseen.",
-                "Gather 2 Clues, calibrate this floor's 3-letter Vigenere Keyword, and decode the Elevator!"
+                "Tutorial Floor 3/3! Security drones are on patrol—use Hallway Lockers [E] to hide, or sneak behind a bot and press [RMB] / [E] to apprehend it for bonus Scrap!"
             ];
         } else if (_flr <= 6) {
             _objective_title = "Vigenere Practice: Apply Repeating Keyword Shifts";
@@ -277,7 +269,7 @@ function scr_get_floor_curriculum(_chapter, _floor_num) {
             _objective_title = "CHAPTER 2 FINAL EXAM: 4-Letter Keyword Mastery";
             _mentor_intro = [
                 "Welcome to Floor 10 — the CHAPTER 2 FINAL EXAM! You'll face a 4-letter Vigenere Keyword with no slot hints.",
-                "Clear this sector to master the Vigenere Cipher and unlock Chapter 3 (Atbash Mirror Cipher)!"
+                "Identify Patient Zero on [TAB], stay in the 4-6 Scrap Green Zone, and clear this sector to unlock Chapter 3 (Atbash)!"
             ];
         }
     }
@@ -285,21 +277,17 @@ function scr_get_floor_curriculum(_chapter, _floor_num) {
         if (_flr == 1) {
             _objective_title = "Guided Lesson: The Atbash Mirror Alphabet (A <-> Z)";
             _mentor_intro = [
-                "Welcome to Chapter 3 (Atbash Cipher)! Atbash folds the alphabet in half like a mirror.",
-                "The first letter 'A' swaps with the last letter 'Z', 'B' swaps with 'Y', all the way to 'M' <-> 'N'!",
-                "Find 1 Clue, calibrate the Mirror Decoder in the Vault, and use the green guide to unlock the Elevator!"
+                "Welcome to Chapter 3 (Atbash Cipher)! Atbash folds the alphabet in half like a mirror: 'A' swaps with 'Z', 'B' swaps with 'Y', all the way to 'M' <-> 'N'!"
             ];
         } else if (_flr == 2) {
             _objective_title = "Guided Lesson: Inner Mirror Pairs (G <-> T to M <-> N)";
             _mentor_intro = [
-                "Tutorial Floor 2/3! Every letter on the top row (A..M) maps directly to the letter below it (Z..N).",
-                "Look at the 2-row Mirror Bar in the lock UI—the green highlight shows the exact reflection!"
+                "Tutorial Floor 2/3! Every letter on the top row (A..M) maps directly to the letter below it (Z..N) on the 2-row Mirror Bar."
             ];
         } else if (_flr == 3) {
             _objective_title = "Guided Lesson: Mirror Decoding Under Drone Patrol";
             _mentor_intro = [
-                "Tutorial Floor 3/3! Drones are patrolling the corridor again—use Lockers [E] to dodge their beams.",
-                "Gather 2 Clues, activate the Atbash Mirror Key in the Vault, and reflect the Elevator code!"
+                "Tutorial Floor 3/3! Drones are patrolling the corridor—use Lockers [E] to dodge their beams, solve the case on [TAB], and keep your Scrap in the 4-6 Green Zone!"
             ];
         } else if (_flr <= 6) {
             _objective_title = "Atbash Practice: Decode Using the 2-Row Mirror Bar";
@@ -309,7 +297,7 @@ function scr_get_floor_curriculum(_chapter, _floor_num) {
             _objective_title = "CHAPTER 3 FINAL EXAM: Pure Atbash Mirror Mastery";
             _mentor_intro = [
                 "This is Floor 10 — the CHAPTER 3 FINAL EXAM! The bottom row of the Mirror Bar is hidden.",
-                "Use pure Atbash recall (A<->Z, M<->N) to crack the 5-letter Exam Lock and beat the game!"
+                "Use pure Atbash recall (A<->Z, M<->N) to solve the sector and beat the game!"
             ];
         }
     }
@@ -354,15 +342,17 @@ function scr_get_floor_incident_case(_case_idx) {
         victim_name: "David (Security Lead)",
         victim_dept: "Cybersecurity Ops",
         suspects: ["David (Sec Lead)", "Alice (Legal)", "Toby (Sales)"],
-        vectors:  ["Cipher Key Leak", "Phishing Email", "DDoS Attack"],
+        vectors:  ["Forgot VPN on Public Wi-Fi", "Phishing Email", "Unknown USB Drive"],
         correct_suspect_idx: 0,
         correct_vector_idx:  0,
         desktop_items: [
-            { label: "Log: Internal Key Exfiltration via Port 8080", is_breach: true,  desc: "ALERT: Outbound transmission of raw cipher shift tables to external IP!" },
+            { label: "Mistake: Used Coffee-Shop Wi-Fi Without VPN", is_breach: true,  desc: "David forgot to turn on his VPN on free public Wi-Fi, so hackers on the same network saw our secret Caesar shift number!" },
             { label: "Memo: Scheduled Key Rotation for Q3",          is_breach: false, desc: "Normal security policy reminder to rotate employee keys." },
             { label: "Report: Firewall Packet Inspection Log",       is_breach: false, desc: "Normal inbound traffic inspection." }
         ],
-        kyle_debrief: "The attacker sniffed unencrypted cipher keys in transit! Always encrypt sensitive keys with TLS.",
+        kyle_debrief: "David forgot to turn on his VPN on public Wi-Fi! Always use a VPN on public Wi-Fi so hackers can't snoop on your connection.",
+        lesson_story: "David (Security Lead) worked from a coffee shop on free public Wi-Fi and accidentally forgot to turn on his VPN. Because public Wi-Fi isn't encrypted, hackers sitting nearby intercepted his connection and saw the floor's secret Caesar shift number!",
+        prevention_rule: "HOW TO PREVENT IT: Always turn on a VPN (Virtual Private Network) before working on public Wi-Fi so your data is scrambled and invisible to snoops!",
         npc_clues: [
             "The hackers encrypted the doors with a 2,000-year-old Roman cipher that shifts every letter in the alphabet!",
             "If the shift key is +3, then 'A' becomes 'D'—and you shift 3 steps forward to decrypt it!",
@@ -390,15 +380,17 @@ function scr_get_floor_incident_case(_case_idx) {
             victim_name: "David (Security Lead)",
             victim_dept: "Cybersecurity Ops",
             suspects: ["David (Sec Lead)", "Alice (Legal)", "Toby (Sales)"],
-            vectors:  ["Polyalphabetic Leak", "Phishing Email", "DDoS Attack"],
+            vectors:  ["Saved Keyword in Public Folder", "Phishing Email", "Unknown USB Drive"],
             correct_suspect_idx: 0,
             correct_vector_idx:  0,
             desktop_items: [
-                { label: "Log: Keyword Exfiltration (Key: 'CAB')", is_breach: true,  desc: "ALERT: Outbound leak of polyalphabetic repeating keyword!" },
+                { label: "Mistake: Saved Keyword in Shared Public Note", is_breach: true,  desc: "David was afraid of forgetting the Vigenere keyword, so he typed it into an unlocked public folder where hackers found it!" },
                 { label: "Memo: Vigenere Table Matrix Reference",  is_breach: false, desc: "26x26 Caesar shift grid for manual decryption." },
                 { label: "Notice: Password Hygiene Guidelines",     is_breach: false, desc: "Standard company password security memo." }
             ],
-            kyle_debrief: "A repeating keyword cipher shifts each letter differently—making it far stronger than a single Caesar shift!",
+            kyle_debrief: "David saved the secret keyword in an unlocked public folder! Always store passwords and keys inside an encrypted Password Manager.",
+            lesson_story: "David (Security Lead) was worried he might forget the floor's repeating Vigenere keyword, so he saved it inside an unlocked shared folder. Hackers found the plain-text note and used the keyword to lock down the floor!",
+            prevention_rule: "HOW TO PREVENT IT: Never write passwords or secret keys in plain-text notes or public folders—use an encrypted Password Manager instead!",
             npc_clues: [
                 "Instead of shifting every letter by the same number, this lock uses a repeating keyword where A=0, B=1, C=2!",
                 "Because each letter in the keyword applies a different Caesar shift, it's called a polyalphabetic cipher!",
@@ -425,15 +417,17 @@ function scr_get_floor_incident_case(_case_idx) {
             victim_name: "David (Security Lead)",
             victim_dept: "Cybersecurity Ops",
             suspects: ["David (Sec Lead)", "Alice (Legal)", "Toby (Sales)"],
-            vectors:  ["Mirror Cipher Breach", "Phishing Email", "DDoS Attack"],
+            vectors:  ["Left No-Key Mirror Mode On", "Phishing Email", "Unknown USB Drive"],
             correct_suspect_idx: 0,
             correct_vector_idx:  0,
             desktop_items: [
-                { label: "Log: Mirror Substitution Exploit Detected", is_breach: true,  desc: "ALERT: Alphabet flipped end-to-end (A<->Z, B<->Y). Secret key not required!" },
+                { label: "Mistake: Left 'No-Password' Mirror Test Mode On", is_breach: true,  desc: "David tested the doors with an Atbash mirror cipher (A<->Z) and forgot that Atbash has NO secret password—anyone can flip it back!" },
                 { label: "Doc: Ancient Hebrew Cipher History",        is_breach: false, desc: "Historical document on Biblical monoalphabetic ciphers." },
                 { label: "Memo: Terminal Maintenance Schedule",        is_breach: false, desc: "Routine cleaning and dusting for server racks." }
             ],
-            kyle_debrief: "Atbash has no secret key—if an attacker recognizes the alphabet mirror, they can decrypt it immediately!",
+            kyle_debrief: "David accidentally left the doors on an Atbash mirror test mode that doesn't require a secret key!",
+            lesson_story: "David (Security Lead) switched the security doors to an old Atbash mirror cipher (which just flips A to Z and B to Y) during a morning test and forgot to switch it back. Because Atbash has no secret key, hackers reversed the letters immediately!",
+            prevention_rule: "HOW TO PREVENT IT: Never protect important accounts with 'security by obscurity'—always use strong encryption that requires a secret password or key!",
             npc_clues: [
                 "The hackers folded the alphabet in half like a mirror—'A' becomes 'Z', 'B' becomes 'Y', and 'M' becomes 'N'!",
                 "Because the alphabet is reversed end-to-end, encrypting and decrypting use the exact same mirror rule!",
@@ -463,15 +457,17 @@ function scr_get_floor_incident_case(_case_idx) {
             victim_name: "Dave Miller",
             victim_dept: "Logistics & Shipping",
             suspects: ["Dave Miller", "Karen Jenkins", "Frank Castle"],
-            vectors:  ["Phishing Email", "Trojan Utility", "Weak Password"],
+            vectors:  ["Phishing Email Link", "Trojan Free Download", "Firewall Turned Off"],
             correct_suspect_idx: 0,
             correct_vector_idx:  0,
             desktop_items: [
-                { label: "Email: 'URGENT: Overdue Invoice_981.pdf.exe'", is_breach: true,  desc: "From billing@quickpay-secure.co! Contains a disguised executable (.exe)." },
+                { label: "Mistake: Clicked Fake 'Urgent Invoice' Email", is_breach: true,  desc: "Dave was rushing before lunch and clicked an 'URGENT: Overdue Invoice' link without noticing the sender's email was fake (Phishing)!" },
                 { label: "Email: 'Weekly Shipping Schedule'",             is_breach: false, desc: "From dispatch@skipjack.com - standard logistics spreadsheet." },
                 { label: "Email: 'Warehouse Coffee Machine Repaired'",    is_breach: false, desc: "Office announcement from building maintenance." }
             ],
-            kyle_debrief: "Dave opened an .exe disguised as a PDF invoice! Never launch executable attachments from external emails.",
+            kyle_debrief: "Dave was in a rush and accidentally fell for a fake Phishing email! Always check the sender's address before logging in.",
+            lesson_story: "Dave Miller (Logistics) received an email marked 'URGENT: Overdue Invoice' right before lunch. Wanting to resolve it quickly, he clicked the link and typed his password into a fake look-alike website without noticing the sender address was misspelled!",
+            prevention_rule: "HOW TO PREVENT IT: Scammers use 'URGENT!' messages to make you panic and click without thinking. Always pause and check the real sender address and website URL!",
             npc_clues: [
                 "Someone clicked a fake 'Holiday Bonus' email and typed their login into a bogus page!",
                 "I almost fell for that fake IT login email too, until I saw the sender URL was misspelled!",
@@ -497,15 +493,17 @@ function scr_get_floor_incident_case(_case_idx) {
             victim_name: "Karen Jenkins",
             victim_dept: "Human Resources",
             suspects: ["Karen Jenkins", "Dave Miller", "Marcus Vance"],
-            vectors:  ["Trojan Utility", "Phishing Email", "Rogue USB Drive"],
+            vectors:  ["Trojan Free Download", "Phishing Email Link", "Unknown USB Drive"],
             correct_suspect_idx: 0,
             correct_vector_idx:  0,
             desktop_items: [
-                { label: "Download: 'Free_Resume_Parser_Turbo.exe'", is_breach: true,  desc: "Downloaded from shady-recruiting-tools.net. Dropped a hidden backdoor!" },
+                { label: "Mistake: Installed Unofficial 'Free_PDF_Helper.exe'", is_breach: true,  desc: "Karen downloaded a free PDF tool from a random website to finish her HR forms faster—not realizing a Trojan virus was hiding inside!" },
                 { label: "Doc: 'Benefits Enrollment Form 2026.docx'",is_breach: false, desc: "Standard company insurance policy documentation." },
                 { label: "Memo: 'Intern Babysitting Shift Rota'",     is_breach: false, desc: "Shift schedule for supervising the intern ward." }
             ],
-            kyle_debrief: "Karen downloaded unverified freeware that hid malware inside—a textbook Trojan Horse!",
+            kyle_debrief: "Karen only wanted to finish her forms faster, but that unofficial free app hid a Trojan virus inside!",
+            lesson_story: "Karen Jenkins (HR) had a pile of paperwork due and downloaded 'Free_PDF_Helper.exe' from a random website to speed up her job. The app looked helpful on the outside, but secretly installed a Trojan virus in the background!",
+            prevention_rule: "HOW TO PREVENT IT: A 'Trojan' hides harmful malware inside a normal-looking free program or game mod. Only download software from official, trusted app stores!",
             npc_clues: [
                 "Someone in accounting installed 'Free_Spreadsheet_Turbo.exe' and it secretly unlocked the building's backdoors!",
                 "That app looked like a harmless desktop tool on the outside, but it hid hacker malware inside!",
@@ -531,15 +529,17 @@ function scr_get_floor_incident_case(_case_idx) {
             victim_name: "Bob Higgins",
             victim_dept: "Marketing & PR",
             suspects: ["Bob Higgins", "Chloe Rivera", "Alice Cooper"],
-            vectors:  ["Firewall Disabled", "Spyware Keylogger", "Phishing Email"],
+            vectors:  ["Firewall Turned Off", "Spyware Pop-Up Ad", "Phishing Email Link"],
             correct_suspect_idx: 0,
             correct_vector_idx:  0,
             desktop_items: [
-                { label: "Setting: 'Windows Defender Firewall: DISABLED'", is_breach: true,  desc: "Turned off to host an unapproved game server, exposing ports 21-8080." },
+                { label: "Mistake: Turned Off Firewall & Forgot It", is_breach: true,  desc: "Bob switched off his Firewall for 5 minutes because his video call was lagging, and accidentally forgot to turn it back on!" },
                 { label: "Draft: 'New Product Press Release'",             is_breach: false, desc: "Marketing copy for the upcoming Skipjack cipher tool." },
                 { label: "Bookmark: 'Social Media Analytics Dashboard'",   is_breach: false, desc: "Official marketing metrics page." }
             ],
-            kyle_debrief: "Bob shut down the firewall to bypass port rules, leaving the entire subnet open to the internet!",
+            kyle_debrief: "Bob turned off his Firewall to fix a laggy call and forgot to turn it back on! Never leave your Firewall disabled.",
+            lesson_story: "Bob Higgins (Marketing) was having trouble with a laggy video stream, so he temporarily turned off his computer's Firewall to test the connection—and completely forgot to turn it back on. Without that digital security barrier, hackers slipped right in!",
+            prevention_rule: "HOW TO PREVENT IT: Your Firewall is a 24/7 digital security guard that blocks bad internet traffic. Never turn off your Firewall or Antivirus to fix a slow connection!",
             npc_clues: [
                 "Someone turned off our network traffic filter to host a LAN party, and the hackers walked right in!",
                 "Without our digital security guard checking incoming data packets, every network port was wide open!",
@@ -565,15 +565,17 @@ function scr_get_floor_incident_case(_case_idx) {
             victim_name: "Chloe Rivera",
             victim_dept: "Smart Facilities",
             suspects: ["Chloe Rivera", "Bob Higgins", "Greg Vance"],
-            vectors:  ["Botnet Infection", "Rogue USB Drive", "Weak Password"],
+            vectors:  ["Default '1234' Password (Botnet)", "Unknown USB Drive", "Reused Password"],
             correct_suspect_idx: 0,
             correct_vector_idx:  0,
             desktop_items: [
-                { label: "Alert: '180 Smart Bulbs & Printers Flooding Outbound'", is_breach: true,  desc: "Office IoT devices running default passwords hijacked into a DDoS army." },
+                { label: "Mistake: Left Smart Devices on Default '1234' Password", is_breach: true,  desc: "Chloe plugged in the new office smart printers and lights in a rush and forgot to change their factory 'admin / 1234' password!" },
                 { label: "Log: 'Breakroom Thermostat Schedule'",                 is_breach: false, desc: "Normal AC settings for the 3rd floor." },
                 { label: "Notice: 'Elevator Maintenance Due'",                    is_breach: false, desc: "Routine building service log." }
             ],
-            kyle_debrief: "Unsecured smart devices with default passwords were hijacked into a zombie Botnet army!",
+            kyle_debrief: "Chloe forgot to change the factory '1234' password on the new smart devices, so hackers hijacked them into a Botnet!",
+            lesson_story: "Chloe Rivera (Facilities) set up the floor's new Wi-Fi printers and smart lights in a hurry and forgot to change their factory-default '1234' password. Hackers guessed '1234' automatically and hijacked the devices into a zombie Botnet army!",
+            prevention_rule: "HOW TO PREVENT IT: Hackers scan the internet 24/7 for devices still using default passwords like 'admin', '0000', or '1234'. Always set a strong new password as soon as you plug in a new device!",
             npc_clues: [
                 "Even the breakroom smart fridge and the office printers got hijacked into a zombie army!",
                 "Hundreds of infected office devices are all taking remote orders from the hacker's server at once!",
@@ -599,15 +601,17 @@ function scr_get_floor_incident_case(_case_idx) {
             victim_name: "Greg Vance",
             victim_dept: "Accounting",
             suspects: ["Greg Vance", "Karen Jenkins", "Dave Miller"],
-            vectors:  ["Spyware Keylogger", "Phishing Email", "Firewall Disabled"],
+            vectors:  ["Spyware Pop-Up Ad", "Phishing Email Link", "Firewall Turned Off"],
             correct_suspect_idx: 0,
             correct_vector_idx:  0,
             desktop_items: [
-                { label: "Process: 'win_audio_svc32.exe (Keystroke Hook)'", is_breach: true,  desc: "Secretly recording every password and banking credential typed." },
+                { label: "Mistake: Clicked 'Allow' on a Fake Update Pop-Up", is_breach: true,  desc: "Greg accidentally clicked 'Allow' on a flashing browser pop-up ad, which silently installed Spyware that recorded his keyboard!" },
                 { label: "Sheet: 'Q2 Tax Returns.xlsx'",                    is_breach: false, desc: "Quarterly accounting spreadsheet." },
                 { label: "Receipt: 'Office Supplies Order #401'",           is_breach: false, desc: "Purchased printer toner and pens." }
             ],
-            kyle_debrief: "A background Spyware process was recording Greg's keystrokes to steal company passwords!",
+            kyle_debrief: "Greg clicked a fake browser update pop-up that secretly installed Spyware to record his passwords!",
+            lesson_story: "Greg Vance (Accounting) saw a flashing pop-up ad while browsing that said 'Your Browser Is Out of Date—Click Here!' Thinking he was being responsible, he clicked it—accidentally installing Spyware that secretly recorded every password he typed!",
+            prevention_rule: "HOW TO PREVENT IT: Real browser and system updates never come from flashing website pop-up ads! Close pop-up ads immediately and only update apps through your official Settings menu.",
             npc_clues: [
                 "The hackers knew my new password five seconds after I typed it! Something is recording my keyboard!",
                 "It didn't lock my screen—it just hid silently in the background watching everything I typed!",
@@ -633,15 +637,17 @@ function scr_get_floor_incident_case(_case_idx) {
             victim_name: "Marcus Vance",
             victim_dept: "Software Engineering",
             suspects: ["Marcus Vance", "Chloe Rivera", "Toby Flend"],
-            vectors:  ["Rogue USB Drive", "Trojan Utility", "Backdoor"],
+            vectors:  ["Unknown Parking-Lot USB", "Trojan Free Download", "Forgotten Guest Link"],
             correct_suspect_idx: 0,
             correct_vector_idx:  0,
             desktop_items: [
-                { label: "Device: 'Mounted Drive E: [CONFIDENTIAL PAYROLL.usb]'", is_breach: true,  desc: "Found on parking lot asphalt and plugged in. Auto-executed malicious payload." },
+                { label: "Mistake: Plugged In a 'Lost' USB to Return It", is_breach: true,  desc: "Marcus found a lost USB drive outside and plugged it into his work PC just to see whose name was on it—accidentally launching Malware!" },
                 { label: "Code: 'skipjack_core.c (Clean Git Commit)'",           is_breach: false, desc: "Normal source code repository checkout." },
                 { label: "Doc: 'API Documentation v2.1'",                         is_breach: false, desc: "Internal developer documentation." }
             ],
-            kyle_debrief: "Marcus fell for USB baiting! Never plug random flash drives found in the wild into work PCs.",
+            kyle_debrief: "Marcus was just trying to return a lost USB drive, but plugging it in automatically launched Malware!",
+            lesson_story: "Marcus Vance (Engineering) found a USB flash drive in the parking lot and wanted to be helpful by checking whose files were on it so he could return it. The USB was a hacker trap that automatically installed Malware (Malicious Software) the second he plugged it in!",
+            prevention_rule: "HOW TO PREVENT IT: Never plug an unknown USB flash drive or charging cable into your computer—even to see who owns it! Turn lost drives directly over to IT security.",
             npc_clues: [
                 "Someone found a USB drive in the parking lot labeled 'Bonus Pay' and plugged it into the server!",
                 "As soon as that USB drive went in, hostile software started corrupting files and locking doors!",
@@ -667,15 +673,17 @@ function scr_get_floor_incident_case(_case_idx) {
             victim_name: "Sarah Connor",
             victim_dept: "Legal & Compliance",
             suspects: ["Sarah Connor", "Bob Higgins", "Marcus Vance"],
-            vectors:  ["Email Spoofing", "Weak Password", "Botnet Infection"],
+            vectors:  ["Spoofed Boss Email", "Reused Password", "Default '1234' Password"],
             correct_suspect_idx: 0,
             correct_vector_idx:  0,
             desktop_items: [
-                { label: "Header: 'From: CEO@skipjack.com [Forged IP: 185.220.101.5]'", is_breach: true,  desc: "Attacker forged display name and internal headers to impersonate the executive office." },
+                { label: "Mistake: Trusted a Faked 'From: CEO' Display Name", is_breach: true,  desc: "Sarah replied to an email whose display name said 'Company CEO' without noticing the actual email address was a fake Gmail account (Spoofing)!" },
                 { label: "Contract: 'Vendor NDA Agreement'",                           is_breach: false, desc: "Standard mutual non-disclosure contract." },
                 { label: "Email: 'Reminder: Compliance Training Friday'",              is_breach: false, desc: "Legitimate HR compliance notification." }
             ],
-            kyle_debrief: "The attacker spoofed the CEO's email address! Always verify urgent wire or credential requests out-of-band.",
+            kyle_debrief: "Sarah saw 'Company CEO' in the display name and didn't notice the email address was Spoofed (faked)!",
+            lesson_story: "Sarah Connor (Legal) got an email whose display name said 'Company CEO' asking for an urgent security code. Wanting to help the boss right away, she sent the code—not noticing the hacker had 'Spoofed' (faked) the display name using an outside email address!",
+            prevention_rule: "HOW TO PREVENT IT: Anyone can type a boss's name as their email display name or fake a caller ID (Spoofing). Always click to view the full email address and verify urgent requests with a quick phone call!",
             npc_clues: [
                 "The attacker forged our CEO's email header so the message looked like it came from inside the building!",
                 "They disguised their untrusted IP address to impersonate our internal security server!",
@@ -701,15 +709,17 @@ function scr_get_floor_incident_case(_case_idx) {
             victim_name: "Toby Flend",
             victim_dept: "Enterprise Sales",
             suspects: ["Toby Flend", "Sarah Connor", "Dave Miller"],
-            vectors:  ["Ransomware Lock", "Firewall Disabled", "Spyware Keylogger"],
+            vectors:  ["Reused Password (Ransomware)", "Firewall Turned Off", "Spyware Pop-Up Ad"],
             correct_suspect_idx: 0,
             correct_vector_idx:  0,
             desktop_items: [
-                { label: "File: 'CLIENT_DATABASE.encrypted.LOCKY'", is_breach: true,  desc: "Hostile ransomware encrypted all client files and generated a ransom extortion note." },
+                { label: "Mistake: Reused the Same Password Across Every Account", is_breach: true,  desc: "Toby used the exact same password ('Toby123!') on his work PC as on an old gaming forum that got hacked, letting attackers lock his files for Ransom!" },
                 { label: "Pitch: 'Q3 Enterprise Sales Deck.pptx'", is_breach: false, desc: "Client presentation slides." },
                 { label: "Contact: 'Lead List - West Coast'",       is_breach: false, desc: "Normal sales prospect directory." }
             ],
-            kyle_debrief: "Ransomware held the database hostage! Offline, immutable backups are the best defense against extortion.",
+            kyle_debrief: "Toby reused the same password on every website, so when a gaming site leaked it, hackers locked his work PC with Ransomware!",
+            lesson_story: "Toby Flend (Sales) used the exact same password for his work computer, his email, and an old gaming forum. When that gaming forum was hacked, criminals tried his leaked password on his work account, logged right in, and locked the company files with Ransomware!",
+            prevention_rule: "HOW TO PREVENT IT: Never reuse the same password across multiple accounts! If one website gets hacked, attackers will try that password everywhere. Use unique passwords and keep offline Backups to beat Ransomware!",
             npc_clues: [
                 "The hackers encrypted our entire HR database and popped up a countdown timer demanding payment!",
                 "They're holding our server files hostage and refusing to hand over the decryption key unless we pay!",
@@ -735,15 +745,17 @@ function scr_get_floor_incident_case(_case_idx) {
             victim_name: "Frank Castle",
             victim_dept: "Server Infrastructure",
             suspects: ["Frank Castle", "Greg Vance", "David (Sec Lead)"],
-            vectors:  ["Hardcoded Backdoor", "Rogue USB Drive", "Trojan Utility"],
+            vectors:  ["Forgotten Guest Backdoor Link", "Unknown Parking-Lot USB", "Trojan Free Download"],
             correct_suspect_idx: 0,
             correct_vector_idx:  0,
             desktop_items: [
-                { label: "Port: 'Hidden Root Listener on Port 9999 [NO_AUTH]'", is_breach: true,  desc: "Secret bypass account left by a rogue contractor allowing remote root shell without login." },
+                { label: "Mistake: Forgot to Close a Temporary 'Skip-Password' Link", is_breach: true,  desc: "Frank turned on a temporary 'skip-password' remote link while fixing a server from home and accidentally fell asleep before turning it off!" },
                 { label: "Config: 'Nginx Reverse Proxy Config'",               is_breach: false, desc: "Normal web server routing configuration." },
                 { label: "Log: 'System Uptime: 412 Days'",                     is_breach: false, desc: "Standard Linux server uptime statistics." }
             ],
-            kyle_debrief: "A hidden Backdoor bypassed authentication entirely! Regular code audits prevent rogue maintenance bypasses.",
+            kyle_debrief: "Frank accidentally left a temporary 'skip-password' link open overnight, creating a Backdoor for hackers!",
+            lesson_story: "Frank Castle (Infrastructure) created a temporary remote-access shortcut that skipped the password screen so he could finish late-night server maintenance from home—but he fell asleep and forgot to close it, leaving an accidental Backdoor wide open!",
+            prevention_rule: "HOW TO PREVENT IT: Never create shortcuts that skip password checks (Backdoors), always lock your screen when stepping away from your desk, and turn on Two-Factor Authentication (2FA)!",
             npc_clues: [
                 "The hackers didn't even use the front login page—they slipped in through a hidden developer test port!",
                 "Someone left a secret maintenance bypass in the server code that skips password checks completely!",
@@ -2083,6 +2095,31 @@ function scr_log_evidence(_idx) {
 
 
 // ---------------------------------------------------------------------------
+/// @function scr_npc_commit_clue(_prop_id)
+/// @description Invoked when the player selects "Ask about..." during an NPC
+///              dialogue so clues/evidence are only logged when asked.
+// ---------------------------------------------------------------------------
+function scr_npc_commit_clue(_prop_id) {
+    if (!instance_exists(_prop_id)) return;
+    var _has_key = (variable_global_exists("has_dungeon_cipher_key") && global.has_dungeon_cipher_key);
+    var _solved  = (variable_global_exists("incident_solved")        && global.incident_solved);
+
+    // Only log Whodunit investigation clues during Phase 2 (after getting the Key Vault Cipher Key)
+    if (!_has_key || _solved) return;
+
+    if (_prop_id.evidence_idx >= 0) {
+        _prop_id.talked_once = true;
+        if (scr_log_evidence(_prop_id.evidence_idx)) {
+            var _ep = audio_play_sound(snd_correct_ping, 6, false);
+            audio_sound_gain(_ep, 0.45, 0);
+        }
+    } else {
+        _prop_id.talked_once = true;
+    }
+}
+
+
+// ---------------------------------------------------------------------------
 /// @function scr_case_pick_pc(_pool, _avoid_x, _avoid_y, _min_dist)
 /// @description Removes & returns a PC from _pool that is at least _min_dist px
 ///              from the avoid point (falls back to any). Returns noone if empty.
@@ -2175,43 +2212,75 @@ function scr_init_case_dossier(_case, _floor) {
     }
 
     var _ev = [];
-    // WHO: the breach came from the culprit's department
+    var _inn0 = (_cul == 0) ? 1 : 0;
+    var _inn0_nm = _sus[_inn0].name;
+
+    // =========================================================================
+    // LEVEL 1 — BASIC TIP (Found on a semi-informed Coworker NPC or Memo)
+    // =========================================================================
     array_push(_ev, {
+        tier: 1,
+        type: "lead",
+        text: "[LVL 1: BASIC TIP] Heard the breach alarm start from the " + _sus[_cul].dept + " office around " + _t_str + ". Also, " + _inn0_nm + " was away from their desk!",
+        npc_speech: "I heard the breach alarm start over in the " + _sus[_cul].dept + " office around " + _t_str + ", and I'm pretty sure " + _inn0_nm + " had already stepped away from their desk.",
+        implicates: -1, clears: -1, suspect_desk_idx: -1, found: false
+    });
+
+    // =========================================================================
+    // LEVEL 2 — SOLID CLUES (Found on Open-Office PCs & Witness NPCs)
+    // =========================================================================
+    array_push(_ev, {
+        tier: 2,
         type: "log",
-        text: "SECURITY LOG " + _t_str + ": the intrusion was launched from a workstation in the " + _sus[_cul].dept + " department.",
-        implicates: _cul, clears: -1, found: false
+        text: "[LVL 2: SOLID CLUE] Security Alert (" + _t_str + "): The hack started from a computer inside the " + _sus[_cul].dept + " department!",
+        implicates: _cul, clears: -1, suspect_desk_idx: -1, found: false
     });
-    // HOW: the technical trace (teaches the attack vector)
-    array_push(_ev, {
-        type: "how",
-        text: "IT FORENSICS: " + _how_label + "\n" + _how_desc,
-        implicates: -1, clears: -1, found: false
-    });
-    // ALIBIS: one for every innocent suspect
+
     var _alibi_n = 0;
     for (var _s = 0; _s < array_length(_sus); _s++) {
         if (_s == _cul) continue;
         var _nm = _sus[_s].name;
         var _dp = _sus[_s].dept;
+        var _np = _sus[_s].nameplate;
         var _txt = "";
-        var _ty  = "badge";
-        switch (_alibi_n mod 4) {
-            case 0: _txt = "BADGE RECORD: " + _nm + " (" + _dp + ") swiped out of the building at " + _tb_str + " and had not returned when the breach hit at " + _t_str + "."; break;
-            case 1: _txt = "'I was on a video call with " + _nm + " (" + _dp + ") when the alarm went off. They never touched their keyboard.'"; _ty = "witness"; break;
-            case 2: _txt = "CAFETERIA RECEIPT: " + _nm + " (" + _dp + ") paid for lunch at " + _t_str + ", at the exact moment of the breach."; _ty = "receipt"; break;
-            default: _txt = "MEETING INVITE: " + _nm + " (" + _dp + ") was presenting in Conference Room B at " + _t_str + "."; _ty = "memo"; break;
+        var _npc_line = "";
+        switch (_alibi_n mod 3) {
+            case 0:
+                _txt      = "[LVL 2: SOLID CLUE] Coworker Alibi: '" + _nm + " (" + _dp + ") was on a video call with me at " + _t_str + " and never touched Desk " + _np + "!' -> Means " + _nm + " is innocent.";
+                _npc_line = "I was on a video call with " + _nm + " right when the alarm went off at " + _t_str + "—they didn't touch their computer at all!";
+                break;
+            case 1:
+                _txt      = "[LVL 2: SOLID CLUE] Coworker Alibi: 'I saw " + _nm + " (" + _dp + ") leave the building at " + _tb_str + " before the " + _t_str + " hack even started!' -> Means " + _nm + " is innocent.";
+                _npc_line = "It couldn't have been " + _nm + "—I literally saw them walk out of the building at " + _tb_str + ", before the hack even started at " + _t_str + ".";
+                break;
+            default:
+                _txt      = "[LVL 2: SOLID CLUE] Coworker Alibi: '" + _nm + " (" + _dp + ") was eating lunch with me in the cafeteria when the alarm went off at " + _t_str + "!' -> Means " + _nm + " is innocent.";
+                _npc_line = "No way it was " + _nm + "! We were both downstairs eating lunch in the cafeteria when the alarm went off at " + _t_str + ".";
+                break;
         }
-        array_push(_ev, { type: _ty, text: _txt, implicates: -1, clears: _s, found: false });
+        array_push(_ev, { tier: 2, type: "witness", text: _txt, npc_speech: _npc_line, implicates: -1, clears: _s, suspect_desk_idx: -1, found: false });
         _alibi_n++;
     }
-    // RED HERRING (floors 8-10): looks suspicious but is unrelated
-    if (_floor >= 8) {
-        var _hs = (_cul == 0) ? 1 : 0;
-        array_push(_ev, {
-            type: "memo",
-            text: "IT NOTE: " + _sus[_hs].name + " (" + _sus[_hs].dept + ") installed a pirated game last week. Different malware signature, so it is NOT linked to today's attack.",
-            implicates: -1, clears: -1, found: false
-        });
+
+    // =========================================================================
+    // LEVEL 3 — CRITICAL PROOF (Found directly on Suspect Desk Terminals!)
+    // =========================================================================
+    for (var _sd = 0; _sd < array_length(_sus); _sd++) {
+        if (_sd == _cul) {
+            array_push(_ev, {
+                tier: 3,
+                type: "critical",
+                text: "[LVL 3: CRITICAL PROOF] Desk " + _sus[_cul].nameplate + " (" + _sus[_cul].name + "): ACCIDENTAL BREACH ENTRY POINT! " + _how_label + " — " + _how_desc,
+                implicates: _cul, clears: -1, suspect_desk_idx: _cul, found: false
+            });
+        } else {
+            array_push(_ev, {
+                tier: 3,
+                type: "critical",
+                text: "[LVL 3: CRITICAL PROOF] Desk " + _sus[_sd].nameplate + " (" + _sus[_sd].name + "): VPN was ON, unique password used, and PC was locked since " + _tb_str + ". All safety habits followed! -> Means " + _sus[_sd].name + " is clear.",
+                implicates: -1, clears: _sd, suspect_desk_idx: _sd, found: false
+            });
+        }
     }
 
     // Shuffle evidence order so alibis and the log are not always found in the same order

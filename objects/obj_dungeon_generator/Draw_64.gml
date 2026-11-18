@@ -61,9 +61,9 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
 
     var _mcx = _gui_w * 0.5;
     var _mcy = _gui_h * 0.47;
-    var _is_board = (variable_global_exists("pc_screen_mode") && global.pc_screen_mode == 3);
-    var _mw  = _is_board ? 500 : 410;
-    var _mh  = _is_board ? 262 : 204;
+    var _is_board = (variable_global_exists("pc_screen_mode") && global.pc_screen_mode >= 1 && global.pc_screen_mode <= 3);
+    var _mw  = _is_board ? min(540, _gui_w - 36) : 410;
+    var _mh  = _is_board ? min(304, _gui_h - 40) : 204;
     var _mx1 = _mcx - _mw * 0.5;
     var _my1 = _mcy - _mh * 0.5;
     var _mx2 = _mcx + _mw * 0.5;
@@ -131,87 +131,214 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
     var _mode   = variable_global_exists("pc_screen_mode") ? global.pc_screen_mode : 0;
     var _solved = (variable_global_exists("incident_solved") && global.incident_solved);
 
-    // Returning to the culprit's desk after a correct accusation resumes at the attack-vector question
-    if (_mode == 1 && !_solved && variable_global_exists("case_culprit_confirmed") && global.case_culprit_confirmed
-        && instance_exists(global.pc_screen_target) && global.pc_screen_target.suspect_idx == global.case_culprit_idx) {
-        global.pc_screen_mode = 2;
-        global.pc_screen_select = 0;
-        _mode = 2;
+    if (variable_global_exists("pc_input_cooldown") && global.pc_input_cooldown > 0) {
+        global.pc_input_cooldown--;
     }
+    var _can_input = (!variable_global_exists("pc_input_cooldown") || global.pc_input_cooldown <= 0);
+    var _min_ev    = min(2, variable_global_exists("evidence_needed") ? global.evidence_needed : 2);
 
     if (_mode == 3) {
         // =====================================================
-        // CASE BOARD: suspects + evidence trail
+        // CASE BOARD: suspects + resolution-safe scrollable evidence + ACCUSE button
         // =====================================================
         draw_set_font(fnt_dialogue);
         draw_set_halign(fa_left);
         draw_set_valign(fa_middle);
-        var _bd_y = _my1 + 36;
+        var _is_tutorial = (!variable_global_exists("chapter_floor") || global.chapter_floor <= 3);
+        var _bd_y = _my1 + 34;
         draw_set_color(make_color_rgb(255, 210, 55));
-        draw_text_transformed(_mx1 + 12, _bd_y, "SUSPECTS  (accuse at their desk)", 0.76, 0.76, 0);
-        _bd_y += 16;
+        draw_text_transformed(_mx1 + 12, _bd_y, "SUSPECTS  (inspect their desks for Critical Lvl 3 Evidence)", 0.72, 0.72, 0);
+        _bd_y += 14;
 
         var _bd_n = array_length(global.case_suspects);
         for (var _bs = 0; _bs < _bd_n; _bs++) {
             var _sp = global.case_suspects[_bs];
-            var _st_txt = "UNKNOWN";
+            var _wrong_acc = (variable_struct_exists(_sp, "accused_wrong") && _sp.accused_wrong);
+            var _st_txt = _is_tutorial ? "UNKNOWN" : "SUSPECT";
             var _st_col = make_color_rgb(190, 205, 220);
-            if (_sp.status == 1) { _st_txt = "CLEARED";       _st_col = make_color_rgb(120, 140, 150); }
-            if (_sp.status == 2) { _st_txt = "PRIME SUSPECT"; _st_col = make_color_rgb(255, 95, 95); }
+            if (_is_tutorial) {
+                if (_sp.status == 1) { _st_txt = "CLEARED";       _st_col = make_color_rgb(120, 140, 150); }
+                if (_sp.status == 2) { _st_txt = "PRIME SUSPECT"; _st_col = make_color_rgb(255, 95, 95); }
+            } else if (_wrong_acc) {
+                _st_txt = "WRONG ACCUSATION";
+                _st_col = make_color_rgb(120, 140, 150);
+            }
             if (_solved && _bs == global.case_culprit_idx) { _st_txt = "PATIENT ZERO"; _st_col = c_lime; }
             draw_set_color(_st_col);
-            draw_text_transformed(_mx1 + 18, _bd_y, _sp.name + "  -  " + _sp.dept + "  [desk " + _sp.nameplate + "]", 0.70, 0.70, 0);
+            draw_text_transformed(_mx1 + 18, _bd_y, _sp.name + "  -  " + _sp.dept + "  [Desk " + _sp.nameplate + "]", 0.68, 0.68, 0);
             draw_set_halign(fa_right);
-            draw_text_transformed(_mx2 - 14, _bd_y, _st_txt, 0.70, 0.70, 0);
+            draw_text_transformed(_mx2 - 14, _bd_y, _st_txt, 0.68, 0.68, 0);
             draw_set_halign(fa_left);
-            if (_sp.status == 1 && !(_solved && _bs == global.case_culprit_idx)) {
-                var _tw = string_width(_sp.name + "  -  " + _sp.dept + "  [desk " + _sp.nameplate + "]") * 0.70;
+            if (((_is_tutorial && _sp.status == 1) || (!_is_tutorial && _wrong_acc)) && !(_solved && _bs == global.case_culprit_idx)) {
+                var _tw = string_width(_sp.name + "  -  " + _sp.dept + "  [Desk " + _sp.nameplate + "]") * 0.68;
                 draw_line(_mx1 + 18, _bd_y, _mx1 + 18 + _tw, _bd_y);
             }
-            _bd_y += 15;
+            _bd_y += 14;
         }
 
-        _bd_y += 6;
+        _bd_y += 4;
         draw_set_color(make_color_rgb(115, 220, 255));
-        draw_text_transformed(_mx1 + 12, _bd_y, "EVIDENCE  (" + string(global.evidence_found) + "/" + string(global.evidence_needed) + ")", 0.76, 0.76, 0);
-        _bd_y += 15;
+        draw_text_transformed(_mx1 + 12, _bd_y, "EVIDENCE LOG  (" + string(global.evidence_found) + "/" + string(global.evidence_needed) + ")   [W/S or WHEEL to Scroll]", 0.72, 0.72, 0);
+        _bd_y += 11;
 
-        var _bd_ne = array_length(global.case_evidence);
+        // Scrollable Evidence Viewport (Item-Index Pagination — 100% resolution-independent, no gpu_set_scissor bug!)
+        var _ev_x1 = _mx1 + 10;
+        var _ev_y1 = _bd_y;
+        var _ev_x2 = _mx2 - 10;
+        var _ev_y2 = _my2 - 44;
+        var _ev_w  = _ev_x2 - _ev_x1;
+        var _ev_h  = max(40, _ev_y2 - _ev_y1);
+
+        draw_set_color(make_color_rgb(6, 14, 18));
+        draw_rectangle(_ev_x1, _ev_y1, _ev_x2, _ev_y2, false);
+        draw_set_color(make_color_rgb(35, 80, 90));
+        draw_rectangle(_ev_x1, _ev_y1, _ev_x2, _ev_y2, true);
+
+        var _ev_scale = 0.62;
+        var _ev_sep   = 17;
+        var _wrap_w   = (_ev_w - 24) / _ev_scale;
+        var _bd_ne    = array_length(global.case_evidence);
+        var _ev_texts = array_create(_bd_ne, "");
+        var _ev_hs    = array_create(_bd_ne, 0);
+
         for (var _be = 0; _be < _bd_ne; _be++) {
             var _evi = global.case_evidence[_be];
-            if (_evi.found) {
-                var _line = string_replace_all(_evi.text, "\n", " - ");
-                if (string_length(_line) > 84) _line = string_copy(_line, 1, 82) + "..";
-                draw_set_color(make_color_rgb(215, 235, 225));
-                draw_text_transformed(_mx1 + 18, _bd_y, string(_be + 1) + ". " + _line, 0.62, 0.62, 0);
-            } else {
-                draw_set_color(make_color_rgb(95, 110, 125));
-                draw_text_transformed(_mx1 + 18, _bd_y, string(_be + 1) + ". ??? (not found yet - search the offices, memos and coworkers)", 0.62, 0.62, 0);
-            }
-            _bd_y += 13;
+            var _tier = variable_struct_exists(_evi, "tier") ? _evi.tier : 2;
+            var _txt = _evi.found
+                ? (string(_be + 1) + ". " + string_replace_all(_evi.text, "\n", " "))
+                : (string(_be + 1) + ". [LVL " + string(_tier) + " LOCKED] ??? (Search " + (_tier == 3 ? "Suspect Desk Terminals" : "coworkers, memos & office PCs") + ")");
+            _ev_texts[_be] = _txt;
+            _ev_hs[_be]    = string_height_ext(_txt, _ev_sep, _wrap_w) * _ev_scale + 7;
         }
 
+        if (!variable_global_exists("case_board_scroll")) global.case_board_scroll = 0;
+        var _max_idx = max(0, _bd_ne - 1);
+        if (mouse_wheel_up()   || keyboard_check_pressed(vk_up)   || keyboard_check_pressed(ord("W"))) {
+            global.case_board_scroll = max(0, global.case_board_scroll - 1);
+        }
+        if (mouse_wheel_down() || keyboard_check_pressed(vk_down) || keyboard_check_pressed(ord("S"))) {
+            global.case_board_scroll = min(_max_idx, global.case_board_scroll + 1);
+        }
+        global.case_board_scroll = clamp(global.case_board_scroll, 0, _max_idx);
+
+        draw_set_valign(fa_top);
+        draw_set_halign(fa_left);
+        var _cy = _ev_y1 + 4;
+        var _vis_count = 0;
+        for (var _be2 = global.case_board_scroll; _be2 < _bd_ne; _be2++) {
+            var _evi2 = global.case_evidence[_be2];
+            var _ih   = _ev_hs[_be2];
+            if (_vis_count > 0 && _cy + _ih > _ev_y2 - 3) break;
+
+            draw_set_color((_be2 mod 2 == 0) ? make_color_rgb(12, 26, 34) : make_color_rgb(9, 20, 26));
+            draw_rectangle(_ev_x1 + 3, _cy, _ev_x2 - 12, min(_ev_y2 - 2, _cy + _ih - 2), false);
+
+            var _t_col = make_color_rgb(100, 118, 132);
+            if (_evi2.found) {
+                var _tr = variable_struct_exists(_evi2, "tier") ? _evi2.tier : 2;
+                if (_tr == 1)      _t_col = make_color_rgb(255, 220, 110); // Level 1: Warm Gold
+                else if (_tr == 3) _t_col = make_color_rgb(135, 255, 165); // Level 3: Critical Mint/Lime
+                else               _t_col = make_color_rgb(185, 235, 255); // Level 2: Corroborating Ice/Cyan
+            }
+            draw_set_color(_t_col);
+            draw_text_ext_transformed(_ev_x1 + 7, _cy + 3, _ev_texts[_be2], _ev_sep, _wrap_w, _ev_scale, _ev_scale, 0);
+            _cy += _ih + 2;
+            _vis_count++;
+        }
+
+        // Scrollbar on right edge of viewport
+        if (_bd_ne > _vis_count && _bd_ne > 1) {
+            var _sb_x1 = _ev_x2 - 8;
+            var _sb_x2 = _ev_x2 - 3;
+            var _sb_y1 = _ev_y1 + 3;
+            var _sb_y2 = _ev_y2 - 3;
+            var _sb_h  = _sb_y2 - _sb_y1;
+            var _thumb_h = max(14, _sb_h * (_vis_count / _bd_ne));
+            var _thumb_y = _sb_y1 + (_sb_h - _thumb_h) * (global.case_board_scroll / max(1, _bd_ne - 1));
+            draw_set_color(make_color_rgb(20, 42, 50));
+            draw_rectangle(_sb_x1, _sb_y1, _sb_x2, _sb_y2, false);
+            draw_set_color(c_aqua);
+            draw_rectangle(_sb_x1, _thumb_y, _sb_x2, _thumb_y + _thumb_h, false);
+        }
+
+        // Interactive [ACCUSE SUSPECT] Button directly on the Case Board
+        var _crit_found = 0;
+        for (var _cf = 0; _cf < _bd_ne; _cf++) {
+            var _cevi = global.case_evidence[_cf];
+            if (_cevi.found && variable_struct_exists(_cevi, "tier") && _cevi.tier == 3) {
+                _crit_found++;
+            }
+        }
+        var _ab_x1 = _mcx - 195;
+        var _ab_y1 = _my2 - 40;
+        var _ab_x2 = _mcx + 195;
+        var _ab_y2 = _my2 - 22;
+        var _can_accuse = (!_solved && global.evidence_found >= _min_ev && _crit_found >= 1);
+        var _hover_acc  = point_in_rectangle(_gmx, _gmy, _ab_x1, _ab_y1, _ab_x2, _ab_y2);
+
+        draw_set_color(_solved ? make_color_rgb(14, 42, 24) : (_can_accuse ? (_hover_acc ? make_color_rgb(35, 75, 95) : make_color_rgb(18, 48, 64)) : make_color_rgb(24, 28, 34)));
+        draw_rectangle(_ab_x1, _ab_y1, _ab_x2, _ab_y2, false);
+        draw_set_color(_solved ? c_lime : (_can_accuse ? c_aqua : make_color_rgb(90, 105, 115)));
+        draw_rectangle(_ab_x1, _ab_y1, _ab_x2, _ab_y2, true);
+
+        draw_set_valign(fa_middle);
         draw_set_halign(fa_center);
+        var _btn_lbl = "";
+        if (_solved) {
+            _btn_lbl = "CASE SOLVED — PROCEED TO LOCKDOWN OVERRIDE";
+            draw_set_color(c_lime);
+        } else if (_can_accuse) {
+            _btn_lbl = "[E / ENTER / CLICK]  ACCUSE A SUSPECT";
+            draw_set_color(c_white);
+        } else if (_crit_found < 1) {
+            _btn_lbl = "INSPECT A SUSPECT DESK FOR 1 [LVL 3: CRITICAL] CLUE";
+            draw_set_color(make_color_rgb(255, 205, 90));
+        } else {
+            _btn_lbl = "GATHER " + string(_min_ev) + " CLUES TO ACCUSE (" + string(global.evidence_found) + "/" + string(_min_ev) + " FOUND)";
+            draw_set_color(make_color_rgb(255, 205, 90));
+        }
+        draw_text_transformed(_mcx, (_ab_y1 + _ab_y2) * 0.5, _btn_lbl, 0.70, 0.70, 0);
+
+        if (_can_accuse && _can_input && (keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || (_hover_acc && mouse_check_button_pressed(mb_left)))) {
+            audio_play_sound(snd_button_click, 6, false);
+            global.pc_input_cooldown  = 10;
+            global.pc_screen_select   = 0;
+            global.pc_screen_feedback = "";
+            if (variable_global_exists("case_culprit_confirmed") && global.case_culprit_confirmed) {
+                global.pc_screen_mode  = 2;
+                global.pc_screen_title = "CASE BOARD — IDENTIFY ATTACK VECTOR";
+            } else {
+                global.pc_screen_mode  = 1;
+                global.pc_screen_title = "CASE BOARD — ACCUSE A SUSPECT";
+            }
+        }
+
         draw_set_color(make_color_rgb(150, 200, 175));
-        draw_text_transformed(_mcx, _my2 - 25, "Wrong accusations: " + string(global.case_wrong_accusations) + "     [TAB] / [ESC] Close", 0.72, 0.72, 0);
+        draw_text_transformed(_mcx, _my2 - 11, "Wrong accusations: " + string(global.case_wrong_accusations) + "     [TAB / ESC] Close", 0.70, 0.70, 0);
 
     } else if (_mode == 1 || _mode == 2) {
         // =====================================================
-        // SUSPECT DESK: ACCUSE -> pick the attack vector
+        // CASE BOARD ACCUSATION FLOW: Pick Suspect (Mode 1) -> Pick Attack Vector (Mode 2)
         // =====================================================
         var _labels = [];
         var _desc   = "";
-        var _tgt    = instance_exists(global.pc_screen_target) ? global.pc_screen_target : noone;
-        var _tg_sus = (_tgt != noone && _tgt.suspect_idx >= 0) ? global.case_suspects[_tgt.suspect_idx] : noone;
-        var _min_ev = min(2, global.evidence_needed);
+        var _bd_n2  = array_length(global.case_suspects);
 
         if (_mode == 1) {
-            _desc = (_tg_sus != noone ? ("Desk of " + _tg_sus.name + "  (" + _tg_sus.dept + ")") : "Desk")
-                + "\nEvidence on file: " + string(global.evidence_found) + "/" + string(global.evidence_needed);
-            _labels = _solved ? ["CASE CLOSED - step away"] : [(_tg_sus != noone ? ("ACCUSE " + _tg_sus.name) : "ACCUSE"), "Step away"];
+            _desc = "WHOSE ACCIDENTAL SLIP-UP LET THE HACKERS IN? Select Patient Zero based on your Case Board evidence (" + string(global.evidence_found) + "/" + string(global.evidence_needed) + " clues):";
+            for (var _s_i = 0; _s_i < _bd_n2; _s_i++) {
+                var _s_obj = global.case_suspects[_s_i];
+                var _w_tag = (variable_struct_exists(_s_obj, "accused_wrong") && _s_obj.accused_wrong) ? "  [RULED OUT]" : "";
+                array_push(_labels, "SELECT: " + _s_obj.name + "  (" + _s_obj.dept + " - Desk " + _s_obj.nameplate + ")" + _w_tag);
+            }
+            array_push(_labels, "< Back to Case Board");
         } else {
-            _desc   = "CORRECT SUSPECT! Now prove HOW they got in.\nWhich attack vector was used?";
-            _labels = global.case_vectors;
+            var _cul_obj = global.case_suspects[global.case_culprit_idx];
+            _desc = "PATIENT ZERO IDENTIFIED: " + _cul_obj.name + " (Desk " + _cul_obj.nameplate + ")!\nNow select WHICH accidental slip-up / hazard caused the breach:";
+            for (var _v_i = 0; _v_i < array_length(global.case_vectors); _v_i++) {
+                array_push(_labels, global.case_vectors[_v_i]);
+            }
+            array_push(_labels, "< Back to Case Board");
         }
         var _num_items = array_length(_labels);
 
@@ -229,60 +356,57 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
         draw_set_halign(fa_center);
         draw_set_valign(fa_middle);
         draw_set_color(c_white);
-        draw_text_ext_transformed(_mcx, _my1 + 42, _desc, 14, (_mw - 30) / 0.78, 0.78, 0.78, 0);
+        draw_text_ext_transformed(_mcx, _my1 + 42, _desc, 14, (_mw - 30) / 0.74, 0.74, 0.74, 0);
 
+        var _clicked_item = false;
         draw_set_halign(fa_left);
         for (var _ii = 0; _ii < _num_items; _ii++) {
-            var _iy = _my1 + 72 + (_ii * 24);
+            var _iy = _my1 + 74 + (_ii * 24);
             var _is_sel = (global.pc_screen_select == _ii);
 
             var _gmx2 = device_mouse_x_to_gui(0);
             var _gmy2 = device_mouse_y_to_gui(0);
-            var _hover_item = point_in_rectangle(_gmx2, _gmy2, _mx1 + 10, _iy - 10, _mx2 - 10, _iy + 10);
+            var _hover_item = point_in_rectangle(_gmx2, _gmy2, _mx1 + 14, _iy - 10, _mx2 - 14, _iy + 10);
             if (_hover_item && mouse_check_button_pressed(mb_left)) {
                 global.pc_screen_select = _ii;
                 _is_sel = true;
+                _clicked_item = true;
             }
 
             draw_set_color(_is_sel ? make_color_rgb(18, 45, 60) : make_color_rgb(12, 22, 28));
-            draw_rectangle(_mx1 + 10, _iy - 10, _mx2 - 10, _iy + 10, false);
+            draw_rectangle(_mx1 + 14, _iy - 10, _mx2 - 14, _iy + 10, false);
             draw_set_color(_is_sel ? c_aqua : make_color_rgb(60, 90, 110));
-            draw_rectangle(_mx1 + 10, _iy - 10, _mx2 - 10, _iy + 10, true);
+            draw_rectangle(_mx1 + 14, _iy - 10, _mx2 - 14, _iy + 10, true);
             draw_set_color(_is_sel ? c_white : make_color_rgb(180, 200, 215));
-            draw_text_transformed(_mx1 + 16, _iy + 1, (_is_sel ? "> " : "  ") + _labels[_ii], 0.76, 0.76, 0);
+            draw_text_transformed(_mx1 + 20, _iy + 1, (_is_sel ? "> " : "  ") + _labels[_ii], 0.72, 0.72, 0);
         }
 
-        // Decrement PC input cooldown so opening with [E] does not immediately trigger option 0 in the same frame!
-        if (variable_global_exists("pc_input_cooldown") && global.pc_input_cooldown > 0) {
-            global.pc_input_cooldown--;
-        }
-
-        var _can_input    = (!variable_global_exists("pc_input_cooldown") || global.pc_input_cooldown <= 0);
-        var _trigger_flag = _can_input && (keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space));
+        var _trigger_flag = _can_input && (_clicked_item || keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space));
         if (_trigger_flag) {
-            if (_mode == 1) {
-                if (_solved || global.pc_screen_select == 1) {
-                    global.pc_screen_open = false;
-                    audio_play_sound(snd_button_click, 5, false);
-                } else if (global.evidence_found < _min_ev) {
-                    audio_play_sound(wrong1, 8, false);
-                    global.pc_screen_feedback     = "Not enough evidence to accuse anyone yet! Gather more (" + string(global.evidence_found) + "/" + string(_min_ev) + ").";
-                    global.pc_screen_feedback_col = make_color_rgb(255, 215, 60);
-                } else if (_tgt != noone && _tgt.suspect_idx == global.case_culprit_idx) {
+            global.pc_input_cooldown = 10;
+            if (global.pc_screen_select == _num_items - 1) {
+                // "< Back to Case Board"
+                audio_play_sound(snd_button_click, 5, false);
+                global.pc_screen_mode  = 3;
+                global.pc_screen_title = "CASE BOARD";
+            } else if (_mode == 1) {
+                var _acc_idx = global.pc_screen_select;
+                var _acc_sus = global.case_suspects[_acc_idx];
+                if (_acc_idx == global.case_culprit_idx) {
                     audio_play_sound(snd_correct_ping, 10, false);
                     global.case_culprit_confirmed = true;
                     global.pc_screen_mode         = 2;
                     global.pc_screen_select       = 0;
-                    global.pc_screen_feedback     = "The evidence points here. This desk was the hacker's entry point!";
+                    global.pc_screen_title        = "CASE BOARD — IDENTIFY ATTACK VECTOR";
+                    global.pc_screen_feedback     = "CORRECT! " + _acc_sus.name + "'s workstation was Patient Zero. Now select the attack vector!";
                     global.pc_screen_feedback_col = c_lime;
-                    global.pc_screen_badge        = "PATIENT ZERO FOUND";
                 } else {
                     audio_play_sound(wrong1, 10, false);
                     global.case_wrong_accusations++;
                     global.scrap_count = max(0, global.scrap_count - 2);
-                    if (_tg_sus != noone) _tg_sus.accused_wrong = true;
+                    _acc_sus.accused_wrong = true;
                     scr_case_recompute();
-                    global.pc_screen_feedback     = "WRONG PERSON! " + (_tg_sus != noone ? _tg_sus.name : "They") + " is innocent. -2 SCRAP. Re-check the Case Board [TAB].";
+                    global.pc_screen_feedback     = "WRONG SUSPECT! " + _acc_sus.name + " had a verified alibi. (-2 SCRAP) Review your evidence!";
                     global.pc_screen_feedback_col = make_color_rgb(255, 110, 95);
                 }
             } else {
@@ -297,20 +421,15 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
                     global.intern_duty_flagged = !_is_compliant;
 
                     audio_play_sound(snd_objective_complete, 10, false);
-                    global.pc_screen_mode         = 1;
+                    global.pc_screen_mode         = 3;
+                    global.pc_screen_title        = "CASE BOARD — CASE CLOSED";
                     global.pc_screen_feedback     = "CASE SOLVED! +3 SCRAP. " + _case.kyle_debrief;
                     global.pc_screen_feedback_col = c_lime;
-                    global.pc_screen_badge        = "CASE CLOSED [OVERRIDE AUTHORIZED]";
+                    global.pc_screen_badge        = "OVERRIDE AUTHORIZED";
                 } else {
                     audio_play_sound(wrong1, 8, false);
                     global.case_wrong_accusations++;
-                    var _how_found = false;
-                    for (var _hi = 0; _hi < array_length(global.case_evidence); _hi++) {
-                        if (global.case_evidence[_hi].type == "how" && global.case_evidence[_hi].found) _how_found = true;
-                    }
-                    global.pc_screen_feedback     = _how_found
-                        ? "NOT QUITE. Re-read the IT FORENSICS evidence on the Case Board [TAB]."
-                        : "NOT QUITE. Find the IT FORENSICS evidence first - it shows how they got in!";
+                    global.pc_screen_feedback     = "INCORRECT VECTOR! Check the [LVL 3: CRITICAL] forensic trace from the culprit's desk.";
                     global.pc_screen_feedback_col = make_color_rgb(255, 110, 95);
                 }
             }
@@ -321,18 +440,18 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
         draw_set_valign(fa_middle);
         var _fb_txt = (variable_global_exists("pc_screen_feedback") && global.pc_screen_feedback != "")
             ? global.pc_screen_feedback
-            : (_mode == 2 ? "Think about the technical trace you found." : "Use the Case Board [TAB] to decide who to accuse.");
+            : (_mode == 2 ? "Select the attack method described in the culprit's Level 3 Critical Forensics." : "Select a suspect to accuse, or return to the Case Board.");
         var _fb_col = (variable_global_exists("pc_screen_feedback_col") && global.pc_screen_feedback != "") ? global.pc_screen_feedback_col : make_color_rgb(255, 215, 60);
         draw_set_color(_fb_col);
-        draw_text_ext_transformed(_mcx, _my1 + 146, _fb_txt, 12, (_mw - 30) / 0.68, 0.68, 0.68, 0);
+        draw_text_ext_transformed(_mcx, _my2 - 58, _fb_txt, 12, (_mw - 30) / 0.68, 0.68, 0.68, 0);
 
         // Action prompt pill
         draw_set_color(make_color_rgb(14, 30, 44));
-        draw_rectangle(_mcx - 155, _my2 - 40, _mcx + 155, _my2 - 22, false);
+        draw_rectangle(_mcx - 165, _my2 - 38, _mcx + 165, _my2 - 22, false);
         draw_set_color(c_aqua);
-        draw_rectangle(_mcx - 155, _my2 - 40, _mcx + 155, _my2 - 22, true);
+        draw_rectangle(_mcx - 165, _my2 - 38, _mcx + 165, _my2 - 22, true);
         draw_set_color(c_white);
-        draw_text_transformed(_mcx, _my2 - 31, "[W/S or ARROWS] Select   [E / ENTER] Confirm", 0.72, 0.72, 0);
+        draw_text_transformed(_mcx, _my2 - 30, "[W/S or CLICK] Select   [E / ENTER] Confirm", 0.70, 0.70, 0);
 
     } else {
         // Centered Main Clue Box
@@ -349,9 +468,11 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
         draw_text_transformed(_mcx, _my2 - 40, global.pc_screen_radar, 0.85, 0.85, 0);
     }
 
-    // Minimal close prompt
-    draw_set_color(make_color_rgb(150, 200, 175));
-    draw_text_transformed(_mcx, _my2 - 13, "[ESC] Close", 0.80, 0.80, 0);
+    // Minimal close prompt (mode 3 draws its own combined footer)
+    if (_mode != 3) {
+        draw_set_color(make_color_rgb(150, 200, 175));
+        draw_text_transformed(_mcx, _my2 - 13, "[ESC] Close", 0.80, 0.80, 0);
+    }
 
     if (keyboard_check_pressed(ord("X"))
         || keyboard_check_pressed(vk_escape)
@@ -391,11 +512,13 @@ if (keyboard_check_pressed(vk_tab)
     keyboard_clear(vk_tab);
     audio_play_sound(snd_button_click, 5, false);
     global.pc_screen_open     = true;
+    global.pc_input_cooldown  = 8;
     global.pc_screen_mode     = 3;
     global.pc_screen_is_pz    = false;
     global.pc_screen_target   = noone;
     global.pc_screen_select   = 0;
     global.pc_screen_feedback = "";
+    global.case_board_scroll  = 0;
     global.pc_screen_title    = "CASE BOARD";
     global.pc_screen_badge    = "TAB TO CLOSE";
     global.pc_screen_body     = "";
@@ -418,78 +541,180 @@ if (_curr.phase_name == "PRACTICE")   _phase_col = make_color_rgb(255, 210, 55);
 if (_curr.phase_name == "MASTERY")    _phase_col = make_color_rgb(255, 145, 50);
 if (_curr.phase_name == "FINAL EXAM") _phase_col = make_color_rgb(255, 85, 160);
 
-// Top-left status bar (expanded to show Wrench Scrap & HR 3-Property Limit)
-draw_set_alpha(0.82);
+// Top-left Dynamic Quest & Status Box
+draw_set_alpha(0.86);
 draw_set_color(make_color_rgb(10, 14, 22));
-draw_rectangle(8, 8, 268, 94, false);
+draw_rectangle(8, 8, 286, 102, false);
 draw_set_alpha(1.0);
 draw_set_color(_phase_col);
-draw_rectangle(8, 8, 268, 94, true);
+draw_rectangle(8, 8, 286, 102, true);
 
 // Line 1: Chapter, Floor X/10 & Phase Badge
 draw_set_color(c_white);
-draw_text_transformed(15, 18, "CH." + string(_ch_num) + " " + _ch_short + "  •  FLR " + string(_flr_num) + "/10", 0.84, 0.84, 0);
+draw_text_transformed(15, 18, "CH." + string(_ch_num) + " " + _ch_short + "  •  FLR " + string(_flr_num) + "/10", 0.82, 0.82, 0);
 draw_set_halign(fa_right);
 draw_set_color(_phase_col);
-draw_text_transformed(262, 18, "[" + _curr.phase_name + "]", 0.78, 0.78, 0);
+draw_text_transformed(280, 18, "[" + _curr.phase_name + "]", 0.76, 0.76, 0);
 draw_set_halign(fa_left);
 
+// Gather live quest state
+var _has_key    = (variable_global_exists("has_dungeon_cipher_key") && global.has_dungeon_cipher_key);
+var _clues_cur  = variable_global_exists("clues_found")     ? global.clues_found     : 0;
+var _ev_cur     = variable_global_exists("evidence_found")  ? global.evidence_found  : 0;
+var _ev_req     = variable_global_exists("evidence_needed") ? global.evidence_needed : 0;
+var _pz_solved  = (variable_global_exists("incident_solved")     && global.incident_solved);
+var _ov_done    = (variable_global_exists("lockdown_overridden") && global.lockdown_overridden);
+var _pwr_done   = (variable_global_exists("power_restored")      && global.power_restored);
+var _gate_ev    = min(2, _ev_req);
+var _crit_cnt   = 0;
+if (variable_global_exists("case_evidence")) {
+    for (var _ci = 0; _ci < array_length(global.case_evidence); _ci++) {
+        var _ce = global.case_evidence[_ci];
+        if (_ce.found && variable_struct_exists(_ce, "tier") && _ce.tier == 3) _crit_cnt++;
+    }
+}
+var _ready_acc  = (!_pz_solved && _ev_cur >= _gate_ev && _crit_cnt >= 1);
+var _all_ev     = (_ev_req > 0 && _ev_cur >= _ev_req);
+
+// Track & trigger Milestone Completion Toast Banners
+if (!variable_instance_exists(id, "ms_init")) {
+    ms_init           = true;
+    ms_hint_done      = false;
+    ms_key_done       = false;
+    ms_ready_acc_done = false;
+    ms_all_ev_done    = false;
+    ms_case_done      = false;
+    ms_ov_done        = false;
+    ms_pwr_done       = false;
+    quest_toast_timer = 0;
+    quest_toast_title = "";
+    quest_toast_sub   = "";
+    quest_toast_col   = c_lime;
+}
+if (!ms_hint_done && _clues_cur >= 1 && !_has_key) {
+    ms_hint_done      = true;
+    quest_toast_timer = 190;
+    quest_toast_title = "KEY VAULT HINT FOUND!";
+    quest_toast_sub   = "Next Quest: Unlock the Gold Key Vault door & grab the Cipher Key!";
+    quest_toast_col   = make_color_rgb(255, 215, 65);
+}
+if (!ms_key_done && _has_key) {
+    ms_key_done       = true;
+    quest_toast_timer = 190;
+    quest_toast_title = "CIPHER KEY ACQUIRED — TERMINALS UNLOCKED!";
+    quest_toast_sub   = "Next Quest: Inspect Suspect Desks & Coworkers to solve the breach!";
+    quest_toast_col   = c_aqua;
+}
+if (!ms_all_ev_done && _has_key && _all_ev && !_pz_solved) {
+    ms_all_ev_done    = true;
+    ms_ready_acc_done = true;
+    quest_toast_timer = 210;
+    quest_toast_title = "ALL EVIDENCE FOUND (" + string(_ev_cur) + "/" + string(_ev_req) + ")!";
+    quest_toast_sub   = "Open [TAB] Case Board to accuse the culprit, then Override the Lockdown!";
+    quest_toast_col   = c_lime;
+} else if (!ms_ready_acc_done && _has_key && _ready_acc && !_pz_solved) {
+    ms_ready_acc_done = true;
+    quest_toast_timer = 190;
+    quest_toast_title = "CRITICAL PROOF FOUND — READY TO ACCUSE!";
+    quest_toast_sub   = "Press [TAB] to accuse a suspect now, or keep searching for all clues!";
+    quest_toast_col   = make_color_rgb(135, 255, 165);
+}
+if (!ms_case_done && _pz_solved) {
+    ms_case_done      = true;
+    quest_toast_timer = 210;
+    quest_toast_title = "CASE SOLVED — LOCKDOWN OVERRIDE UNLOCKED!";
+    quest_toast_sub   = "Next Quest: Head to the Security Control Room & hit the Override Console!";
+    quest_toast_col   = c_lime;
+}
+if (!ms_ov_done && _ov_done) {
+    ms_ov_done        = true;
+    quest_toast_timer = 190;
+    quest_toast_title = "LOCKDOWN OVERRIDDEN — BREAKER ROOM OPEN!";
+    quest_toast_sub   = "Next Quest: Fix the 3 fuses in the Electrical Breaker Room!";
+    quest_toast_col   = make_color_rgb(255, 210, 60);
+}
+if (!ms_pwr_done && _pwr_done) {
+    ms_pwr_done       = true;
+    quest_toast_timer = 210;
+    quest_toast_title = "FLOOR POWER RESTORED!";
+    quest_toast_sub   = "Final Quest: Unlock & board the Extraction Elevator to complete the floor!";
+    quest_toast_col   = c_lime;
+}
+
 // Line 2: Chapter Cipher Key status
-var _has_key = (variable_global_exists("has_dungeon_cipher_key") && global.has_dungeon_cipher_key);
 if (_has_key) {
     draw_set_color(c_lime);
     if (_ch_num == CHAPTER_VIGENERE) {
         var _vk = variable_global_exists("dungeon_vigenere_key") ? global.dungeon_vigenere_key : "CAB";
-        draw_text_transformed(15, 34, "VIGENERE KEY:  " + _vk, 0.86, 0.86, 0);
+        draw_text_transformed(15, 33, "VIGENERE KEY:  " + _vk, 0.80, 0.80, 0);
     } else if (_ch_num == CHAPTER_ATBASH) {
-        draw_text_transformed(15, 34, "ATBASH KEY:  MIRROR (A<->Z)", 0.86, 0.86, 0);
+        draw_text_transformed(15, 33, "ATBASH KEY:  MIRROR (A<->Z)", 0.80, 0.80, 0);
     } else {
         var _k = global.dungeon_cipher_key;
         var _k_str = (_k > 0) ? ("+" + string(_k)) : string(_k);
-        draw_text_transformed(15, 34, "CAESAR KEY:  SHIFT " + _k_str, 0.86, 0.86, 0);
+        draw_text_transformed(15, 33, "CAESAR KEY:  SHIFT " + _k_str, 0.80, 0.80, 0);
     }
 } else {
     draw_set_color(make_color_rgb(255, 200, 50));
-    draw_text_transformed(15, 34, _ch_short + " KEY:  LOCKED IN VAULT", 0.84, 0.84, 0);
+    draw_text_transformed(15, 33, _ch_short + " KEY:  LOCKED IN VAULT", 0.80, 0.80, 0);
 }
 
-// Line 3: 5-Step Whodunit Pipeline (evidence -> narrow suspects -> accuse -> override -> extract)
-var _ev_cur    = variable_global_exists("evidence_found")  ? global.evidence_found  : 0;
-var _ev_req    = variable_global_exists("evidence_needed") ? global.evidence_needed : 0;
-var _pz_solved = variable_global_exists("incident_solved") && global.incident_solved;
-var _ov_done   = (variable_global_exists("lockdown_overridden") && global.lockdown_overridden);
-var _gate_ev   = min(2, _ev_req);
-var _left_susp = 0;
-if (variable_global_exists("case_suspects")) {
-    for (var _ls = 0; _ls < array_length(global.case_suspects); _ls++) {
-        if (global.case_suspects[_ls].status != 1) _left_susp++;
-    }
-}
+// Lines 3 & 4: Dynamic Phase Quest Tracker (replaces static [ ]1.KEY [ ]2.OVERRIDE [ ]3.POWER)
+var _q_line1 = "";
+var _q_line2 = "";
+var _q_col1  = c_white;
+var _q_col2  = make_color_rgb(185, 215, 235);
 
-if (!_pz_solved && _ev_cur < _gate_ev) {
-    draw_set_color(make_color_rgb(255, 215, 60));
-    draw_text_transformed(15, 50, "CASE: 1. FIND EVIDENCE (" + string(_ev_cur) + "/" + string(_ev_req) + ")  [TAB] BOARD", 0.70, 0.70, 0);
-} else if (!_pz_solved && _left_susp > 1) {
-    draw_set_color(make_color_rgb(255, 160, 90));
-    draw_text_transformed(15, 50, "CASE: 2. NARROW SUSPECTS (" + string(_left_susp) + " LEFT)  [TAB] BOARD", 0.70, 0.70, 0);
+if (!_has_key) {
+    // PHASE 1 QUEST: Unlock the Key Vault
+    _q_line1 = (_clues_cur >= 1)
+        ? "[x] QUEST 1A: Found Hint on Security PC"
+        : "[>] QUEST 1A: Find Hint on Security PC";
+    _q_col1  = (_clues_cur >= 1) ? c_lime : make_color_rgb(255, 215, 60);
+    _q_line2 = (_clues_cur >= 1)
+        ? "[!] QUEST 1B: Get the Key in the Key Vault!"
+        : "[ ] QUEST 1B: Get the Key in the Key Vault";
+    _q_col2  = (_clues_cur >= 1) ? c_aqua : make_color_rgb(150, 170, 190);
 } else if (!_pz_solved) {
-    draw_set_color(make_color_rgb(255, 115, 160));
-    draw_text_transformed(15, 50, "CASE: 3. ACCUSE THE CULPRIT AT THEIR DESK", 0.70, 0.70, 0);
-} else if (!_ov_done) {
-    draw_set_color(make_color_rgb(255, 95, 115));
-    draw_text_transformed(15, 50, "CASE: 4. OPERATE LOCKDOWN OVERRIDE TO DISARM BOTS", 0.68, 0.68, 0);
+    // PHASE 2 QUEST: Investigate & Accuse on Case Board [TAB]
+    if (_all_ev) {
+        _q_line1 = "[x] ALL EVIDENCE FOUND (" + string(_ev_cur) + "/" + string(_ev_req) + ")!";
+        _q_col1  = c_lime;
+        _q_line2 = "[!] QUEST: Accuse on [TAB] -> Override Lockdown!";
+        _q_col2  = make_color_rgb(255, 220, 75);
+    } else if (_ready_acc) {
+        _q_line1 = "[x] Clues: " + string(_ev_cur) + "/" + string(_ev_req) + " (Lvl 3 Proof Found!)";
+        _q_col1  = make_color_rgb(135, 255, 165);
+        _q_line2 = "[!] QUEST: Press [TAB] to Accuse Suspect!";
+        _q_col2  = make_color_rgb(255, 215, 60);
+    } else {
+        _q_line1 = "[>] QUEST 2A: Find Clues (" + string(_ev_cur) + "/" + string(_ev_req) + ") & Lvl 3 Proof (" + string(_crit_cnt) + "/1)";
+        _q_col1  = make_color_rgb(255, 215, 60);
+        _q_line2 = "[ ] QUEST 2B: Accuse Culprit on [TAB] Board";
+        _q_col2  = make_color_rgb(150, 170, 190);
+    }
+} else if (!_pwr_done) {
+    // PHASE 3 QUEST: Override Lockdown & Fix Breaker
+    _q_line1 = _ov_done
+        ? "[x] QUEST 3A: Lockdown Override Activated"
+        : "[!] QUEST 3A: Override the Lockdown Console!";
+    _q_col1  = _ov_done ? c_lime : make_color_rgb(255, 110, 130);
+    _q_line2 = _ov_done
+        ? "[!] QUEST 3B: Fix Breaker in Breaker Room!"
+        : "[ ] QUEST 3B: Fix Breaker in Breaker Room";
+    _q_col2  = _ov_done ? make_color_rgb(255, 215, 60) : make_color_rgb(150, 170, 190);
 } else {
-    draw_set_color(c_lime);
-    draw_text_transformed(15, 50, "CASE: 5. PROCEED TO EXTRACTION ELEVATOR", 0.74, 0.74, 0);
+    // PHASE 4 QUEST: Escape via Extraction Elevator
+    _q_line1 = "[x] ALL FLOOR SYSTEMS RESTORED!";
+    _q_col1  = c_lime;
+    _q_line2 = "[!] FINAL QUEST: Leave via Extraction Elevator!";
+    _q_col2  = c_aqua;
 }
 
-// Line 4: 4-Stage Facility Recovery Checklist (1.KEY -> 2.OVERRIDE -> 3.POWER -> 4.ELEVATOR)
-var _pwr_done = (variable_global_exists("power_restored") && global.power_restored);
-var _s1_txt   = _has_key   ? "[x]1.KEY"      : "[ ]1.KEY";
-var _s2_txt   = _ov_done   ? "[x]2.OVERRIDE" : "[ ]2.OVERRIDE";
-var _s3_txt   = _pwr_done  ? "[x]3.POWER"    : "[ ]3.POWER";
-draw_set_color((_has_key && _ov_done && _pwr_done) ? c_lime : make_color_rgb(185, 210, 235));
-draw_text_transformed(15, 66, _s1_txt + "  " + _s2_txt + "  " + _s3_txt, 0.72, 0.72, 0);
+draw_set_color(_q_col1);
+draw_text_transformed(15, 50, _q_line1, 0.68, 0.68, 0);
+draw_set_color(_q_col2);
+draw_text_transformed(15, 66, _q_line2, 0.68, 0.68, 0);
 
 // Line 5: Wrench Scrap Counter & Drone Jammer Status
 var _scrp_cur = variable_global_exists("scrap_count")    ? global.scrap_count    : 0;
@@ -497,14 +722,43 @@ var _hr_cur   = variable_global_exists("hr_scrap_count") ? global.hr_scrap_count
 var _jam_t    = variable_global_exists("drone_jammed_timer") ? global.drone_jammed_timer : 0;
 
 draw_set_color(c_aqua);
-draw_text_transformed(15, 82, "SCRAP: " + string(_scrp_cur), 0.78, 0.78, 0);
+draw_text_transformed(15, 84, "SCRAP: " + string(_scrp_cur), 0.76, 0.76, 0);
 
 if (_jam_t > 0) {
     var _jam_sec = ceil(_jam_t / 60);
     draw_set_halign(fa_right);
     draw_set_color(c_lime);
-    draw_text_transformed(262, 82, "DRONES JAMMED: " + string(_jam_sec) + "s", 0.76, 0.76, 0);
+    draw_text_transformed(280, 84, "DRONES JAMMED: " + string(_jam_sec) + "s", 0.72, 0.72, 0);
     draw_set_halign(fa_left);
+}
+
+// =========================================================
+// MILESTONE COMPLETION TOAST BANNER (Pops up when completing steps!)
+// =========================================================
+if (quest_toast_timer > 0) {
+    quest_toast_timer--;
+    var _qt_a = clamp(quest_toast_timer / 30, 0, 1);
+    var _qx1  = 292;
+    var _qx2  = _gui_w - 10;
+    var _qy1  = 56;
+    var _qy2  = 98;
+    var _qcx  = (_qx1 + _qx2) * 0.5;
+
+    draw_set_alpha(_qt_a * 0.94);
+    draw_set_color(make_color_rgb(10, 22, 28));
+    draw_rectangle(_qx1, _qy1, _qx2, _qy2, false);
+    draw_set_alpha(_qt_a);
+    draw_set_color(quest_toast_col);
+    draw_rectangle(_qx1, _qy1, _qx2, _qy2, true);
+
+    draw_set_halign(fa_center);
+    draw_set_valign(fa_middle);
+    draw_set_color(quest_toast_col);
+    draw_text_transformed(_qcx, _qy1 + 13, "[✓] " + quest_toast_title, 0.74, 0.74, 0);
+    draw_set_color(c_white);
+    draw_text_transformed(_qcx, _qy1 + 29, quest_toast_sub, 0.64, 0.64, 0);
+    draw_set_halign(fa_left);
+    draw_set_alpha(1.0);
 }
 
 

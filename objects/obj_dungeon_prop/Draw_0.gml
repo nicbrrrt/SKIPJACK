@@ -406,7 +406,7 @@ else if (prop_type == TILE_PROP_BREAKER) {
 }
 else if (prop_type == TILE_PROP_DRONE) {
     var _cy      = y + 8;
-    var _hover_y = (_lifted || is_scrapped) ? 0 : (sin(hover_t) * 2.5);
+    var _hover_y = is_scrapped ? 0 : (sin(hover_t) * 2.5);
 
     if (is_scrapped) {
         // Dismantled Security Bot Shell on the floor
@@ -475,8 +475,8 @@ else if (prop_type == TILE_PROP_DRONE) {
             draw_circle(_cx, y + 10, 9, false);
         }
 
-        // Draw Rogue Virus / Security Drone sprite centered in the hallway
-        var _dframe = _lifted ? 0 : (floor(current_time / 120) mod max(1, sprite_get_number(drone_spr)));
+        // Draw Rogue Virus / Security Drone sprite centered in the hallway (always animate even in standby!)
+        var _dframe = floor(current_time / 120) mod max(1, sprite_get_number(drone_spr));
         var _dtint  = is_fried ? make_color_rgb(255, 95, 95) : (_lifted ? make_color_rgb(150, 220, 175) : c_white);
         var _gx_off = grapple_active ? irandom_range(-2, 2) : 0;
         var _gy_off = grapple_active ? irandom_range(-2, 2) : 0;

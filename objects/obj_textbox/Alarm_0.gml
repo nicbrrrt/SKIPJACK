@@ -2,6 +2,7 @@
 //Must be done AFTER the handover occurs, so frame after created, and after every text page change
 
 #region Reset variables
+choice			= 0;
 charCount		= 0;
 finishede_count = 0;
 portrait_talk_c = 0;

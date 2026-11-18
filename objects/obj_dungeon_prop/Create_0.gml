@@ -56,7 +56,9 @@ scrap_pop_text   = "";
 
 // Whodunit case dossier fields (assigned by scr_dungeon_spawn after the floor is built)
 evidence_idx     = -1;    // >= 0: this prop delivers that piece of case evidence
-suspect_idx      = -1;    // >= 0: this PC is that suspect's desk (accuse here!)
+suspect_idx      = -1;    // >= 0: this PC is that suspect's desk (inspect for Level 3 Critical Evidence!)
 nameplate        = "";    // Desk nameplate shown on suspect desks
 spawn_room_type  = -1;    // Room type this PC spawned in
 spawn_in_enc     = false; // True if spawned inside an encrypted room
+is_vault_hint_pc = false; // True for the dedicated Security Sector PC holding the Key Vault hint
+npc_info_tier    = 0;     // 0 = unaware coworker, 1 = surface lead, 2 = corroborating witness

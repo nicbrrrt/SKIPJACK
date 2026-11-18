@@ -73,63 +73,54 @@ if (is_final_exam) {
 draw_set_color(make_color_rgb(255, 215, 55));
 draw_text_transformed(_cx, _y1 + 42, _sub_str, 0.84, 0.84, 0);
 
-// 2. Section 1 — Cyber Threat Neutralized Box  (PAGE 0: Incident Debrief)
+// 2. Section 1 — What Happened on This Floor (The Accidental Slip-Up Story) (PAGE 0: Incident Debrief)
 if (page == 0) {
 draw_set_color(make_color_rgb(18, 28, 44));
-draw_rectangle(_x1 + 16, _y1 + 54, _x2 - 16, _y1 + 144, false);
+draw_rectangle(_x1 + 16, _y1 + 52, _x2 - 16, _y1 + 142, false);
 draw_set_color(make_color_rgb(65, 165, 215));
-draw_rectangle(_x1 + 16, _y1 + 54, _x2 - 16, _y1 + 144, true);
+draw_rectangle(_x1 + 16, _y1 + 52, _x2 - 16, _y1 + 142, true);
 
 draw_set_halign(fa_left);
+draw_set_valign(fa_top);
 draw_set_color(c_aqua);
-draw_text_transformed(_x1 + 26, _y1 + 66, "1. THREAT NEUTRALIZED:  " + case_word + "  (" + case_title + ")", 0.88, 0.88, 0);
+draw_text_transformed(_x1 + 24, _y1 + 57, "1. WHAT HAPPENED:  " + case_word + "  (" + case_title + ")", 0.80, 0.80, 0);
 
 draw_set_color(c_white);
-draw_text_ext_transformed(_x1 + 26, _y1 + 88, "WHAT IT IS: " + case_hint, 14, (_pw - 56) / 0.82, 0.82, 0.82, 0);
+draw_text_ext_transformed(_x1 + 24, _y1 + 74, case_lesson, 15, (_pw - 52) / 0.72, 0.72, 0.72, 0);
+
+// 3. Section 2 — Cybersecurity Safety Lesson (How to Prevent This in Real Life)
+draw_set_color(make_color_rgb(14, 34, 26));
+draw_rectangle(_x1 + 16, _y1 + 148, _x2 - 16, _y1 + 220, false);
+draw_set_color(c_lime);
+draw_rectangle(_x1 + 16, _y1 + 148, _x2 - 16, _y1 + 220, true);
 
 draw_set_color(c_lime);
-draw_text_ext_transformed(_x1 + 26, _y1 + 120, case_takeaway, 14, (_pw - 56) / 0.82, 0.82, 0.82, 0);
+draw_text_transformed(_x1 + 24, _y1 + 153, "2. CYBERSECURITY LESSON — HOW TO PREVENT THIS:", 0.78, 0.78, 0);
 
-// 3. Section 2 — Cryptography & Key Analysis Box
+draw_set_color(make_color_rgb(230, 255, 235));
+draw_text_ext_transformed(_x1 + 24, _y1 + 170, case_prevention, 15, (_pw - 52) / 0.72, 0.72, 0.72, 0);
+
+// 4. Section 3 — Cryptography & Key Analysis Box
 draw_set_color(make_color_rgb(22, 24, 42));
-draw_rectangle(_x1 + 16, _y1 + 150, _x2 - 16, _y1 + 216, false);
+draw_rectangle(_x1 + 16, _y1 + 226, _x2 - 16, _y1 + 276, false);
 draw_set_color(make_color_rgb(255, 195, 45));
-draw_rectangle(_x1 + 16, _y1 + 150, _x2 - 16, _y1 + 216, true);
+draw_rectangle(_x1 + 16, _y1 + 226, _x2 - 16, _y1 + 276, true);
 
 var _cipher_hdr = "";
 if (chapter_num == CHAPTER_VIGENERE) {
-    _cipher_hdr = "2. CIPHER CRACKED:  VIGENERE KEYWORD CIPHER  (Keyword: " + vig_key + ")";
+    _cipher_hdr = "3. CIPHER CRACKED:  VIGENERE KEYWORD CIPHER  (Keyword: " + vig_key + ")";
 } else if (chapter_num == CHAPTER_ATBASH) {
-    _cipher_hdr = "2. CIPHER CRACKED:  ATBASH MIRROR CIPHER  (Rule: A <-> Z)";
+    _cipher_hdr = "3. CIPHER CRACKED:  ATBASH MIRROR CIPHER  (Rule: A <-> Z)";
 } else {
     var _k_str  = (floor_key > 0) ? ("+" + string(floor_key)) : string(floor_key);
-    _cipher_hdr = "2. CIPHER CRACKED:  CAESAR SHIFT CIPHER  (Floor Key: " + _k_str + ")";
+    _cipher_hdr = "3. CIPHER CRACKED:  CAESAR SHIFT CIPHER  (Floor Key: " + _k_str + ")";
 }
 draw_set_color(make_color_rgb(255, 210, 55));
-draw_text_transformed(_x1 + 26, _y1 + 164, _cipher_hdr, 0.86, 0.86, 0);
+draw_text_transformed(_x1 + 24, _y1 + 231, _cipher_hdr, 0.76, 0.76, 0);
 
 draw_set_color(make_color_rgb(215, 230, 250));
-draw_text_ext_transformed(_x1 + 26, _y1 + 190, crypto_fact, 13, (_pw - 56) / 0.78, 0.78, 0.78, 0);
-
-// 4. Section 3 — Wrench Salvage Payout & HR Property Audit Box
-draw_set_color(hr_violation ? make_color_rgb(44, 18, 24) : make_color_rgb(16, 32, 28));
-draw_rectangle(_x1 + 16, _y1 + 222, _x2 - 16, _y1 + 272, false);
-draw_set_color(hr_violation ? make_color_rgb(255, 85, 85) : c_lime);
-draw_rectangle(_x1 + 16, _y1 + 222, _x2 - 16, _y1 + 272, true);
-
-var _tot_scrp = variable_global_exists("scrap_count") ? global.scrap_count : 0;
-var _tot_core = variable_global_exists("rare_cores")  ? global.rare_cores  : 0;
-draw_set_color(hr_violation ? make_color_rgb(255, 105, 105) : c_lime);
-var _audit_hdr = hr_violation
-    ? ("3. HR AUDIT VIOLATION (" + string(hr_scrapped) + "/3 SCRAPPED) — INTERN BABYSITTING DUTY FLAGGED!")
-    : ("3. HR PROPERTY AUDIT PASSED (" + string(hr_scrapped) + "/3 SAFE WRITE-OFF)  •  POUCH: " + string(_tot_scrp) + " SCRAP, " + string(_tot_core) + " CORES");
-draw_text_transformed(_x1 + 26, _y1 + 236, _audit_hdr, 0.80, 0.80, 0);
-
-var _task_summary = "SALVAGE TASKS: "
-    + (task1_done ? "[x] 3-Asset Quota (+2 Scrap)   " : "[ ] 3-Asset Quota   ")
-    + (task2_done ? "[x] Bot/Server Bounty (+2 Scrap)" : "[ ] Bot/Server Bounty");
-draw_set_color(make_color_rgb(220, 235, 245));
-draw_text_transformed(_x1 + 26, _y1 + 256, _task_summary, 0.78, 0.78, 0);
+draw_text_ext_transformed(_x1 + 24, _y1 + 247, crypto_fact, 13, (_pw - 52) / 0.68, 0.68, 0.68, 0);
+draw_set_valign(fa_middle);
 } else {
     // =====================================================================
     // PAGE 1 — CORPORATE PAYSTUB, PERFORMANCE GRADE & STATUE DELIVERIES
@@ -230,12 +221,13 @@ if (phase == "display" && phase_timer >= 20) {
     var _flash = (anim_timer mod 50) < 35;
     if (_flash) {
         draw_set_color(c_lime);
+        var _has_intern = (variable_global_exists("intern_duty_flagged") && global.intern_duty_flagged);
         var _btn_txt = (page == 0)
             ? "[ PRESS E / ENTER FOR YOUR PAYSTUB ]"
-            : ((variable_global_exists("intern_duty_flagged") && global.intern_duty_flagged)
-                ? "[ E / ENTER ] REPORT TO INTERN WARD (3-MIN SHIFT)      [ H ] HOMEROOM"
+            : (_has_intern
+                ? "[ E / ENTER ] ENTER INTERN DUTY (3-MIN SHIFT)"
                 : ("[ E / ENTER ] FLOOR " + string(cleared_floor + 1) + " / 10      [ H ] HOMEROOM"));
-        if (is_final_exam && page == 1) {
+        if (is_final_exam && page == 1 && !_has_intern) {
             _btn_txt = (chapter_num < CHAPTER_ATBASH)
                 ? ("[ E / ENTER ] START CHAPTER " + string(chapter_num + 1) + "      [ H ] HOMEROOM")
                 : "[ E / ENTER ] FINISH CAMPAIGN      [ H ] HOMEROOM";

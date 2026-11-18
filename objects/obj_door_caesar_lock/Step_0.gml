@@ -63,6 +63,17 @@ if (locked && instance_exists(obj_jack)) {
                     && instance_exists(obj_dungeon_generator)
                     && obj_dungeon_generator.logic_map[obj_dungeon_generator.active_col][obj_dungeon_generator.active_row] == ROOM_HOLDING);
 
+                // Holding Cell door can ONLY be unlocked from the inside after getting caught by a patrol bot!
+                if (is_holding_door && !_trapped_in_brig) {
+                    audio_play_sound(wrong1, 10, false);
+                    global.e_dialogue_intro_shown = true;
+                    create_textevent([
+                        "SECURITY HOLDING CELL — LOCKED FROM INSIDE!",
+                        "This detention cell can only be unlocked from the inside if a patrol bot catches me and sends me to the Brig."
+                    ], [obj_jack.id, obj_jack.id]);
+                    exit;
+                }
+
                 if (!_trapped_in_brig && !_has_key) {
                     audio_play_sound(wrong1, 10, false);
                     global.e_dialogue_intro_shown = true;

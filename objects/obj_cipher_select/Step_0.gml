@@ -143,7 +143,7 @@ if (_launch_chapter > 0) {
     var _t         = instance_create_depth(0, 0, -9999, obj_transition);
     _t.target_room = dungeon_test;
     _t.target_x    = 72;
-    _t.target_y    = 784;
+    _t.target_y    = 936;
     _t.fade_mode   = "fading_out";
     _t.fade_alpha  = 0;
 }
