@@ -1,6 +1,11 @@
 /// @description obj_intern — Step Event
 near_player = false;
 
+// Standard Y-sorting depth update (when not carried by Jack)
+if (state != INTERN_STATE_HELD) {
+    depth = -y;
+}
+
 if (grace_timer > 0) grace_timer--;
 if (variable_instance_exists(id, "door_cooldown") && door_cooldown > 0) door_cooldown--;
 if (variable_instance_exists(id, "vent_cooldown") && vent_cooldown > 0) vent_cooldown--;

@@ -271,7 +271,8 @@ function scr_dungeon_spawn(logic_map, path_list) {
                 obj_jack.y = center_y;
                 obj_jack.isInCutscene = false;
             }
-            var _start_npc = instance_create_layer(world_x + 2 * TILE_SIZE, world_y + 2 * TILE_SIZE, layer_name, obj_dungeon_prop);
+            // Spawn Kyle beside Jack on the central carpet
+            var _start_npc = instance_create_layer(center_x - 24, center_y - 4, layer_name, obj_dungeon_prop);
             _start_npc.prop_type      = TILE_PROP_NPC;
             _start_npc.npc_id         = 2; // Kyle (Security Analyst) acts as the Start Room Mentor!
             _start_npc.myName         = "Kyle (Security Analyst)";
