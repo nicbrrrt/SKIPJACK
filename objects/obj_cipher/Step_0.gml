@@ -4,6 +4,29 @@
 
 if (variable_global_exists("is_paused") && global.is_paused) exit;
 
+// Handle the "How to Decrypt" Visual Demonstration Card on Tutorial Floors 1-3 (pauses Trace Timer while open)
+if (variable_instance_exists(id, "demo_modal_open") && demo_modal_open) {
+    if (keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space)
+        || keyboard_check_pressed(vk_tab) || keyboard_check_pressed(vk_escape) || mouse_check_button_pressed(mb_left))
+    {
+        if (keyboard_check_pressed(vk_escape)) {
+            global.esc_block_frames = 2;
+            keyboard_clear(vk_escape);
+        }
+        if (keyboard_check_pressed(vk_tab)) keyboard_clear(vk_tab);
+        demo_modal_open = false;
+        audio_play_sound(snd_button_click, 8, false);
+    }
+    exit;
+}
+
+if (guided_ui && keyboard_check_pressed(vk_tab)) {
+    keyboard_clear(vk_tab);
+    demo_modal_open = true;
+    audio_play_sound(snd_select, 8, false);
+    exit;
+}
+
 // In standalone (non-battle) mode, allow ESC to close the cipher overlay without opening Pause Menu
 if (!instance_exists(obj_battle) && keyboard_check_pressed(vk_escape)) {
     global.esc_block_frames = 2;
@@ -55,11 +78,13 @@ if (keyboard_check_pressed(vk_down)) {
     audio_play_sound(choose(select1, select2, select3, select4, select5), 10, false);
 }
 
-// Also allow direct A-Z typing
-for (var k = ord("A"); k <= ord("Z"); k++) {
-    if (keyboard_check_pressed(k)) {
-        player_input[current_slot] = chr(k);
-        audio_play_sound(select1, 8, false);
+// Also allow direct A-Z typing (skip when holding Ctrl so Ctrl+P doesn't type 'P')
+if (!keyboard_check(vk_control)) {
+    for (var k = ord("A"); k <= ord("Z"); k++) {
+        if (keyboard_check_pressed(k)) {
+            player_input[current_slot] = chr(k);
+            audio_play_sound(select1, 8, false);
+        }
     }
 }
 
@@ -183,9 +208,10 @@ if (success_timer > 0) {
 
 if (shake_timer > 0) shake_timer--;
 
-// DEBUG: Press 'P' to auto-solve
-if (keyboard_check_pressed(ord("P"))) {
+// DEMO SHORTCUT: Press Ctrl + P to auto-solve (Caesar, Vigenere & Atbash)
+if (keyboard_check(vk_control) && keyboard_check_pressed(ord("P"))) {
     for (var i = 0; i < letters_len; i++) {
         player_input[i] = string_char_at(plaintext, i + 1);
     }
+    audio_play_sound(snd_correct_ping, 8, false);
 }

@@ -46,6 +46,33 @@ if (variable_global_exists("is_paused") && global.is_paused) exit;
 if (ui_open) {
     global.key_analyzer_open = true;
 
+    var _guided_ped = (variable_global_exists("floor_curriculum") && variable_struct_exists(global.floor_curriculum, "guided_ui"))
+        ? global.floor_curriculum.guided_ui
+        : false;
+
+    // Handle the "How to Calibrate" Visual Demonstration Card on Tutorial Floors 1-3
+    if (variable_instance_exists(id, "demo_modal_open") && demo_modal_open) {
+        if (keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space)
+            || keyboard_check_pressed(vk_tab) || keyboard_check_pressed(vk_escape) || mouse_check_button_pressed(mb_left))
+        {
+            if (keyboard_check_pressed(vk_escape)) {
+                global.esc_block_frames = 2;
+                keyboard_clear(vk_escape);
+            }
+            if (keyboard_check_pressed(vk_tab)) keyboard_clear(vk_tab);
+            demo_modal_open = false;
+            audio_play_sound(snd_button_click, 8, false);
+        }
+        exit;
+    }
+
+    if (_guided_ped && keyboard_check_pressed(vk_tab)) {
+        keyboard_clear(vk_tab);
+        demo_modal_open = true;
+        audio_play_sound(snd_select, 8, false);
+        exit;
+    }
+
     if (success_timer > 0) {
         success_timer--;
         if (keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space)) {
@@ -81,6 +108,13 @@ if (ui_open) {
         dial_shift = clamp(dial_shift - 1, _min_dial, _max_dial);
         status_msg = "";
         audio_play_sound(choose(select1, select2, select3), 10, false);
+    }
+
+    // DEMO SHORTCUT: Press Ctrl + P to snap dial directly to target_shift (Caesar, Vigenere & Atbash)
+    if (keyboard_check(vk_control) && keyboard_check_pressed(ord("P"))) {
+        dial_shift = target_shift;
+        status_msg = "";
+        audio_play_sound(snd_correct_ping, 8, false);
     }
 
     // Lock in the deduced Key with ENTER
@@ -124,6 +158,16 @@ if (!collected && instance_exists(obj_jack)) {
             global.key_analyzer_open = true;
             dial_shift               = 0;
             status_msg               = "";
+            var _g_ped = (variable_global_exists("floor_curriculum") && variable_struct_exists(global.floor_curriculum, "guided_ui"))
+                ? global.floor_curriculum.guided_ui
+                : false;
+            var _seen_key = "tut_demo_pedestal_ch" + string(_ch);
+            if (_g_ped && (!variable_global_exists(_seen_key) || !variable_global_get(_seen_key))) {
+                variable_global_set(_seen_key, true);
+                demo_modal_open = true;
+            } else {
+                demo_modal_open = false;
+            }
             audio_play_sound(snd_select, 10, false);
         }
     }

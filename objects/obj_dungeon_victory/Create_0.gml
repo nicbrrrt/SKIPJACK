@@ -77,6 +77,44 @@ case_takeaway   = _case.takeaway;
 case_lesson     = variable_struct_exists(_case, "lesson_story")    ? _case.lesson_story    : ("WHAT HAPPENED: " + _case.kyle_debrief);
 case_prevention = variable_struct_exists(_case, "prevention_rule") ? _case.prevention_rule : ("HOW TO PREVENT IT: " + _case.takeaway);
 
+// Interactive Page 1 "What Would You Do?" Cyber Safety Check (+$50 First-Try Mastery Bonus)
+var _dq = variable_struct_exists(_case, "debrief_quiz") ? _case.debrief_quiz : {
+    question: "REAL-LIFE CHECK: Based on this floor's incident (" + _case.word + "), which safety habit prevents this breach?",
+    options: [
+        case_prevention,
+        "Ignore security warnings and share your login password with coworkers",
+        "Disable the Firewall and Antivirus to make the computer run faster"
+    ],
+    correct_idx: 0,
+    feedback_ok: "CORRECT! " + _case.takeaway
+};
+
+safety_quiz_question    = _dq.question;
+safety_quiz_feedback_ok = _dq.feedback_ok;
+var _sq_src             = _dq.options;
+var _sq_corr            = _dq.correct_idx;
+var _sq_order           = [0, 1, 2];
+for (var _si = 2; _si > 0; _si--) {
+    var _sj  = irandom(_si);
+    var _tmp = _sq_order[_si];
+    _sq_order[_si] = _sq_order[_sj];
+    _sq_order[_sj] = _tmp;
+}
+safety_quiz_options     = [];
+safety_quiz_eliminated  = [false, false, false];
+safety_quiz_correct_idx = 0;
+for (var _sk = 0; _sk < 3; _sk++) {
+    array_push(safety_quiz_options, _sq_src[_sq_order[_sk]]);
+    if (_sq_order[_sk] == _sq_corr) safety_quiz_correct_idx = _sk;
+}
+safety_quiz_sel          = 0;
+safety_quiz_solved       = false;
+safety_quiz_first_try    = true;
+safety_quiz_bonus        = 0;
+safety_quiz_feedback     = "";
+safety_quiz_feedback_col = c_white;
+safety_quiz_shake        = 0;
+
 // Chapter-specific Cryptography / Cryptanalysis facts for the debrief card
 var _caesar_facts = [
     "CAESAR FACT: Because a Caesar Cipher has only 25 possible shift keys, a modern computer can brute-force all 25 keys in less than a microsecond!",

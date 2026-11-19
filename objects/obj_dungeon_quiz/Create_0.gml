@@ -1,7 +1,8 @@
 /// @description obj_dungeon_quiz — Create Event
-/// Standalone Cybersecurity Incident Case Quiz UI (independent of JRPG combat).
-/// Tests the player on the current floor's Cyber Incident Case (global.floor_case)
-/// using clues gathered from coworkers, terminals, and memos across the offices.
+/// Interactive Key Vault "Spot the Cyber Red Flag" Challenge UI.
+/// Presents a captured security artifact from the floor's incident (email header,
+/// network log, download prompt, or device scan) and asks the player to identify
+/// the security red flag / threat action.
 
 depth = -15000;
 
@@ -17,32 +18,51 @@ case_title       = _case.title;
 current_scenario = _case.scenario;
 current_hint     = _case.hint;
 current_takeaway = _case.takeaway;
-player_guess     = "";
 
-// Build scrambled letter pool
-letter_chars = [];
-letter_used  = [];
-var _len = string_length(target_word);
-for (var _i = 1; _i <= _len; _i++) {
-    array_push(letter_chars, string_char_at(target_word, _i));
-    array_push(letter_used, false);
-}
+var _vc = variable_struct_exists(_case, "vault_challenge") ? _case.vault_challenge : {
+    artifact_header: "CAPTURED SECURITY LOG:  Threat Signature = " + _case.word,
+    artifact_body:   _case.scenario,
+    scanner_note:    "FORENSIC SCAN: " + _case.hint,
+    prompt:          "Identify the cybersecurity red flag in this captured log:",
+    options: [
+        _case.word + " — " + _case.title + " (" + _case.hint + ")",
+        "Routine scheduled system maintenance check",
+        "Normal encrypted internal file backup"
+    ],
+    correct_idx: 0,
+    explain_win: "SPOT ON! " + _case.takeaway
+};
 
-// Fisher-Yates shuffle
-for (var _i = _len - 1; _i > 0; _i--) {
+artifact_header = _vc.artifact_header;
+artifact_body   = _vc.artifact_body;
+scanner_note    = _vc.scanner_note;
+prompt_text     = _vc.prompt;
+explain_win     = _vc.explain_win;
+
+// Shuffle the 3 options while tracking which index is the correct red flag
+var _src_opts = _vc.options;
+var _src_corr = _vc.correct_idx;
+var _order    = [0, 1, 2];
+for (var _i = 2; _i > 0; _i--) {
     var _j   = irandom(_i);
-    var _tmp = letter_chars[_i];
-    letter_chars[_i] = letter_chars[_j];
-    letter_chars[_j] = _tmp;
+    var _tmp = _order[_i];
+    _order[_i] = _order[_j];
+    _order[_j] = _tmp;
 }
 
-// Track which scrambled index each character in player_guess came from
-guess_indices = [];
+quiz_options        = [];
+option_eliminated   = [false, false, false];
+correct_option_idx  = 0;
+for (var _k = 0; _k < 3; _k++) {
+    array_push(quiz_options, _src_opts[_order[_k]]);
+    if (_order[_k] == _src_corr) correct_option_idx = _k;
+}
 
-shake_timer   = 0;
-status_msg    = "";
-status_col    = c_white;
-success_timer = 0;
+selected_option = 0;
+shake_timer     = 0;
+status_msg      = "";
+status_col      = c_white;
+success_timer   = 0;
 
 audio_play_sound(snd_select, 10, false);
-show_debug_message("[obj_dungeon_quiz] Incident Case Quiz started. Answer: " + target_word);
+show_debug_message("[obj_dungeon_quiz] Spot-the-Red-Flag Challenge started. Topic: " + target_word);

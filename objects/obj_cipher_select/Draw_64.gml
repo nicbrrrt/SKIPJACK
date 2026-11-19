@@ -43,13 +43,22 @@ draw_rectangle(92, 12, 198, 34, true);
 draw_set_color(_home_hov ? c_yellow : make_color_rgb(245, 215, 175));
 draw_text_transformed(145, 23, "[H] HOMEROOM", 0.78, 0.78, 0);
 
+// Top-left [?] GUIDE button (replays the 4-Step Chapter Select Tutorial)
+var _g_hov = (_mx >= 206 && _mx <= 284 && _my >= 12 && _my <= 34);
+draw_set_color(_g_hov ? make_color_rgb(24, 52, 68) : make_color_rgb(16, 30, 44));
+draw_rectangle(206, 12, 284, 34, false);
+draw_set_color(_g_hov ? c_aqua : make_color_rgb(75, 155, 195));
+draw_rectangle(206, 12, 284, 34, true);
+draw_set_color(_g_hov ? c_yellow : c_aqua);
+draw_text_transformed(245, 23, "[?] GUIDE", 0.78, 0.78, 0);
+
 // Top-right Demo Unlock All Toggle
 var _all_unlocked = (variable_global_exists("unlock_all_ciphers") && global.unlock_all_ciphers);
 draw_set_color(demo_unlock_hover ? make_color_rgb(40, 58, 40) : make_color_rgb(18, 26, 38));
-draw_rectangle(_gw - 156, 12, _gw - 12, 34, false);
+draw_rectangle(_gw - 168, 12, _gw - 12, 34, false);
 draw_set_color(_all_unlocked ? c_lime : (demo_unlock_hover ? c_yellow : make_color_rgb(80, 100, 130)));
-draw_rectangle(_gw - 156, 12, _gw - 12, 34, true);
-draw_text_transformed(_gw - 84, 23, _all_unlocked ? "[U] DEMO: ALL UNLOCKED" : "[U] DEMO: UNLOCK ALL", 0.75, 0.75, 0);
+draw_rectangle(_gw - 168, 12, _gw - 12, 34, true);
+draw_text_transformed(_gw - 90, 23, _all_unlocked ? "[U / CTRL+U] ALL UNLOCKED" : "[U / CTRL+U] UNLOCK ALL", 0.72, 0.72, 0);
 
 // 3. Header Title & Subtitle
 draw_set_font(fnt_dialogue);
@@ -219,6 +228,122 @@ draw_text_transformed(_cx + 134, _pill_y, "FLR 10: FINAL EXAM", 0.74, 0.74, 0);
 // Active Phase Intent Description at very bottom of box
 draw_set_color(_phase_col);
 draw_text_transformed(_cx, 329, "ACTIVE MODE:  " + _phase_tag, 0.78, 0.78, 0);
+
+// =========================================================================
+// 5. FIRST-TIME CHAPTER SELECTION SPOTLIGHT TUTORIAL OVERLAY (4 Steps)
+// =========================================================================
+if (variable_instance_exists(id, "tut_active") && tut_active) {
+    var _sp_x1 = btn_x1 - 8;
+    var _sp_y1 = btn1_y - 6;
+    var _sp_x2 = btn_x2 + 8;
+    var _sp_y2 = btn3_y + btn_h + 6;
+    var _card_y1 = 248;
+    var _card_y2 = 352;
+    var _step_title = "";
+    var _step_body  = "";
+
+    if (tut_step == 0) {
+        // Spotlight the 3 Encryption Chapters
+        _sp_x1 = btn_x1 - 8;
+        _sp_y1 = btn1_y - 6;
+        _sp_x2 = btn_x2 + 8;
+        _sp_y2 = btn3_y + btn_h + 6;
+        _card_y1 = 246;
+        _card_y2 = 352;
+        _step_title = "WELCOME TO SKIPJACK — THE 3 ENCRYPTION CHAPTERS (1/4)";
+        _step_body  = "Welcome aboard, Jack! Skipjack's campaign is divided into 3 Cryptography Chapters:\n• CHAPTER 1 (CAESAR): Shifts every letter by a fixed number (+K or -K).\n• CHAPTER 2 (VIGENERE): Shifts each letter using a repeating KEYWORD (A=+0, B=+1, C=+2...).\n• CHAPTER 3 (ATBASH): Reflects the alphabet in half like a mirror (A <-> Z, B <-> Y)!";
+    } else if (tut_step == 1) {
+        // Spotlight the Bottom 10-Floor Curriculum Selector
+        _sp_x1 = _cx - 216;
+        _sp_y1 = 242;
+        _sp_x2 = _cx + 216;
+        _sp_y2 = 346;
+        _card_y1 = 84;
+        _card_y2 = 194;
+        _step_title = "10 FLOORS PER CHAPTER — TUTORIAL, PRACTICE & EXAM (2/4)";
+        _step_body  = "Use this bottom selector to choose your starting floor (1 to 10) inside any Chapter:\n• FLOORS 1-3 (TUTORIAL): Full visual step-by-step demonstrations showing HOW to calibrate & decrypt!\n• FLOORS 4-9 (PRACTICE & MASTERY): Core detective cases & cipher locks as training wheels come off.\n• FLOOR 10 (FINAL EXAM): Pass Floor 10 to unlock the next Encryption Chapter!";
+    } else if (tut_step == 2) {
+        // Spotlight Top Bar ([H] Homeroom & [U] Demo Unlock)
+        _sp_x1 = 88;
+        _sp_y1 = 8;
+        _sp_x2 = _gw - 8;
+        _sp_y2 = 38;
+        _card_y1 = 120;
+        _card_y2 = 228;
+        _step_title = "YOUR HOMEROOM [H] & DEMO SHORTCUTS [U / CTRL+U] (3/4)";
+        _step_body  = "• [H] HOMEROOM: Visit your office between workdays to call Burt on the Wall Telephone and spend Scrap & Rare Cores on helpful desk statues!\n• [U / CTRL+U] UNLOCK ALL: Unlocks Chapters 2 & 3 immediately for testing or live demonstrations.\n• [?] GUIDE: Click '[?] GUIDE' in the top bar anytime you want to replay this menu walkthrough!";
+    } else {
+        // Spotlight Chapter 1: Caesar Cipher (Floor 1)
+        _sp_x1 = btn_x1 - 8;
+        _sp_y1 = btn1_y - 6;
+        _sp_x2 = btn_x2 + 8;
+        _sp_y2 = btn1_y + btn_h + 6;
+        _card_y1 = 152;
+        _card_y2 = 256;
+        _step_title = "READY FOR YOUR FIRST SHIFT! (4/4)";
+        _step_body  = "We've set your starting floor to FLOOR 1 (GUIDED TUTORIAL)!\nWhen you enter Floor 1, you'll get a live step-by-step visual demonstration showing exactly how to calibrate the Cipher Key and decode encrypted doors.\nClick CHAPTER 1: CAESAR CIPHER (PLAY >) right after this to begin!";
+    }
+
+    // 4-rectangle dark mask around the spotlighted region
+    draw_set_alpha(0.78);
+    draw_set_color(c_black);
+    draw_rectangle(0, 0, _gw, _sp_y1, false);
+    draw_rectangle(0, _sp_y2, _gw, _gh, false);
+    draw_rectangle(0, _sp_y1, _sp_x1, _sp_y2, false);
+    draw_rectangle(_sp_x2, _sp_y1, _gw, _sp_y2, false);
+
+    // Pulsing neon border around the spotlighted region
+    var _pulse = 0.65 + 0.35 * sin(tut_anim_t * 0.12);
+    draw_set_alpha(_pulse);
+    draw_set_color(c_yellow);
+    draw_rectangle(_sp_x1, _sp_y1, _sp_x2, _sp_y2, true);
+    draw_rectangle(_sp_x1 - 2, _sp_y1 - 2, _sp_x2 + 2, _sp_y2 + 2, true);
+    draw_set_alpha(1.0);
+
+    // Kyle's Explanation Card
+    var _card_x1 = 36;
+    var _card_x2 = _gw - 36;
+    draw_set_color(make_color_rgb(12, 18, 32));
+    draw_rectangle(_card_x1, _card_y1, _card_x2, _card_y2, false);
+    draw_set_color(c_aqua);
+    draw_rectangle(_card_x1, _card_y1, _card_x2, _card_y2, true);
+    draw_rectangle(_card_x1 + 2, _card_y1 + 2, _card_x2 - 2, _card_y2 - 2, true);
+
+    // Draw Kyle Portrait on left side of card if sprite exists
+    var _txt_x = _card_x1 + 16;
+    if (sprite_exists(spr_kyle_portrait)) {
+        var _px = _card_x1 + 12;
+        var _py = _card_y1 + 24;
+        draw_set_color(make_color_rgb(230, 238, 248));
+        draw_rectangle(_px, _py, _px + 52, _py + 52, false);
+        var _psw = sprite_get_width(spr_kyle_portrait);
+        var _psh = sprite_get_height(spr_kyle_portrait);
+        var _psc = min(50 / _psw, 50 / _psh);
+        draw_sprite_ext(spr_kyle_portrait, 0, _px + (52 - _psw * _psc) * 0.5, _py + (52 - _psh * _psc) * 0.5, _psc, _psc, 0, c_white, 1.0);
+        draw_set_color(make_color_rgb(255, 205, 55));
+        draw_rectangle(_px, _py, _px + 52, _py + 52, true);
+        _txt_x = _card_x1 + 74;
+    }
+
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+    draw_set_color(make_color_rgb(255, 215, 65));
+    draw_text_transformed(_txt_x, _card_y1 + 8, _step_title, 0.78, 0.78, 0);
+
+    draw_set_color(c_white);
+    var _wrap_w = (_card_x2 - _txt_x - 14) / 0.68;
+    draw_text_ext_transformed(_txt_x, _card_y1 + 25, _step_body, 14, _wrap_w, 0.68, 0.68, 0);
+
+    draw_set_halign(fa_right);
+    draw_set_valign(fa_middle);
+    draw_set_color(c_lime);
+    var _next_lbl = (tut_step < 3) ? "[E / ENTER / CLICK] NEXT >" : "[E / ENTER / CLICK] GOT IT — LET'S PLAY!";
+    draw_text_transformed(_card_x2 - 12, _card_y2 - 11, _next_lbl, 0.74, 0.74, 0);
+
+    draw_set_halign(fa_left);
+    draw_set_color(make_color_rgb(160, 180, 205));
+    draw_text_transformed(_txt_x, _card_y2 - 11, "[ESC] Skip Guide", 0.68, 0.68, 0);
+}
 
 // Reset draw state
 draw_set_font(fnt_default);

@@ -1,6 +1,6 @@
 /// @description obj_dungeon_quiz — Draw GUI Event
-/// Renders a clean, minimal Key Vault Security Quiz UI (640x360 GUI)
-/// with Curriculum Scaffolding (Guided Tutorial -> Practice -> Final Exam).
+/// Renders the Key Vault "Spot the Cyber Red Flag" Threat Analyzer (640x360 GUI)
+/// with Security Sector Terminal Forensic Scanner integration.
 
 var _gui_w = display_get_gui_width();
 var _gui_h = display_get_gui_height();
@@ -15,26 +15,26 @@ var _curr      = variable_global_exists("floor_curriculum") ? global.floor_curri
 var _guided    = _curr.guided_ui;
 var _is_exam   = _curr.is_final_exam;
 var _clues_cur = variable_global_exists("clues_found")  ? global.clues_found  : 0;
-var _clues_req = variable_global_exists("clues_needed") ? global.clues_needed : 2;
+var _clues_req = variable_global_exists("clues_needed") ? global.clues_needed : 1;
 
 // Dim background backdrop
-draw_set_alpha(0.82);
+draw_set_alpha(0.84);
 draw_set_color(c_black);
 draw_rectangle(0, 0, _gui_w, _gui_h, false);
 
-// Compact quiz panel
-var _pw = 500;
-var _ph = 248;
+// Main Threat Analyzer Panel
+var _pw = 556;
+var _ph = 312;
 var _x1 = _cx - (_pw * 0.5);
 var _y1 = _cy - (_ph * 0.5);
 var _x2 = _cx + (_pw * 0.5);
 var _y2 = _cy + (_ph * 0.5);
 
-draw_set_alpha(0.96);
-draw_set_color(make_color_rgb(14, 20, 32));
+draw_set_alpha(0.97);
+draw_set_color(make_color_rgb(12, 18, 30));
 draw_rectangle(_x1, _y1, _x2, _y2, false);
 
-// Gold security border
+// Gold / Exam security border
 draw_set_alpha(1.0);
 draw_set_color(_is_exam ? make_color_rgb(255, 85, 155) : make_color_rgb(255, 195, 35));
 draw_rectangle(_x1, _y1, _x2, _y2, true);
@@ -44,104 +44,110 @@ draw_set_font(fnt_dialogue);
 draw_set_halign(fa_center);
 draw_set_valign(fa_middle);
 
-// Header
+// 1. Header Banner
 draw_set_color(_is_exam ? make_color_rgb(255, 110, 175) : make_color_rgb(255, 210, 55));
-draw_text_transformed(_cx, _y1 + 20, _is_exam ? "FINAL EXAM VAULT QUIZ" : "KEY VAULT LOCK", 1.05, 1.05, 0);
+draw_text_transformed(_cx, _y1 + 16, _is_exam ? "FINAL EXAM VAULT — SPOT THE CYBER RED FLAG" : ("KEY VAULT THREAT ANALYZER  [" + target_word + ": " + case_title + "]"), 0.88, 0.88, 0);
 
-// Short 1-Line Question Box
-draw_set_color(make_color_rgb(22, 32, 48));
-draw_rectangle(_x1 + 18, _y1 + 36, _x2 - 18, _y1 + 74, false);
-draw_set_color(make_color_rgb(65, 130, 175));
-draw_rectangle(_x1 + 18, _y1 + 36, _x2 - 18, _y1 + 74, true);
+// 2. Captured Incident Artifact Box
+draw_set_color(make_color_rgb(18, 28, 46));
+draw_rectangle(_x1 + 16, _y1 + 30, _x2 - 16, _y1 + 88, false);
+draw_set_color(make_color_rgb(255, 165, 50));
+draw_rectangle(_x1 + 16, _y1 + 30, _x2 - 16, _y1 + 88, true);
+
+draw_set_halign(fa_left);
+draw_set_color(make_color_rgb(255, 200, 75));
+draw_text_transformed(_x1 + 24, _y1 + 41, artifact_header, 0.72, 0.72, 0);
 
 draw_set_color(c_white);
-draw_text_ext_transformed(_cx, _y1 + 55, current_scenario, 15, (_pw - 52) / 0.88, 0.88, 0.88, 0);
+draw_text_ext_transformed(_x1 + 24, _y1 + 65, artifact_body, 14, (_pw - 48) / 0.72, 0.72, 0.72, 0);
 
-// Concise Clue Status Line
-var _next_needed_ch = "";
-if (string_length(player_guess) < string_length(target_word)) {
-    _next_needed_ch = string_char_at(target_word, string_length(player_guess) + 1);
-}
-
-if (_clues_cur <= 0) {
-    draw_set_color(make_color_rgb(255, 175, 65));
-    draw_text_transformed(_cx, _y1 + 90, "CLUES: 0/" + string(_clues_req) + "  —  Find and inspect the Security Sector Terminal [E] in the offices!", 0.80, 0.80, 0);
-} else if (_guided && _clues_cur >= _clues_req) {
+// 3. Forensic Scanner Status Strip (links to the Security Sector Terminal!)
+draw_set_halign(fa_center);
+var _scan_y1 = _y1 + 93;
+var _scan_y2 = _y1 + 119;
+if (_clues_cur >= _clues_req) {
+    draw_set_color(make_color_rgb(14, 42, 32));
+    draw_rectangle(_x1 + 16, _scan_y1, _x2 - 16, _scan_y2, false);
     draw_set_color(c_lime);
-    draw_text_transformed(_cx, _y1 + 90, "TUTORIAL: Type the GREEN highlighted letter ('" + _next_needed_ch + "')!", 0.84, 0.84, 0);
-} else if (_clues_cur < _clues_req) {
-    draw_set_color(c_aqua);
-    draw_text_transformed(_cx, _y1 + 90, "CLUES: " + string(_clues_cur) + "/" + string(_clues_req) + "  —  Letters Unlocked!", 0.84, 0.84, 0);
-} else if (_is_exam) {
-    draw_set_color(make_color_rgb(255, 140, 195));
-    draw_text_transformed(_cx, _y1 + 90, "FINAL EXAM: Unscramble the keyword (No Letter Hints)!", 0.82, 0.82, 0);
+    draw_rectangle(_x1 + 16, _scan_y1, _x2 - 16, _scan_y2, true);
+    draw_set_color(make_color_rgb(185, 255, 200));
+    draw_text_ext_transformed(_cx, (_scan_y1 + _scan_y2) * 0.5, scanner_note, 13, (_pw - 44) / 0.68, 0.68, 0.68, 0);
 } else {
-    var _first_two = string_copy(target_word, 1, 2);
-    draw_set_color(c_lime);
-    draw_text_transformed(_cx, _y1 + 90, "CLUES: " + string(_clues_cur) + "/" + string(_clues_req) + "  —  Starts with '" + _first_two + "...'", 0.84, 0.84, 0);
+    draw_set_color(make_color_rgb(42, 28, 14));
+    draw_rectangle(_x1 + 16, _scan_y1, _x2 - 16, _scan_y2, false);
+    draw_set_color(make_color_rgb(255, 175, 60));
+    draw_rectangle(_x1 + 16, _scan_y1, _x2 - 16, _scan_y2, true);
+    draw_set_color(make_color_rgb(255, 210, 110));
+    draw_text_transformed(_cx, (_scan_y1 + _scan_y2) * 0.5, "FORENSIC SCANNER: OFFLINE (0/1) — Inspect the Security Sector Terminal [E] for a Red-Flag Scan, or analyze the log above!", 0.64, 0.64, 0);
 }
 
-// Scrambled letter tiles row
-var _len      = array_length(letter_chars);
-var _tile_sz  = 28;
-var _tile_gap = 8;
-var _total_w  = (_len * _tile_sz) + ((_len - 1) * _tile_gap);
-var _start_x  = _cx - (_total_w * 0.5) + (_tile_sz * 0.5);
-var _tiles_y  = _y1 + 124;
+// 4. Question Prompt
+draw_set_color(c_aqua);
+draw_text_transformed(_cx, _y1 + 133, prompt_text, 0.78, 0.78, 0);
 
-var _highlighted_next = false;
-for (var _i = 0; _i < _len; _i++) {
-    var _tx   = _start_x + _i * (_tile_sz + _tile_gap);
-    var _used = letter_used[_i];
-    var _is_next_guide = false;
+// 5. Three Interactive Option Cards
+var _gmx = device_mouse_x_to_gui(0);
+var _gmy = device_mouse_y_to_gui(0);
 
-    if (_guided && _clues_cur >= _clues_req && !_used && !_highlighted_next && letter_chars[_i] == _next_needed_ch) {
-        _is_next_guide    = true;
-        _highlighted_next = true;
+for (var _i = 0; _i < 3; _i++) {
+    var _oy1  = _y1 + 148 + (_i * 38);
+    var _oy2  = _oy1 + 32;
+    var _sel  = (selected_option == _i);
+    var _elim = option_eliminated[_i];
+    var _hov  = point_in_rectangle(_gmx, _gmy, _x1 + 18, _oy1, _x2 - 18, _oy2);
+    var _is_tut_hint = (_guided && _clues_cur >= _clues_req && _i == correct_option_idx && !_is_exam);
+
+    var _bg_col = make_color_rgb(18, 25, 38);
+    var _bd_col = make_color_rgb(65, 95, 130);
+    var _tx_col = make_color_rgb(215, 230, 245);
+
+    if (success_timer > 0 && _i == correct_option_idx) {
+        _bg_col = make_color_rgb(20, 62, 34);
+        _bd_col = c_lime;
+        _tx_col = c_lime;
+    } else if (_elim) {
+        _bg_col = make_color_rgb(38, 18, 22);
+        _bd_col = make_color_rgb(180, 65, 65);
+        _tx_col = make_color_rgb(175, 115, 115);
+    } else if (_sel || _hov) {
+        _bg_col = _is_tut_hint ? make_color_rgb(20, 56, 36) : make_color_rgb(28, 48, 76);
+        _bd_col = _is_tut_hint ? c_lime : c_aqua;
+        _tx_col = c_white;
+    } else if (_is_tut_hint) {
+        _bg_col = make_color_rgb(16, 44, 28);
+        _bd_col = c_lime;
+        _tx_col = make_color_rgb(175, 255, 195);
     }
 
-    draw_set_color(_used ? make_color_rgb(30, 35, 45) : (_is_next_guide ? make_color_rgb(20, 56, 32) : make_color_rgb(55, 42, 14)));
-    draw_rectangle(_tx - 14, _tiles_y - 14, _tx + 14, _tiles_y + 14, false);
+    draw_set_color(_bg_col);
+    draw_rectangle(_x1 + 18, _oy1, _x2 - 18, _oy2, false);
+    draw_set_color(_bd_col);
+    draw_rectangle(_x1 + 18, _oy1, _x2 - 18, _oy2, true);
 
-    draw_set_color(_used ? c_dkgray : (_is_next_guide ? c_lime : make_color_rgb(255, 195, 35)));
-    draw_rectangle(_tx - 14, _tiles_y - 14, _tx + 14, _tiles_y + 14, true);
+    draw_set_halign(fa_left);
+    draw_set_color(_tx_col);
+    var _prefix = "[" + string(_i + 1) + "]  ";
+    if (_elim) _prefix = "[X]  ";
+    else if (_is_tut_hint) _prefix = "[" + string(_i + 1) + " - TUTORIAL MATCH]  ";
 
-    draw_set_color(_used ? c_dkgray : ((_clues_cur > 0) ? (_is_next_guide ? c_lime : c_white) : make_color_rgb(255, 175, 60)));
-    draw_text(_tx, _tiles_y, (_clues_cur > 0) ? letter_chars[_i] : "?");
+    draw_text_ext_transformed(_x1 + 28, (_oy1 + _oy2) * 0.5, _prefix + quiz_options[_i], 13, (_pw - 58) / 0.70, 0.70, 0.70, 0);
 }
 
-// Player Answer Slots row
-var _ans_y = _y1 + 168;
-for (var _i = 0; _i < _len; _i++) {
-    var _tx = _start_x + _i * (_tile_sz + _tile_gap);
-    var _has_ch = (_i < string_length(player_guess));
-    var _ch = _has_ch ? string_char_at(player_guess, _i + 1) : "_";
-
-    draw_set_color(make_color_rgb(10, 14, 22));
-    draw_rectangle(_tx - 14, _ans_y - 14, _tx + 14, _ans_y + 14, false);
-
-    draw_set_color(_has_ch ? c_aqua : c_gray);
-    draw_rectangle(_tx - 14, _ans_y - 14, _tx + 14, _ans_y + 14, true);
-
-    draw_set_color(_has_ch ? c_lime : c_gray);
-    draw_text(_tx, _ans_y, _ch);
-}
-
-// Minimal Status & Footer
-if (success_timer > 0) {
-    draw_set_color(c_lime);
-    draw_text_transformed(_cx, _y2 - 42, "VAULT UNLOCKED!", 0.95, 0.95, 0);
-} else if (status_msg != "") {
+// 6. Status Feedback & Controls Footer
+draw_set_halign(fa_center);
+if (status_msg != "") {
     draw_set_color(status_col);
-    draw_text_transformed(_cx, _y2 - 42, status_msg, 0.88, 0.88, 0);
+    draw_text_ext_transformed(_cx, _y2 - 30, status_msg, 12, (_pw - 36) / 0.70, 0.70, 0.70, 0);
+} else {
+    draw_set_color(make_color_rgb(190, 210, 230));
+    draw_text_transformed(_cx, _y2 - 30, "TIP: " + current_takeaway, 0.72, 0.72, 0);
 }
 
-draw_set_color(make_color_rgb(150, 170, 195));
-draw_text_transformed(_cx, _y2 - 16, "[A-Z] Type   |   [BACKSPACE] Erase   |   [ESC] Back", 0.82, 0.82, 0);
+draw_set_color(make_color_rgb(145, 165, 190));
+draw_text_transformed(_cx, _y2 - 12, (success_timer > 0) ? "[E / ENTER / CLICK] Open Gold Key Vault >" : "[W/S or 1-3 or CLICK] Select Red Flag   |   [E / ENTER] Confirm   |   [ESC] Cancel", 0.68, 0.68, 0);
 
-// Reset draw state
 draw_set_font(fnt_default);
-draw_set_color(c_white);
 draw_set_halign(fa_left);
 draw_set_valign(fa_top);
+draw_set_color(c_white);
 draw_set_alpha(1.0);

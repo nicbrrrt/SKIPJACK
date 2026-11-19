@@ -172,6 +172,17 @@ if (chapter_mode == CHAPTER_ATBASH) {
             draw_set_color(_mask_bot ? c_gray : make_color_rgb(230, 210, 120));
             draw_text_transformed(_mx, _m_y2, _bot_disp, 0.82, 0.82, 0);
         }
+
+        // On Tutorial Floors 1-3, highlight the active mirror pair column with a vertical reflection frame!
+        if (guided_ui && _has_key && (_top_idx == _active_enc_idx || _bot_idx == _active_enc_idx)) {
+            var _mpulse = 0.65 + 0.35 * sin(current_time / 150);
+            draw_set_alpha(_mpulse);
+            draw_set_color(c_yellow);
+            draw_rectangle(_mx - 14, _m_y1 - 12, _mx + 14, _m_y2 + 12, true);
+            draw_set_color(c_lime);
+            draw_text_transformed(_mx, (_m_y1 + _m_y2) * 0.5, "|", 0.72, 0.72, 0);
+            draw_set_alpha(1.0);
+        }
     }
 } else {
     var _strip_y  = _py1 + 80;
@@ -208,6 +219,10 @@ if (chapter_mode == CHAPTER_ATBASH) {
             draw_set_color(make_color_rgb(160, 175, 200));
             draw_text_transformed(_lx, _strip_y, _ch, 0.85, 0.85, 0);
         }
+    }
+
+    if (guided_ui && _has_key) {
+        scr_draw_tutorial_ruler_hops(_strip_x1, _strip_y, _cell_w, _active_enc_idx, slot_shifts[current_slot]);
     }
 }
 
@@ -283,18 +298,32 @@ if (status_msg != "") {
     draw_text_transformed(center_x, _py2 - 42, status_msg, 0.88, 0.88, 0);
 } else if (guided_ui && _has_key) {
     draw_set_color(c_lime);
-    draw_text_transformed(
-        center_x, _py2 - 42,
-        "TUTORIAL: Press [UP/DOWN] so Slot #" + string(current_slot + 1) + " ('" + _active_enc_ch + "') becomes '" + _active_plain_ch + "'!",
-        0.82, 0.82, 0
-    );
+    var _how_str = "";
+    if (chapter_mode == CHAPTER_ATBASH) {
+        _how_str = "STEP-BY-STEP (Slot #" + string(current_slot + 1) + "): Look at '" + _active_enc_ch + "' on the Mirror Bar -> opposite is '" + _active_plain_ch + "'! Press [UP/DOWN] to set '" + _active_plain_ch + "'!";
+    } else {
+        var _sh_v  = slot_shifts[current_slot];
+        var _sh_tx = (_sh_v >= 0) ? ("+" + string(_sh_v) + " right") : (string(_sh_v) + " left");
+        _how_str = "STEP-BY-STEP (Slot #" + string(current_slot + 1) + "): Start at Amber '" + _active_enc_ch + "' -> Count " + _sh_tx + " to Green '" + _active_plain_ch + "'! Press [UP/DOWN] to set '" + _active_plain_ch + "'!";
+    }
+    draw_text_transformed(center_x, _py2 - 42, _how_str, 0.68, 0.68, 0);
 }
 
 draw_set_color(make_color_rgb(150, 170, 195));
 if (instance_exists(obj_battle)) {
     draw_text_transformed(center_x, _py2 - 18, "[ARROWS] Select & Shift   |   [ENTER] Submit", 0.82, 0.82, 0);
+} else if (guided_ui) {
+    draw_text_transformed(center_x, _py2 - 18, "[ARROWS] Select & Shift   |   [ENTER] Unlock   |   [TAB] How to Solve   |   [ESC] Back", 0.76, 0.76, 0);
 } else {
     draw_text_transformed(center_x, _py2 - 18, "[ARROWS] Select & Shift   |   [ENTER] Unlock   |   [ESC] Back", 0.82, 0.82, 0);
+}
+
+// --- 6. FULL VISUAL "HOW TO DECRYPT" DEMONSTRATION MODAL (Tutorial Floors 1-3) ---
+if (guided_ui && variable_instance_exists(id, "demo_modal_open") && demo_modal_open) {
+    scr_draw_tutorial_how_to_solve_modal(
+        gui_width, gui_height, "door", chapter_mode,
+        _active_enc_ch, _active_plain_ch, slot_shifts[current_slot], vigenere_key, current_slot + 1
+    );
 }
 
 draw_set_font(fnt_default);

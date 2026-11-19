@@ -367,7 +367,36 @@ function scr_get_floor_incident_case(_case_idx) {
         memo_notes: [
             "[STICKY NOTE]: 'The Roman alphabet-shift cipher = CAESAR!'",
             "[IT MEMO]: 'Key Vault Word: C-A-E-S-A-R.'"
-        ]
+        ],
+        vault_challenge: {
+            artifact_header: "CAPTURED NETWORK LOG:  Wi-Fi = 'Free_Cafe_Guest' (OPEN / NO PASSWORD)",
+            artifact_body:   "VPN TUNNEL: OFF  |  OUTBOUND: Sent plain-text Caesar Shift Key (+K) over public Wi-Fi!",
+            scanner_note:    "FORENSIC SCAN: Public Wi-Fi is unencrypted! Sending a Caesar Shift Key with VPN OFF lets anyone nearby snoop it.",
+            prompt:          "Spot the red flag in this network log that exposed the floor's Caesar Cipher Key:",
+            options: [
+                "Public Wi-Fi used with VPN OFF — anyone on the cafe network could read the Caesar Shift Key",
+                "The coffee shop Wi-Fi signal strength was too weak to load emails quickly",
+                "The Caesar Cipher shifts letters by a fixed number instead of mirroring A to Z"
+            ],
+            correct_idx: 0,
+            explain_win: "SPOT ON! Always turn on an encrypted VPN on public Wi-Fi so snoops can't read your connection!"
+        },
+        fixes: [
+            "Always turn on an encrypted VPN before working on public Wi-Fi",
+            "Disable the computer's Firewall to boost public Wi-Fi speed",
+            "Write the Caesar shift number on a sticky note taped to the monitor"
+        ],
+        correct_fix_idx: 0,
+        debrief_quiz: {
+            question: "REAL-LIFE CHECK: You're at a coffee shop on free public Wi-Fi and need to log into your school or work account. What should you do first?",
+            options: [
+                "Turn on a trusted VPN (or use your phone's personal hotspot) so your connection is encrypted",
+                "Turn off your Firewall so the coffee shop Wi-Fi connects faster",
+                "Log in right away—public Wi-Fi automatically hides your data from other guests"
+            ],
+            correct_idx: 0,
+            feedback_ok: "CORRECT! Public Wi-Fi is open to snoops—a VPN scrambles your traffic so nobody nearby can intercept it!"
+        }
     };
 
     if (_ch == CHAPTER_VIGENERE) {
@@ -405,7 +434,36 @@ function scr_get_floor_incident_case(_case_idx) {
             memo_notes: [
                 "[STICKY NOTE]: 'The repeating-keyword shift cipher = VIGENERE!'",
                 "[IT MEMO]: 'Key Vault Word: V-I-G-E-N-E-R-E.'"
-            ]
+            ],
+            vault_challenge: {
+                artifact_header: "CAPTURED FILE AUDIT:  /Public_Shared_Drive/vigenere_floor_key.txt",
+                artifact_body:   "PERMISSIONS: Everyone (Read/Write)  |  CONTENTS: 'Floor Repeating Vigenere Keyword = CAB'",
+                scanner_note:    "FORENSIC SCAN: The secret Vigenere keyword was saved in an unlocked public folder where any intruder can read it!",
+                prompt:          "Spot the security mistake in this file audit that leaked the Vigenere Keyword:",
+                options: [
+                    "Saving a secret Vigenere keyword in an unlocked, plain-text public folder anyone can open",
+                    "Using a repeating keyword where A=+0, B=+1, and C=+2 to shift letters",
+                    "Backing up encrypted system files to an offline vault"
+                ],
+                correct_idx: 0,
+                explain_win: "SPOT ON! Never store passwords or cipher keywords in plain-text public folders—use an encrypted Password Manager!"
+            },
+            fixes: [
+                "Store secret keys and passwords in an encrypted Password Manager, never plain-text public folders",
+                "Rename the plain-text password file to 'do_not_open.txt' inside the public folder",
+                "Use the same 3-letter password for every employee account on the floor"
+            ],
+            correct_fix_idx: 0,
+            debrief_quiz: {
+                question: "REAL-LIFE CHECK: You have several complex passwords and keywords you're afraid of forgetting. Where is the safest place to store them?",
+                options: [
+                    "Inside an encrypted Password Manager protected by a strong master password",
+                    "In a plain-text file inside a shared public folder so you can open it anywhere",
+                    "In a public social media bio or unencrypted sticky note on your screen"
+                ],
+                correct_idx: 0,
+                feedback_ok: "CORRECT! An encrypted Password Manager locks all your credentials behind strong encryption so plain-text snoops get nothing!"
+            }
         };
     } else if (_ch == CHAPTER_ATBASH) {
         _cipher_case = {
@@ -442,7 +500,36 @@ function scr_get_floor_incident_case(_case_idx) {
             memo_notes: [
                 "[STICKY NOTE]: 'The mirror-alphabet cipher (A<->Z) = ATBASH!'",
                 "[IT MEMO]: 'Key Vault Word: A-T-B-A-S-H.'"
-            ]
+            ],
+            vault_challenge: {
+                artifact_header: "CAPTURED DOOR CONFIG:  MODE = ATBASH_MIRROR (A<->Z, B<->Y)",
+                artifact_body:   "SECRET KEY REQUIRED: NONE  |  WARNING: Fixed mirror rule can be reversed by anyone!",
+                scanner_note:    "FORENSIC SCAN: Atbash always flips A<->Z with NO secret key—relying on a fixed rule is 'security by obscurity'!",
+                prompt:          "Spot the weakness in this door configuration that let hackers decode it instantly:",
+                options: [
+                    "Atbash has NO secret key—anyone who knows the A<->Z mirror rule can flip the letters right back",
+                    "The Atbash mirror cipher requires a 64-character hardware token",
+                    "The door lock timed out because the password was too long"
+                ],
+                correct_idx: 0,
+                explain_win: "SPOT ON! Because Atbash has no secret key, anyone who knows A<->Z can reverse it. Real encryption requires a secret key!"
+            },
+            fixes: [
+                "Always use strong encryption that requires a secret password or key, not a key-less public rule",
+                "Use Atbash twice in a row so A flips to Z and then back to A",
+                "Leave the test mode switched on overnight to save time"
+            ],
+            correct_fix_idx: 0,
+            debrief_quiz: {
+                question: "REAL-LIFE CHECK: Why isn't a key-less rule like flipping the alphabet backwards (Atbash: A<->Z) safe for protecting real passwords?",
+                options: [
+                    "Because there is no secret key—once anyone knows the rule, they can reverse every message immediately",
+                    "Because computers cannot display the letter Z on modern monitors",
+                    "Because Atbash requires too much electricity to calculate"
+                ],
+                correct_idx: 0,
+                feedback_ok: "CORRECT! Real security never relies on hoping people don't know the trick—it relies on strong secret keys!"
+            }
         };
     }
 
@@ -482,7 +569,36 @@ function scr_get_floor_incident_case(_case_idx) {
             memo_notes: [
                 "[STICKY NOTE]: 'Urgent fake emails asking for your password = PHISHING!'",
                 "[IT MEMO]: 'Key Vault Word: P-H-I-S-H-I-N-G.'"
-            ]
+            ],
+            vault_challenge: {
+                artifact_header: "CAPTURED EMAIL:  From: support@skipj4ck-login-verify.net  |  Subject: URGENT INVOICE!",
+                artifact_body:   "MESSAGE: 'Your account will be locked in 10 minutes! Click http://skipj4ck-login-verify.net to enter your password.'",
+                scanner_note:    "FORENSIC SCAN: Look at the domain ('skipj4ck-login-verify.net') and the fake urgency—classic PHISHING bait!",
+                prompt:          "Spot the red flag in this captured email that proves it is a Phishing attack:",
+                options: [
+                    "Misspelled look-alike domain ('skipj4ck') + fake 'URGENT!' panic demanding a password login",
+                    "The email was sent during normal weekday lunch hours",
+                    "The email mentions an invoice instead of a calendar invite"
+                ],
+                correct_idx: 0,
+                explain_win: "SPOT ON! Phishing uses fake urgency and look-alike domains ('skipj4ck') as bait to steal your login!"
+            },
+            fixes: [
+                "Always inspect the real sender address/URL and never log in through urgent email links",
+                "Reply to the suspicious email with your password so IT can check if it's real",
+                "Click the link quickly before the 10-minute countdown timer expires"
+            ],
+            correct_fix_idx: 0,
+            debrief_quiz: {
+                question: "REAL-LIFE CHECK: You receive an 'URGENT: Account Suspended!' email with a link asking you to sign in right away. What is the safest move?",
+                options: [
+                    "Do not click the link—check the sender's real email address and go to the official website directly in your browser",
+                    "Click the link and type your password quickly before your account gets deleted",
+                    "Forward the link to all your friends so they can test if the website is real"
+                ],
+                correct_idx: 0,
+                feedback_ok: "CORRECT! Never trust login links inside urgent emails—always navigate to the official website yourself!"
+            }
         },
         {
             word:     "TROJAN",
@@ -518,7 +634,36 @@ function scr_get_floor_incident_case(_case_idx) {
             memo_notes: [
                 "[STICKY NOTE]: 'Malware disguised as a helpful app = TROJAN!'",
                 "[IT MEMO]: 'Key Vault Word: T-R-O-J-A-N.'"
-            ]
+            ],
+            vault_challenge: {
+                artifact_header: "CAPTURED DOWNLOAD LOG:  File = 'Free_PDF_Helper_Pro.exe'  |  Source: mega-free-tools.biz",
+                artifact_body:   "PUBLISHER: Unknown (Unverified)  |  HIDDEN ACTION: Unpacked 'remote_backdoor.dll' in background!",
+                scanner_note:    "FORENSIC SCAN: An unverified '.exe' pretending to be a helpful PDF tool while hiding malware inside is a TROJAN!",
+                prompt:          "Spot the red flag in this download log that reveals a Trojan Horse attack:",
+                options: [
+                    "An unverified '.exe' from a random site disguised as a helpful PDF tool while secretly installing malware",
+                    "Opening a normal '.docx' word document created by Human Resources",
+                    "Using an official PDF reader pre-installed by the IT department"
+                ],
+                correct_idx: 0,
+                explain_win: "SPOT ON! Just like the wooden Trojan Horse, a Trojan disguises malware inside a 'free' useful program!"
+            },
+            fixes: [
+                "Only download software from official, verified publishers or IT-approved app stores",
+                "Run unknown '.exe' installers as Administrator so they install faster",
+                "Turn off antivirus warnings whenever downloading free tools from random websites"
+            ],
+            correct_fix_idx: 0,
+            debrief_quiz: {
+                question: "REAL-LIFE CHECK: You need a free tool or game mod, and a random website offers 'Free_Turbo_Installer.exe' from an unknown publisher. What should you do?",
+                options: [
+                    "Do not download it—only install apps from official, verified app stores or the trusted developer's real site",
+                    "Download and run it right away since the filename says it's free and helpful",
+                    "Disable your antivirus first so it doesn't block the free installer"
+                ],
+                correct_idx: 0,
+                feedback_ok: "CORRECT! Trojans hide inside 'free' unofficial installers and game mods—stick to official, verified sources!"
+            }
         },
         {
             word:     "FIREWALL",
@@ -554,7 +699,36 @@ function scr_get_floor_incident_case(_case_idx) {
             memo_notes: [
                 "[STICKY NOTE]: 'The barrier that blocks bad network traffic = FIREWALL!'",
                 "[IT MEMO]: 'Key Vault Word: F-I-R-E-W-A-L-L.'"
-            ]
+            ],
+            vault_challenge: {
+                artifact_header: "CAPTURED SECURITY LOG:  Network Packet Shield (FIREWALL) = DISABLED",
+                artifact_body:   "OPEN PORTS: All Inbound Traffic Allowed  |  REASON LOGGED: 'Turned off to fix laggy video call'",
+                scanner_note:    "FORENSIC SCAN: Turning off the FIREWALL removed the security barrier that blocks unauthorized internet traffic!",
+                prompt:          "Spot the security failure in this network log that let hackers connect directly to the PC:",
+                options: [
+                    "The Firewall was turned OFF, removing the security barrier that blocks unauthorized network traffic",
+                    "The user joined a scheduled marketing video call during work hours",
+                    "The computer monitor brightness was set too high"
+                ],
+                correct_idx: 0,
+                explain_win: "SPOT ON! A Firewall acts as a 24/7 traffic barrier—turning it off leaves your computer's ports wide open!"
+            },
+            fixes: [
+                "Keep your Firewall enabled at all times so unauthorized network traffic is blocked automatically",
+                "Turn off your Firewall whenever a game or video stream feels slow",
+                "Open every network port on your router so websites load faster"
+            ],
+            correct_fix_idx: 0,
+            debrief_quiz: {
+                question: "REAL-LIFE CHECK: Your online game or video call is lagging, and a random comment online tells you to completely turn off your computer's Firewall. What should you do?",
+                options: [
+                    "Keep your Firewall ON—disabling it exposes your computer to hackers; troubleshoot your Wi-Fi or app settings instead",
+                    "Turn off your Firewall permanently so your internet never lags again",
+                    "Uninstall all security updates to free up memory"
+                ],
+                correct_idx: 0,
+                feedback_ok: "CORRECT! Never disable your Firewall to fix lag—it's the digital guard keeping outside attackers out of your network!"
+            }
         },
         {
             word:     "BOTNET",
@@ -590,7 +764,36 @@ function scr_get_floor_incident_case(_case_idx) {
             memo_notes: [
                 "[STICKY NOTE]: 'An army of hijacked zombie devices = BOTNET!'",
                 "[IT MEMO]: 'Key Vault Word: B-O-T-N-E-T.'"
-            ]
+            ],
+            vault_challenge: {
+                artifact_header: "CAPTURED IOT DEVICE SCAN:  240 Office Smart Printers & Wi-Fi Lights Hijacked",
+                artifact_body:   "LOGIN CREDENTIALS: Username = 'admin' | Password = '1234' (Factory Default — Never Changed!)",
+                scanner_note:    "FORENSIC SCAN: Automated hacker scripts guessed the factory 'admin / 1234' login and linked the devices into a BOTNET!",
+                prompt:          "Spot the red flag that allowed hackers to hijack 240 smart devices into a Botnet army:",
+                options: [
+                    "The smart devices were left on their factory-default password ('admin / 1234') instead of a strong new password",
+                    "The office printers were connected to electrical outlets during the day",
+                    "The breakroom thermostat was set to 70 degrees"
+                ],
+                correct_idx: 0,
+                explain_win: "SPOT ON! Hackers scan automatically for factory passwords like '1234' to hijack smart devices into a Botnet!"
+            },
+            fixes: [
+                "Change factory-default passwords ('admin / 1234') to a strong, unique password immediately upon setup",
+                "Keep the factory '1234' password so everyone in the building can remember it easily",
+                "Tape the default password on the front of the Wi-Fi router"
+            ],
+            correct_fix_idx: 0,
+            debrief_quiz: {
+                question: "REAL-LIFE CHECK: Your family sets up a new Wi-Fi router, smart camera, or printer at home that comes with a default password like 'admin' or '1234'. What should you do first?",
+                options: [
+                    "Change the factory-default password immediately to a strong, unique password",
+                    "Leave it as '1234' so you never forget it—hackers don't target home devices",
+                    "Post the device's IP address online to test if it works"
+                ],
+                correct_idx: 0,
+                feedback_ok: "CORRECT! Changing default passwords right away stops automated Botnet scanners from hijacking your smart devices!"
+            }
         },
         {
             word:     "SPYWARE",
@@ -626,7 +829,36 @@ function scr_get_floor_incident_case(_case_idx) {
             memo_notes: [
                 "[STICKY NOTE]: 'Software that secretly records what you type = SPYWARE!'",
                 "[IT MEMO]: 'Key Vault Word: S-P-Y-W-A-R-E.'"
-            ]
+            ],
+            vault_challenge: {
+                artifact_header: "CAPTURED BROWSER ALERT:  Flashing Pop-Up Ad on 'free-coupons-daily.net'",
+                artifact_body:   "POP-UP CLICKED: 'SYSTEM OUT OF DATE! Click ALLOW to run update_patch.exe' -> Installed hidden keylogger!",
+                scanner_note:    "FORENSIC SCAN: Clicking a fake website pop-up ad installed SPYWARE (a hidden keylogger recording every keystroke)!",
+                prompt:          "Spot the red flag in this browser log that installed Spyware on the computer:",
+                options: [
+                    "Clicking 'ALLOW' on a flashing website pop-up ad pretending to be a browser update",
+                    "Updating the browser through the official Settings -> About menu",
+                    "Typing numbers into an offline Excel tax spreadsheet"
+                ],
+                correct_idx: 0,
+                explain_win: "SPOT ON! Fake update pop-up ads often install Spyware that silently records your screen and keyboard!"
+            },
+            fixes: [
+                "Close flashing website pop-up ads immediately and only update apps via your official Settings menu",
+                "Click 'Allow' on every browser pop-up so the alerts disappear faster",
+                "Keep typing passwords even when a keylogger alert appears"
+            ],
+            correct_fix_idx: 0,
+            debrief_quiz: {
+                question: "REAL-LIFE CHECK: While browsing a website, a loud flashing pop-up banner appears claiming 'Your Browser Is Out of Date — Click Here to Update Now!' What should you do?",
+                options: [
+                    "Close the tab or pop-up immediately—real updates only happen inside your browser or OS Settings menu",
+                    "Click the flashing banner and run the downloaded '.exe' file to stay up to date",
+                    "Enter your computer's admin password into the pop-up window"
+                ],
+                correct_idx: 0,
+                feedback_ok: "CORRECT! Legitimate system and browser updates never come from website pop-up ads!"
+            }
         },
         {
             word:     "MALWARE",
@@ -662,7 +894,36 @@ function scr_get_floor_incident_case(_case_idx) {
             memo_notes: [
                 "[STICKY NOTE]: 'MALicious + softWARE = MALWARE!'",
                 "[IT MEMO]: 'Key Vault Word: M-A-L-W-A-R-E.'"
-            ]
+            ],
+            vault_challenge: {
+                artifact_header: "CAPTURED USB PORT LOG:  External Drive 'PARKING_LOT_USB' Inserted on Port #2",
+                artifact_body:   "AUTORUN EXECUTED: 'owner_contact_info.scr.exe' -> Deployed MALWARE (Malicious Software) payload!",
+                scanner_note:    "FORENSIC SCAN: Attackers drop 'lost' USB drives in parking lots hoping someone plugs them in and launches MALWARE!",
+                prompt:          "Spot the risky action in this hardware log that infected the workstation with Malware:",
+                options: [
+                    "Plugging an unknown 'lost' USB drive found outside directly into a work computer",
+                    "Saving code documentation to an authorized local folder",
+                    "Locking the computer screen before walking to lunch"
+                ],
+                correct_idx: 0,
+                explain_win: "SPOT ON! 'USB Drop' attacks count on curiosity or helpfulness—never plug an unknown USB drive into your PC!"
+            },
+            fixes: [
+                "Never plug an unknown USB drive into your computer—turn found drives directly over to IT Security",
+                "Plug found USB drives into the main server first to check who owns them",
+                "Open all files on a found USB drive as long as the label looks friendly"
+            ],
+            correct_fix_idx: 0,
+            debrief_quiz: {
+                question: "REAL-LIFE CHECK: You find a USB flash drive on the ground outside school or work labeled 'Confidential / Photos'. What is the safest thing to do?",
+                options: [
+                    "Never plug it into your computer—hand it directly to IT security or the front desk",
+                    "Plug it into your laptop just for a second to see whose name is inside the folder",
+                    "Plug it into a school or office computer so your personal laptop stays safe"
+                ],
+                correct_idx: 0,
+                feedback_ok: "CORRECT! A booby-trapped USB drive can launch Malware the instant it's plugged in—always let IT inspect it on an isolated tool!"
+            }
         },
         {
             word:     "SPOOFING",
@@ -698,7 +959,36 @@ function scr_get_floor_incident_case(_case_idx) {
             memo_notes: [
                 "[STICKY NOTE]: 'Faking a trusted sender ID or IP address = SPOOFING!'",
                 "[IT MEMO]: 'Key Vault Word: S-P-O-O-F-I-N-G.'"
-            ]
+            ],
+            vault_challenge: {
+                artifact_header: "CAPTURED EMAIL HEADER:  Display Name = 'Company CEO (Director)'",
+                artifact_body:   "ACTUAL SENDER ADDRESS: <ceo.urgent.giftcards99@free-mail-host.org>  |  REQUEST: 'Send floor access code now!'",
+                scanner_note:    "FORENSIC SCAN: The attacker SPOOFED (faked) the display name 'Company CEO' while sending from an outside address!",
+                prompt:          "Spot the red flag in this email header that proves the sender's identity was Spoofed:",
+                options: [
+                    "The display name says 'Company CEO', but the actual email address is a random external account",
+                    "The email was received by the Legal & Compliance department",
+                    "The subject line used capital letters"
+                ],
+                correct_idx: 0,
+                explain_win: "SPOT ON! Display names and caller IDs are easy to Spoof—always check the real address and verify on a second channel!"
+            },
+            fixes: [
+                "Inspect the full email address behind the display name and verify urgent requests via a known phone number",
+                "Trust any email or phone call as long as the display name says 'CEO' or 'IT Support'",
+                "Send confidential codes immediately whenever an email says the boss is in a meeting"
+            ],
+            correct_fix_idx: 0,
+            debrief_quiz: {
+                question: "REAL-LIFE CHECK: You get a text or email whose display name says 'School Principal / Boss', asking you to send a private code or buy gift cards right now. How do you protect yourself from Spoofing?",
+                options: [
+                    "Check the actual email address and call or talk to the person directly using a known, trusted number to verify",
+                    "Send the code right away because the display name has your boss's real name on it",
+                    "Reply to the email asking 'Are you really my boss?'"
+                ],
+                correct_idx: 0,
+                feedback_ok: "CORRECT! Because display names and caller IDs can be Spoofed, verifying through a second trusted channel stops impersonators cold!"
+            }
         },
         {
             word:     "RANSOM",
@@ -734,7 +1024,36 @@ function scr_get_floor_incident_case(_case_idx) {
             memo_notes: [
                 "[STICKY NOTE]: 'Encrypting files and demanding payment = RANSOM!'",
                 "[IT MEMO]: 'Key Vault Word: R-A-N-S-O-M.'"
-            ]
+            ],
+            vault_challenge: {
+                artifact_header: "CAPTURED CREDENTIAL & EXTORTION LOG:  Account = tflend@skipjack.com",
+                artifact_body:   "PASSWORD REUSED: 'Toby123!' (Matched 2024 Gaming Forum Leak) -> Files Encrypted for RANSOM Payment!",
+                scanner_note:    "FORENSIC SCAN: Reusing a leaked password let attackers log in and lock the server with RANSOMWARE!",
+                prompt:          "Spot the mistake that let attackers break into the account and lock the files for Ransom:",
+                options: [
+                    "Reusing the exact same password ('Toby123!') across a gaming website and a work account",
+                    "Keeping an offline backup copy of important sales presentations",
+                    "Using a different 14-character password for every website"
+                ],
+                correct_idx: 0,
+                explain_win: "SPOT ON! When you reuse one password everywhere, a leak on one site gives hackers the key to all your other accounts!"
+            },
+            fixes: [
+                "Use a unique password for every account and keep offline Backups so Ransomware can never hold your files hostage",
+                "Use one easy password on every website and pay the hackers whenever they lock your files",
+                "Store your only backup copy on the exact same computer desktop"
+            ],
+            correct_fix_idx: 0,
+            debrief_quiz: {
+                question: "REAL-LIFE CHECK: Why is reusing the exact same password on a random gaming forum and your primary email or school account so dangerous?",
+                options: [
+                    "If the gaming forum gets hacked, criminals automatically test that leaked password on your email, school, and bank accounts",
+                    "Typing the same password on two websites wears out your keyboard faster",
+                    "Websites don't allow passwords that contain capital letters"
+                ],
+                correct_idx: 0,
+                feedback_ok: "CORRECT! Unique passwords stop one leaked website from compromising your other accounts—and offline backups defeat Ransomware!"
+            }
         },
         {
             word:     "BACKDOOR",
@@ -770,7 +1089,36 @@ function scr_get_floor_incident_case(_case_idx) {
             memo_notes: [
                 "[STICKY NOTE]: 'A secret entry that bypasses normal login = BACKDOOR!'",
                 "[IT MEMO]: 'Key Vault Word: B-A-C-K-D-O-O-R.'"
-            ]
+            ],
+            vault_challenge: {
+                artifact_header: "CAPTURED SERVER CONFIG:  Port 8080 Maintenance Shortcut = ACTIVE",
+                artifact_body:   "SETTING: 'skip_password_and_2fa = TRUE' (Left open overnight after remote maintenance!)",
+                scanner_note:    "FORENSIC SCAN: Leaving a 'skip-password' shortcut active creates an open BACKDOOR that bypasses login security!",
+                prompt:          "Spot the dangerous setting in this server config that gave hackers a Backdoor into the building:",
+                options: [
+                    "A temporary 'skip_password_and_2fa = TRUE' shortcut that was left open overnight",
+                    "Requiring Two-Factor Authentication (2FA) for every remote login",
+                    "Logging server uptime statistics for 412 days"
+                ],
+                correct_idx: 0,
+                explain_win: "SPOT ON! Any shortcut that skips password or 2FA checks is a Backdoor that attackers can slip right through!"
+            },
+            fixes: [
+                "Never create shortcuts that skip password checks, always close temporary access links, and enforce Two-Factor Auth (2FA)",
+                "Leave a hidden 'skip-password' guest link open so you can log in faster from home",
+                "Turn off Two-Factor Authentication (2FA) whenever working late at night"
+            ],
+            correct_fix_idx: 0,
+            debrief_quiz: {
+                question: "REAL-LIFE CHECK: You're tired of typing your password and 2FA code every time you log in, so you're tempted to turn off 2FA or leave a 'no-password' guest account open. What is the safe habit?",
+                options: [
+                    "Keep Two-Factor Authentication (2FA) ON and never leave password-bypass shortcuts or unlocked screens unattended",
+                    "Create a hidden 'guest' login with no password so you can get in faster",
+                    "Turn off all login passwords overnight when fewer people are online"
+                ],
+                correct_idx: 0,
+                feedback_ok: "CORRECT! Shortcuts that skip passwords act as Backdoors for hackers—keep 2FA on and lock your devices when away!"
+            }
         }
     ];
 
@@ -911,6 +1259,263 @@ function scr_init_facility_puzzles() {
 }
 
 // ---------------------------------------------------------------------------
+/// @function scr_draw_atbash_mirror_bar(_cx, _y_top, _src_idx, _usr_idx, _target_idx, _show_guide, _usr_col)
+/// @description Draws the 2-Row Atbash Mirror Alphabet Bar (A..M on top row,
+///              Z..N directly below on bottom row) for Chapter 3 facility puzzles.
+// ---------------------------------------------------------------------------
+function scr_draw_atbash_mirror_bar(_cx, _y_top, _src_idx, _usr_idx, _target_idx, _show_guide, _usr_col) {
+    var _curr    = variable_global_exists("floor_curriculum") ? global.floor_curriculum : scr_get_floor_curriculum(3, 4);
+    var _hide_sh = _curr.hide_shift_match;
+    var _is_exam = _curr.is_final_exam;
+
+    var _m_y1     = _y_top;
+    var _m_y2     = _y_top + 22;
+    var _m_cell_w = 36;
+    var _m_tot_w  = 13 * _m_cell_w;
+    var _m_x1     = _cx - _m_tot_w * 0.5;
+
+    draw_set_color(make_color_rgb(20, 28, 42));
+    draw_rectangle(_m_x1 - 6, _m_y1 - 11, _m_x1 + _m_tot_w + 6, _m_y2 + 11, false);
+    draw_set_color(make_color_rgb(70, 125, 105));
+    draw_rectangle(_m_x1 - 6, _m_y1 - 11, _m_x1 + _m_tot_w + 6, _m_y2 + 11, true);
+
+    for (var _m = 0; _m < 13; _m++) {
+        var _mx      = _m_x1 + _m * _m_cell_w + _m_cell_w * 0.5;
+        var _top_idx = _m;          // A..M (0..12)
+        var _bot_idx = 25 - _m;     // Z..N (25..13)
+        var _top_ch  = chr(ord("A") + _top_idx);
+        var _bot_ch  = chr(ord("A") + _bot_idx);
+
+        var _mask_bot = false;
+        if (_is_exam && _m > 0 && _m < 12) {
+            _mask_bot = true;
+        } else if (_hide_sh && (_m mod 2 == 1)) {
+            _mask_bot = true;
+        }
+
+        // Top Row Cell (A..M)
+        if (_top_idx == _usr_idx) {
+            draw_set_color(_usr_col);
+            draw_rectangle(_mx - 11, _m_y1 - 9, _mx + 11, _m_y1 + 9, false);
+            draw_set_color(c_black);
+            draw_text_transformed(_mx, _m_y1, _top_ch, 0.82, 0.82, 0);
+        } else if (_top_idx == _src_idx) {
+            draw_set_color(make_color_rgb(255, 190, 40));
+            draw_rectangle(_mx - 11, _m_y1 - 9, _mx + 11, _m_y1 + 9, false);
+            draw_set_color(c_black);
+            draw_text_transformed(_mx, _m_y1, _top_ch, 0.82, 0.82, 0);
+        } else if (_show_guide && _top_idx == _target_idx) {
+            draw_set_color(c_lime);
+            draw_rectangle(_mx - 11, _m_y1 - 9, _mx + 11, _m_y1 + 9, true);
+            draw_text_transformed(_mx, _m_y1, _top_ch, 0.82, 0.82, 0);
+        } else {
+            draw_set_color(make_color_rgb(165, 215, 190));
+            draw_text_transformed(_mx, _m_y1, _top_ch, 0.80, 0.80, 0);
+        }
+
+        // Bottom Row Cell (Z..N)
+        var _bot_disp = _mask_bot ? "?" : _bot_ch;
+        if (_bot_idx == _usr_idx && !_mask_bot) {
+            draw_set_color(_usr_col);
+            draw_rectangle(_mx - 11, _m_y2 - 9, _mx + 11, _m_y2 + 9, false);
+            draw_set_color(c_black);
+            draw_text_transformed(_mx, _m_y2, _bot_disp, 0.82, 0.82, 0);
+        } else if (_bot_idx == _src_idx && !_mask_bot) {
+            draw_set_color(make_color_rgb(255, 190, 40));
+            draw_rectangle(_mx - 11, _m_y2 - 9, _mx + 11, _m_y2 + 9, false);
+            draw_set_color(c_black);
+            draw_text_transformed(_mx, _m_y2, _bot_disp, 0.82, 0.82, 0);
+        } else if (_show_guide && _bot_idx == _target_idx) {
+            draw_set_color(c_lime);
+            draw_rectangle(_mx - 11, _m_y2 - 9, _mx + 11, _m_y2 + 9, true);
+            draw_text_transformed(_mx, _m_y2, _bot_ch, 0.82, 0.82, 0);
+        } else {
+            draw_set_color(_mask_bot ? c_gray : make_color_rgb(230, 210, 120));
+            draw_text_transformed(_mx, _m_y2, _bot_disp, 0.80, 0.80, 0);
+        }
+
+        // On Guided Tutorial Floors (1-3), draw a pulsing vertical Mirror Connector on the active pair column!
+        if (_show_guide && (_top_idx == _src_idx || _bot_idx == _src_idx)) {
+            var _mpulse = 0.65 + 0.35 * sin(current_time / 150);
+            draw_set_alpha(_mpulse);
+            draw_set_color(c_yellow);
+            draw_rectangle(_mx - 14, _m_y1 - 11, _mx + 14, _m_y2 + 11, true);
+            draw_set_color(c_lime);
+            draw_text_transformed(_mx, (_m_y1 + _m_y2) * 0.5, "|", 0.72, 0.72, 0);
+            draw_set_alpha(1.0);
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+/// @function scr_draw_tutorial_ruler_hops(_strip_x1, _strip_y, _cell_w, _start_idx, _shift_amt)
+/// @description On Tutorial Floors 1-3, animates step-by-step counting hops
+///              along the A-Z Ruler from the Amber Start letter (_start_idx)
+///              to the Green Target letter (+_shift_amt or -_shift_amt) so the
+///              player visually sees HOW to count the cipher shift!
+// ---------------------------------------------------------------------------
+function scr_draw_tutorial_ruler_hops(_strip_x1, _strip_y, _cell_w, _start_idx, _shift_amt) {
+    if (_shift_amt == 0) return;
+    var _steps    = abs(_shift_amt);
+    var _dir      = (_shift_amt > 0) ? 1 : -1;
+    var _anim_hop = floor(current_time / 420) mod (_steps + 1); // 0.._steps animated hop counter
+
+    for (var _h = 1; _h <= _steps; _h++) {
+        var _prev_i = (_start_idx + (_h - 1) * _dir + 26) mod 26;
+        var _curr_i = (_start_idx + _h * _dir + 26) mod 26;
+        var _px     = _strip_x1 + _prev_i * _cell_w + _cell_w * 0.5;
+        var _cx_hop = _strip_x1 + _curr_i * _cell_w + _cell_w * 0.5;
+        var _is_lit = (_h <= _anim_hop);
+
+        // Draw connecting line above the strip when adjacent (not wrapping around A<->Z edge)
+        if (abs(_curr_i - _prev_i) == 1) {
+            draw_set_color(_is_lit ? c_lime : make_color_rgb(90, 125, 110));
+            draw_line(_px, _strip_y - 15, _cx_hop, _strip_y - 15);
+        }
+
+        // Draw numbered hop badge (+1, +2, +3 or -1, -2, -3) above each stepped letter
+        var _lbl = ((_dir > 0) ? "+" : "-") + string(_h);
+        draw_set_color(_is_lit ? c_lime : make_color_rgb(130, 165, 145));
+        draw_text_transformed(_cx_hop, _strip_y - 20, _lbl, 0.58, 0.58, 0);
+
+        // Highlight the currently animated hop cell on the ruler
+        if (_h == _anim_hop) {
+            draw_set_color(c_yellow);
+            draw_rectangle(_cx_hop - 10, _strip_y - 13, _cx_hop + 10, _strip_y + 13, true);
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+/// @function scr_draw_tutorial_how_to_solve_modal(_gui_w, _gui_h, _mode_type, _chapter, _start_ch, _end_ch, _shift_val, _vig_key, _slot_num)
+/// @description Renders an interactive visual "HOW TO SOLVE THIS PUZZLE"
+///              demonstration card on Tutorial Floors 1-3 (auto-shown on first
+///              visit to the Key Pedestal & first Cipher Door Lock, and
+///              re-openable anytime during Tutorials by pressing [TAB]).
+// ---------------------------------------------------------------------------
+function scr_draw_tutorial_how_to_solve_modal(_gui_w, _gui_h, _mode_type, _chapter, _start_ch, _end_ch, _shift_val, _vig_key, _slot_num) {
+    var _cx = _gui_w * 0.5;
+    var _cy = _gui_h * 0.5;
+
+    draw_set_alpha(0.88);
+    draw_set_color(c_black);
+    draw_rectangle(0, 0, _gui_w, _gui_h, false);
+    draw_set_alpha(1.0);
+
+    var _pw = 536;
+    var _ph = 276;
+    var _x1 = _cx - _pw * 0.5;
+    var _y1 = _cy - _ph * 0.5;
+    var _x2 = _cx + _pw * 0.5;
+    var _y2 = _cy + _ph * 0.5;
+
+    draw_set_color(make_color_rgb(12, 20, 34));
+    draw_rectangle(_x1, _y1, _x2, _y2, false);
+    draw_set_color(c_lime);
+    draw_rectangle(_x1, _y1, _x2, _y2, true);
+    draw_rectangle(_x1 + 3, _y1 + 3, _x2 - 3, _y2 - 3, true);
+
+    draw_set_font(fnt_dialogue);
+    draw_set_halign(fa_center);
+    draw_set_valign(fa_middle);
+
+    var _ch_name = scr_get_chapter_name(_chapter);
+    var _title   = (_mode_type == "pedestal")
+        ? ("TUTORIAL DEMONSTRATION — HOW TO CALIBRATE THE " + _ch_name + " KEY")
+        : ("TUTORIAL DEMONSTRATION — HOW TO DECRYPT A " + _ch_name + " LOCK");
+
+    draw_set_color(make_color_rgb(255, 215, 60));
+    draw_text_transformed(_cx, _y1 + 18, _title, 0.84, 0.84, 0);
+
+    // Build the animated hop chain diagram: e.g. [ E ] --(+1)--> [ F ] --(+2)--> [ G ] --(+3)--> [ H ]
+    var _steps    = abs(_shift_val);
+    var _dir      = (_shift_val >= 0) ? 1 : -1;
+    var _chain    = "[ " + _start_ch + " (START) ]";
+    var _s_idx    = ord(_start_ch) - ord("A");
+
+    if (_chapter == CHAPTER_ATBASH) {
+        var _col_num = min(_s_idx, 25 - _s_idx) + 1;
+        _chain = "TOP ROW: [ " + _start_ch + " ]   <--- (Mirror Column #" + string(_col_num) + ") --->   BOTTOM ROW: [ " + _end_ch + " (ANSWER) ]";
+    } else if (_steps == 0) {
+        _chain = "[ " + _start_ch + " (START) ]   --- (+0 / No Shift) --->   [ " + _end_ch + " (ANSWER) ]";
+    } else {
+        for (var _h = 1; _h <= _steps; _h++) {
+            var _ci   = (_s_idx + _h * _dir + 26) mod 26;
+            var _c_ch = chr(ord("A") + _ci);
+            var _s_lb = ((_dir > 0) ? "+" : "-") + string(_h);
+            _chain += "  --(" + _s_lb + ")-->  [" + _c_ch + ((_h == _steps) ? " (ANSWER)]" : "]");
+        }
+    }
+
+    // Visual Hop Chain Box
+    draw_set_color(make_color_rgb(18, 34, 48));
+    draw_rectangle(_x1 + 18, _y1 + 36, _x2 - 18, _y1 + 88, false);
+    draw_set_color(c_aqua);
+    draw_rectangle(_x1 + 18, _y1 + 36, _x2 - 18, _y1 + 88, true);
+
+    draw_set_color(c_aqua);
+    draw_text_transformed(_cx, _y1 + 48, "LIVE VISUAL EXAMPLE FROM YOUR ACTIVE PUZZLE:", 0.72, 0.72, 0);
+    draw_set_color(c_lime);
+    draw_text_ext_transformed(_cx, _y1 + 69, _chain, 14, (_pw - 52) / 0.74, 0.74, 0.74, 0);
+
+    // 3 Clear Step-by-Step Cards
+    var _step1 = "";
+    var _step2 = "";
+    var _step3 = "";
+
+    if (_mode_type == "pedestal") {
+        if (_chapter == CHAPTER_VIGENERE) {
+            var _kw1 = string_char_at(_vig_key, 1);
+            _step1 = "STEP 1 (FIND START & TARGET): Look at the A-Z Ruler. Amber '" + _start_ch + "' is your START letter, and Green '" + _end_ch + "' is your TARGET letter for Keyword letter '" + _kw1 + "'.";
+            _step2 = "STEP 2 (COUNT THE STEPS): Count how many spaces right it takes to hop from '" + _start_ch + "' to '" + _end_ch + "' (" + string(_shift_val) + " steps, because '" + _kw1 + "' = +" + string(_shift_val) + ").";
+            _step3 = "STEP 3 (SLIDE THE DIAL): Press [LEFT / RIGHT] until the center dial shows '" + _kw1 + " (+" + string(_shift_val) + ")' and turns GREEN, then press [ENTER] to save Keyword '" + _vig_key + "'!";
+        } else if (_chapter == CHAPTER_ATBASH) {
+            _step1 = "STEP 1 (LOOK AT THE 2-ROW MIRROR BAR): The alphabet is folded in half—Top Row (A..M) mirrors directly onto Bottom Row (Z..N).";
+            _step2 = "STEP 2 (FIND THE MIRROR PAIR): Find Amber '" + _start_ch + "' on the top row and look straight down to Green '" + _end_ch + "' on the bottom row.";
+            _step3 = "STEP 3 (ALIGN & SAVE): Press [LEFT / RIGHT] until the dial highlights '" + _end_ch + "' in GREEN, then press [ENTER] to save the Atbash Mirror Key!";
+        } else {
+            var _sh_s = (_shift_val > 0) ? ("+" + string(_shift_val) + " (Right)") : (string(_shift_val) + " (Left)");
+            _step1 = "STEP 1 (FIND START & TARGET): Look at the A-Z Ruler. The solid Amber box ('" + _start_ch + "') is START, and the Green outline ('" + _end_ch + "') is TARGET.";
+            _step2 = "STEP 2 (COUNT THE HOPS): Watch the animated hop numbers above the ruler counting from '" + _start_ch + "' to '" + _end_ch + "' -> Shift = " + _sh_s + "!";
+            _step3 = "STEP 3 (SLIDE THE DIAL): Press [LEFT / RIGHT] until the center Shift Key dial reaches " + ((_shift_val > 0) ? ("+" + string(_shift_val)) : string(_shift_val)) + " (Green), then press [ENTER]!";
+        }
+    } else {
+        if (_chapter == CHAPTER_VIGENERE) {
+            var _kw_c = string_char_at(_vig_key, ((_slot_num - 1) mod string_length(_vig_key)) + 1);
+            _step1 = "STEP 1 (CHECK SLOT KEYWORD BADGE): Look above Slot #" + string(_slot_num) + "—its purple Keyword badge says '" + _kw_c + " (+" + string(_shift_val) + ")' (from Keyword '" + _vig_key + "').";
+            _step2 = "STEP 2 (COUNT +" + string(_shift_val) + " ON THE RULER): Start at the Amber encrypted letter '" + _start_ch + "' on the ruler and count +" + string(_shift_val) + " steps right to land on Green '" + _end_ch + "'.";
+            _step3 = "STEP 3 (SET & UNLOCK): Press [UP / DOWN] (or type '" + _end_ch + "') to set Slot #" + string(_slot_num) + " to '" + _end_ch + "', use [LEFT / RIGHT] for the remaining slots, and press [ENTER]!";
+        } else if (_chapter == CHAPTER_ATBASH) {
+            _step1 = "STEP 1 (FIND LETTER ON MIRROR BAR): Look at Slot #" + string(_slot_num) + "'s encrypted letter ('" + _start_ch + "') highlighted in Amber on the 2-Row Mirror Bar.";
+            _step2 = "STEP 2 (READ ITS MIRROR OPPOSITE): Look straight across the yellow mirror box in that same column to find its opposite letter: Green '" + _end_ch + "'!";
+            _step3 = "STEP 3 (SET & UNLOCK): Press [UP / DOWN] (or type '" + _end_ch + "') to set Slot #" + string(_slot_num) + " to '" + _end_ch + "', fill all 4 slots, and press [ENTER] to unlock!";
+        } else {
+            var _dir_w = (_shift_val > 0) ? ("+" + string(_shift_val) + " steps RIGHT") : (string(_shift_val) + " steps LEFT");
+            _step1 = "STEP 1 (CHECK YOUR SHIFT KEY): The top badge shows your Floor Shift Key is " + ((_shift_val > 0) ? ("+" + string(_shift_val)) : string(_shift_val)) + " (positive = count RIGHT, negative = count LEFT).";
+            _step2 = "STEP 2 (FOLLOW THE RULER HOPS): Start at Slot #" + string(_slot_num) + "'s Amber letter '" + _start_ch + "' on the A-Z Ruler and follow the animated hops " + _dir_w + " to Green '" + _end_ch + "'.";
+            _step3 = "STEP 3 (SET & UNLOCK): Press [UP / DOWN] (or type '" + _end_ch + "') so Slot #" + string(_slot_num) + " becomes '" + _end_ch + "', repeat for all 4 slots, and press [ENTER]!";
+        }
+    }
+
+    var _steps_arr = [_step1, _step2, _step3];
+    draw_set_halign(fa_left);
+    for (var _si = 0; _si < 3; _si++) {
+        var _sy1 = _y1 + 96 + (_si * 46);
+        var _sy2 = _sy1 + 40;
+        draw_set_color(make_color_rgb(16, 26, 40));
+        draw_rectangle(_x1 + 18, _sy1, _x2 - 18, _sy2, false);
+        draw_set_color(make_color_rgb(65, 115, 155));
+        draw_rectangle(_x1 + 18, _sy1, _x2 - 18, _sy2, true);
+        draw_set_color(c_white);
+        draw_text_ext_transformed(_x1 + 28, (_sy1 + _sy2) * 0.5, _steps_arr[_si], 13, (_pw - 56) / 0.68, 0.68, 0.68, 0);
+    }
+
+    draw_set_halign(fa_center);
+    draw_set_color(c_lime);
+    draw_text_transformed(_cx, _y2 - 18, "[ PRESS E / ENTER / SPACE / TAB / CLICK TO TRY IT YOURSELF! ]", 0.80, 0.80, 0);
+}
+
+// ---------------------------------------------------------------------------
 /// @function scr_draw_override_console_ui(_gui_w, _gui_h)
 /// @description Renders and updates the Lockdown Override Console UI (Option A2:
 ///              Encrypt a 2-letter command signal in the reverse direction -Key
@@ -984,17 +1589,7 @@ function scr_draw_override_console_ui(_gui_w, _gui_h) {
         draw_text_transformed(_cx, _pill_y, "ENCRYPT SIGNAL:  Shift by " + _rev_str + "  (Opposite of Door Key " + _fw_str + ")", 0.82, 0.82, 0);
     }
 
-    // 3. Visual A-Z Ruler at Top
-    var _strip_y  = _y1 + 80;
-    var _cell_w   = 20;
-    var _strip_w  = 26 * _cell_w;
-    var _strip_x1 = _cx - _strip_w * 0.5;
-
-    draw_set_color(make_color_rgb(22, 26, 40));
-    draw_rectangle(_strip_x1 - 5, _strip_y - 14, _strip_x1 + _strip_w + 5, _strip_y + 14, false);
-    draw_set_color(make_color_rgb(80, 95, 130));
-    draw_rectangle(_strip_x1 - 5, _strip_y - 14, _strip_x1 + _strip_w + 5, _strip_y + 14, true);
-
+    // 3. Visual Ruler at Top (2-Row Mirror Bar for Chapter 3 Atbash, 1-Row A-Z Strip for Caesar/Vigenere)
     var _slot_idx   = global.override_slot;
     var _src_ch     = string_char_at(global.override_plain, _slot_idx + 1);
     var _src_idx    = ord(_src_ch) - ord("A");
@@ -1003,28 +1598,45 @@ function scr_draw_override_console_ui(_gui_w, _gui_h) {
     var _target_ch  = string_char_at(global.override_target, _slot_idx + 1);
     var _target_idx = ord(_target_ch) - ord("A");
 
-    for (var _a = 0; _a < 26; _a++) {
-        var _lx = _strip_x1 + _a * _cell_w + _cell_w * 0.5;
-        var _ch_lbl = chr(ord("A") + _a);
+    if (_ch == CHAPTER_ATBASH) {
+        scr_draw_atbash_mirror_bar(_cx, _y1 + 69, _src_idx, _usr_idx, _target_idx, (_guided && _has_key), c_lime);
+    } else {
+        var _strip_y  = _y1 + 80;
+        var _cell_w   = 20;
+        var _strip_w  = 26 * _cell_w;
+        var _strip_x1 = _cx - _strip_w * 0.5;
 
-        if (_a == _usr_idx) {
-            draw_set_color(c_lime);
-            draw_rectangle(_lx - 9, _strip_y - 12, _lx + 9, _strip_y + 12, false);
-            draw_set_color(c_black);
-            draw_text(_lx, _strip_y, _ch_lbl);
-        } else if (_a == _src_idx) {
-            draw_set_color(make_color_rgb(255, 190, 40));
-            draw_rectangle(_lx - 9, _strip_y - 12, _lx + 9, _strip_y + 12, false);
-            draw_set_color(c_black);
-            draw_text(_lx, _strip_y, _ch_lbl);
-        } else if (_guided && _has_key && _a == _target_idx) {
-            draw_set_color(c_lime);
-            draw_rectangle(_lx - 9, _strip_y - 12, _lx + 9, _strip_y + 12, true);
-            draw_rectangle(_lx - 8, _strip_y - 11, _lx + 8, _strip_y + 11, true);
-            draw_text(_lx, _strip_y, _ch_lbl);
-        } else {
-            draw_set_color(make_color_rgb(160, 175, 200));
-            draw_text_transformed(_lx, _strip_y, _ch_lbl, 0.85, 0.85, 0);
+        draw_set_color(make_color_rgb(22, 26, 40));
+        draw_rectangle(_strip_x1 - 5, _strip_y - 14, _strip_x1 + _strip_w + 5, _strip_y + 14, false);
+        draw_set_color(make_color_rgb(80, 95, 130));
+        draw_rectangle(_strip_x1 - 5, _strip_y - 14, _strip_x1 + _strip_w + 5, _strip_y + 14, true);
+
+        for (var _a = 0; _a < 26; _a++) {
+            var _lx = _strip_x1 + _a * _cell_w + _cell_w * 0.5;
+            var _ch_lbl = chr(ord("A") + _a);
+
+            if (_a == _usr_idx) {
+                draw_set_color(c_lime);
+                draw_rectangle(_lx - 9, _strip_y - 12, _lx + 9, _strip_y + 12, false);
+                draw_set_color(c_black);
+                draw_text(_lx, _strip_y, _ch_lbl);
+            } else if (_a == _src_idx) {
+                draw_set_color(make_color_rgb(255, 190, 40));
+                draw_rectangle(_lx - 9, _strip_y - 12, _lx + 9, _strip_y + 12, false);
+                draw_set_color(c_black);
+                draw_text(_lx, _strip_y, _ch_lbl);
+            } else if (_guided && _has_key && _a == _target_idx) {
+                draw_set_color(c_lime);
+                draw_rectangle(_lx - 9, _strip_y - 12, _lx + 9, _strip_y + 12, true);
+                draw_rectangle(_lx - 8, _strip_y - 11, _lx + 8, _strip_y + 11, true);
+                draw_text(_lx, _strip_y, _ch_lbl);
+            } else {
+                draw_set_color(make_color_rgb(160, 175, 200));
+                draw_text_transformed(_lx, _strip_y, _ch_lbl, 0.85, 0.85, 0);
+            }
+        }
+        if (_guided && _has_key) {
+            scr_draw_tutorial_ruler_hops(_strip_x1, _strip_y, _cell_w, _src_idx, global.override_shifts[_slot_idx]);
         }
     }
 
@@ -1034,6 +1646,14 @@ function scr_draw_override_console_ui(_gui_w, _gui_h) {
         var _scx  = (_cx - 115) + _i * 82;
         var _pch  = string_char_at(global.override_plain, _i + 1);
         var _u_ch = global.override_input[_i];
+
+        // In Chapter 2 (Vigenere), show each slot's Keyword letter & reverse shift badge above the slot!
+        if (_ch == CHAPTER_VIGENERE && _has_key) {
+            var _ov_kw_c = string_char_at(_vig_key, (_i mod string_length(_vig_key)) + 1);
+            var _ov_sh   = global.override_shifts[_i];
+            draw_set_color(make_color_rgb(215, 130, 255));
+            draw_text_transformed(_scx, _slots_y - 54, _ov_kw_c + " (" + string(_ov_sh) + ")", 0.70, 0.70, 0);
+        }
 
         // Plaintext command letter above slot
         draw_set_color((_i == _slot_idx) ? make_color_rgb(255, 205, 50) : make_color_rgb(175, 190, 210));
@@ -1172,11 +1792,19 @@ function scr_draw_override_console_ui(_gui_w, _gui_h) {
         audio_play_sound(choose(select1, select2, select3), 10, false);
     }
 
-    for (var _k = ord("A"); _k <= ord("Z"); _k++) {
-        if (keyboard_check_pressed(_k)) {
-            global.override_input[_slot_idx] = chr(_k);
-            global.override_msg = "";
-            audio_play_sound(select1, 8, false);
+    // DEMO SHORTCUT: Press Ctrl + P to auto-fill both Override slots (Caesar, Vigenere & Atbash)
+    if (keyboard_check(vk_control) && keyboard_check_pressed(ord("P"))) {
+        global.override_input[0] = string_char_at(global.override_target, 1);
+        global.override_input[1] = string_char_at(global.override_target, 2);
+        global.override_msg      = "";
+        audio_play_sound(snd_correct_ping, 8, false);
+    } else if (!keyboard_check(vk_control)) {
+        for (var _k = ord("A"); _k <= ord("Z"); _k++) {
+            if (keyboard_check_pressed(_k)) {
+                global.override_input[_slot_idx] = chr(_k);
+                global.override_msg = "";
+                audio_play_sound(select1, 8, false);
+            }
         }
     }
 
@@ -1193,6 +1821,8 @@ function scr_draw_override_console_ui(_gui_w, _gui_h) {
             global.override_col   = c_orange;
             if (!_has_key) {
                 global.override_msg = "Unlock the Gold Key Vault first!";
+            } else if (_ch == CHAPTER_ATBASH) {
+                global.override_msg = "Reflect each letter of '" + global.override_plain + "' across the Atbash Mirror (A <-> Z)!";
             } else {
                 global.override_msg = "Shift in the REVERSE direction to encrypt '" + global.override_plain + "'!";
             }
@@ -1268,38 +1898,45 @@ function scr_draw_power_breaker_ui(_gui_w, _gui_h) {
         draw_text_transformed(_cx, _pill_y, "Flip [ON] only Fuses matching Shift Key  " + _k_str, 0.85, 0.85, 0);
     }
 
-    // 3. Visual A-Z Ruler Highlighting the Active Fuse's Start -> End Pair
-    var _strip_y  = _y1 + 80;
-    var _cell_w   = 20;
-    var _strip_w  = 26 * _cell_w;
-    var _strip_x1 = _cx - _strip_w * 0.5;
-
-    draw_set_color(make_color_rgb(20, 26, 40));
-    draw_rectangle(_strip_x1 - 5, _strip_y - 14, _strip_x1 + _strip_w + 5, _strip_y + 14, false);
-    draw_set_color(make_color_rgb(70, 95, 130));
-    draw_rectangle(_strip_x1 - 5, _strip_y - 14, _strip_x1 + _strip_w + 5, _strip_y + 14, true);
-
+    // 3. Visual Ruler Highlighting the Active Fuse's Start -> End Pair (2-Row Mirror Bar for Chapter 3 Atbash)
     var _act_fuse  = global.breaker_fuses[global.breaker_slot];
     var _f_s_idx   = ord(_act_fuse.start_ch) - ord("A");
     var _f_e_idx   = ord(_act_fuse.end_ch)   - ord("A");
 
-    for (var _a = 0; _a < 26; _a++) {
-        var _lx = _strip_x1 + _a * _cell_w + _cell_w * 0.5;
-        var _ch_lbl = chr(ord("A") + _a);
+    if (_ch == CHAPTER_ATBASH) {
+        scr_draw_atbash_mirror_bar(_cx, _y1 + 69, _f_s_idx, _f_e_idx, -1, false, c_aqua);
+    } else {
+        var _strip_y  = _y1 + 80;
+        var _cell_w   = 20;
+        var _strip_w  = 26 * _cell_w;
+        var _strip_x1 = _cx - _strip_w * 0.5;
 
-        if (_a == _f_e_idx) {
-            draw_set_color(c_aqua);
-            draw_rectangle(_lx - 9, _strip_y - 12, _lx + 9, _strip_y + 12, false);
-            draw_set_color(c_black);
-            draw_text(_lx, _strip_y, _ch_lbl);
-        } else if (_a == _f_s_idx) {
-            draw_set_color(make_color_rgb(255, 190, 40));
-            draw_rectangle(_lx - 9, _strip_y - 12, _lx + 9, _strip_y + 12, false);
-            draw_set_color(c_black);
-            draw_text(_lx, _strip_y, _ch_lbl);
-        } else {
-            draw_set_color(make_color_rgb(160, 175, 200));
-            draw_text_transformed(_lx, _strip_y, _ch_lbl, 0.85, 0.85, 0);
+        draw_set_color(make_color_rgb(20, 26, 40));
+        draw_rectangle(_strip_x1 - 5, _strip_y - 14, _strip_x1 + _strip_w + 5, _strip_y + 14, false);
+        draw_set_color(make_color_rgb(70, 95, 130));
+        draw_rectangle(_strip_x1 - 5, _strip_y - 14, _strip_x1 + _strip_w + 5, _strip_y + 14, true);
+
+        for (var _a = 0; _a < 26; _a++) {
+            var _lx = _strip_x1 + _a * _cell_w + _cell_w * 0.5;
+            var _ch_lbl = chr(ord("A") + _a);
+
+            if (_a == _f_e_idx) {
+                draw_set_color(c_aqua);
+                draw_rectangle(_lx - 9, _strip_y - 12, _lx + 9, _strip_y + 12, false);
+                draw_set_color(c_black);
+                draw_text(_lx, _strip_y, _ch_lbl);
+            } else if (_a == _f_s_idx) {
+                draw_set_color(make_color_rgb(255, 190, 40));
+                draw_rectangle(_lx - 9, _strip_y - 12, _lx + 9, _strip_y + 12, false);
+                draw_set_color(c_black);
+                draw_text(_lx, _strip_y, _ch_lbl);
+            } else {
+                draw_set_color(make_color_rgb(160, 175, 200));
+                draw_text_transformed(_lx, _strip_y, _ch_lbl, 0.85, 0.85, 0);
+            }
+        }
+        if (_guided && _has_key) {
+            scr_draw_tutorial_ruler_hops(_strip_x1, _strip_y, _cell_w, _f_s_idx, _act_fuse.req_shift);
         }
     }
 
@@ -1320,14 +1957,17 @@ function scr_draw_power_breaker_ui(_gui_w, _gui_h) {
             draw_rectangle(_fcx - 68, _cards_y - 42, _fcx + 68, _cards_y + 42, true);
         }
 
-        // Fuse Title (with Keyword Letter in Chapter 2)
+        // Fuse Title (with Keyword Letter & numeric shift in Chapter 2, or Mirror tag in Chapter 3)
         var _f_title = "FUSE #" + string(_fi + 1);
         if (_ch == CHAPTER_VIGENERE && _has_key) {
-            var _kw_c = string_char_at(_vig_key, (_fi mod string_length(_vig_key)) + 1);
-            _f_title += " (Key '" + _kw_c + "')";
+            var _kw_c  = string_char_at(_vig_key, (_fi mod string_length(_vig_key)) + 1);
+            var _kw_sh = ord(_kw_c) - ord("A");
+            _f_title += " ('" + _kw_c + "' = +" + string(_kw_sh) + ")";
+        } else if (_ch == CHAPTER_ATBASH && _has_key) {
+            _f_title += " (Mirror Pair?)";
         }
         draw_set_color(_is_sel ? c_yellow : make_color_rgb(175, 195, 220));
-        draw_text_transformed(_fcx, _cards_y - 29, _f_title, 0.78, 0.78, 0);
+        draw_text_transformed(_fcx, _cards_y - 29, _f_title, 0.75, 0.75, 0);
 
         // Wire Pair: [ START -> END ]
         draw_set_color(c_white);
@@ -1396,6 +2036,17 @@ function scr_draw_power_breaker_ui(_gui_w, _gui_h) {
         keyboard_clear(vk_escape);
         global.breaker_ui_open = false;
         audio_play_sound(snd_button_click, 10, false);
+        return;
+    }
+
+    // DEMO SHORTCUT: Press Ctrl + P to auto-repair & align all 3 Breaker Fuses (Caesar, Vigenere & Atbash)
+    if (keyboard_check(vk_control) && keyboard_check_pressed(ord("P"))) {
+        global.breaker_repaired = true;
+        for (var _bf = 0; _bf < 3; _bf++) {
+            global.breaker_state[_bf] = global.breaker_fuses[_bf].is_valid;
+        }
+        global.breaker_msg = "";
+        audio_play_sound(snd_correct_ping, 8, false);
         return;
     }
 
@@ -1756,10 +2407,6 @@ function scr_draw_scrap_sever_ui(_gui_w, _gui_h) {
     }
 
     // 4. Visual A-Z Ruler (or 2-Row Mirror Guide in Chapter 3)
-    var _strip_y    = _y1 + 92;
-    var _cell_w     = 20;
-    var _strip_w    = 26 * _cell_w;
-    var _strip_x1   = _cx - _strip_w * 0.5;
     var _slot_idx   = global.scrap_slot;
     var _src_ch     = string_char_at(global.scrap_plain, _slot_idx + 1);
     var _src_idx    = ord(_src_ch) - ord("A");
@@ -1768,33 +2415,45 @@ function scr_draw_scrap_sever_ui(_gui_w, _gui_h) {
     var _target_ch  = string_char_at(global.scrap_target, _slot_idx + 1);
     var _target_idx = ord(_target_ch) - ord("A");
 
-    draw_set_color(make_color_rgb(20, 26, 40));
-    draw_rectangle(_strip_x1 - 5, _strip_y - 14, _strip_x1 + _strip_w + 5, _strip_y + 14, false);
-    draw_set_color(make_color_rgb(80, 105, 140));
-    draw_rectangle(_strip_x1 - 5, _strip_y - 14, _strip_x1 + _strip_w + 5, _strip_y + 14, true);
+    if (_ch == CHAPTER_ATBASH) {
+        scr_draw_atbash_mirror_bar(_cx, _y1 + 83, _src_idx, _usr_idx, _target_idx, _guided, c_lime);
+    } else {
+        var _strip_y  = _y1 + 92;
+        var _cell_w   = 20;
+        var _strip_w  = 26 * _cell_w;
+        var _strip_x1 = _cx - _strip_w * 0.5;
 
-    for (var _a = 0; _a < 26; _a++) {
-        var _lx     = _strip_x1 + _a * _cell_w + _cell_w * 0.5;
-        var _ch_lbl = chr(ord("A") + _a);
+        draw_set_color(make_color_rgb(20, 26, 40));
+        draw_rectangle(_strip_x1 - 5, _strip_y - 14, _strip_x1 + _strip_w + 5, _strip_y + 14, false);
+        draw_set_color(make_color_rgb(80, 105, 140));
+        draw_rectangle(_strip_x1 - 5, _strip_y - 14, _strip_x1 + _strip_w + 5, _strip_y + 14, true);
 
-        if (_a == _usr_idx) {
-            draw_set_color(c_lime);
-            draw_rectangle(_lx - 9, _strip_y - 12, _lx + 9, _strip_y + 12, false);
-            draw_set_color(c_black);
-            draw_text(_lx, _strip_y, _ch_lbl);
-        } else if (_a == _src_idx) {
-            draw_set_color(make_color_rgb(255, 195, 45));
-            draw_rectangle(_lx - 9, _strip_y - 12, _lx + 9, _strip_y + 12, false);
-            draw_set_color(c_black);
-            draw_text(_lx, _strip_y, _ch_lbl);
-        } else if (_guided && _a == _target_idx) {
-            draw_set_color(c_lime);
-            draw_rectangle(_lx - 9, _strip_y - 12, _lx + 9, _strip_y + 12, true);
-            draw_rectangle(_lx - 8, _strip_y - 11, _lx + 8, _strip_y + 11, true);
-            draw_text(_lx, _strip_y, _ch_lbl);
-        } else {
-            draw_set_color(make_color_rgb(165, 180, 205));
-            draw_text_transformed(_lx, _strip_y, _ch_lbl, 0.85, 0.85, 0);
+        for (var _a = 0; _a < 26; _a++) {
+            var _lx     = _strip_x1 + _a * _cell_w + _cell_w * 0.5;
+            var _ch_lbl = chr(ord("A") + _a);
+
+            if (_a == _usr_idx) {
+                draw_set_color(c_lime);
+                draw_rectangle(_lx - 9, _strip_y - 12, _lx + 9, _strip_y + 12, false);
+                draw_set_color(c_black);
+                draw_text(_lx, _strip_y, _ch_lbl);
+            } else if (_a == _src_idx) {
+                draw_set_color(make_color_rgb(255, 195, 45));
+                draw_rectangle(_lx - 9, _strip_y - 12, _lx + 9, _strip_y + 12, false);
+                draw_set_color(c_black);
+                draw_text(_lx, _strip_y, _ch_lbl);
+            } else if (_guided && _a == _target_idx) {
+                draw_set_color(c_lime);
+                draw_rectangle(_lx - 9, _strip_y - 12, _lx + 9, _strip_y + 12, true);
+                draw_rectangle(_lx - 8, _strip_y - 11, _lx + 8, _strip_y + 11, true);
+                draw_text(_lx, _strip_y, _ch_lbl);
+            } else {
+                draw_set_color(make_color_rgb(165, 180, 205));
+                draw_text_transformed(_lx, _strip_y, _ch_lbl, 0.85, 0.85, 0);
+            }
+        }
+        if (_guided) {
+            scr_draw_tutorial_ruler_hops(_strip_x1, _strip_y, _cell_w, _src_idx, global.scrap_shifts[_slot_idx]);
         }
     }
 
@@ -1804,6 +2463,14 @@ function scr_draw_scrap_sever_ui(_gui_w, _gui_h) {
         var _scx  = (_cx - 115) + _i * 82;
         var _pch  = string_char_at(global.scrap_plain, _i + 1);
         var _u_ch = global.scrap_input[_i];
+
+        // In Chapter 2 (Vigenere), show each slot's Keyword letter & shift badge above the slot!
+        if (_ch == CHAPTER_VIGENERE) {
+            var _sc_kw_c = string_char_at(global.scrap_vig_key, _i + 1);
+            var _sc_sh   = global.scrap_shifts[_i];
+            draw_set_color(make_color_rgb(215, 130, 255));
+            draw_text_transformed(_scx, _slots_y - 54, _sc_kw_c + " (+" + string(_sc_sh) + ")", 0.70, 0.70, 0);
+        }
 
         draw_set_color((_i == _slot_idx) ? make_color_rgb(255, 210, 55) : make_color_rgb(175, 190, 210));
         draw_text(_scx, _slots_y - 40, _pch);
@@ -1943,11 +2610,19 @@ function scr_draw_scrap_sever_ui(_gui_w, _gui_h) {
         audio_play_sound(choose(select1, select2, select3), 10, false);
     }
 
-    for (var _k = ord("A"); _k <= ord("Z"); _k++) {
-        if (keyboard_check_pressed(_k)) {
-            global.scrap_input[_slot_idx] = chr(_k);
-            global.scrap_msg = "";
-            audio_play_sound(select1, 8, false);
+    // DEMO SHORTCUT: Press Ctrl + P to auto-fill both Wrench Scrap slots (Caesar, Vigenere & Atbash)
+    if (keyboard_check(vk_control) && keyboard_check_pressed(ord("P"))) {
+        global.scrap_input[0] = string_char_at(global.scrap_target, 1);
+        global.scrap_input[1] = string_char_at(global.scrap_target, 2);
+        global.scrap_msg      = "";
+        audio_play_sound(snd_correct_ping, 8, false);
+    } else if (!keyboard_check(vk_control)) {
+        for (var _k = ord("A"); _k <= ord("Z"); _k++) {
+            if (keyboard_check_pressed(_k)) {
+                global.scrap_input[_slot_idx] = chr(_k);
+                global.scrap_msg = "";
+                audio_play_sound(select1, 8, false);
+            }
         }
     }
 
@@ -2309,15 +2984,40 @@ function scr_init_case_dossier(_case, _floor) {
         if (_order[_w] == _vec_ok) _vec_correct = _w;
     }
 
-    global.case_suspects        = _sus;
-    global.case_culprit_idx     = _cul;
-    global.case_evidence        = _ev;
-    global.evidence_found       = 0;
-    global.evidence_needed      = array_length(_ev);
-    global.case_vectors         = _vecs;
-    global.case_vector_correct  = _vec_correct;
+    // --- Shuffled safety fixes (Step 3 of Case Board accusation) ---
+    var _fix_src = variable_struct_exists(_case, "fixes") ? _case.fixes : [
+        _case.prevention_rule,
+        "Ignore the security alert and keep using the same settings",
+        "Turn off the computer's Firewall and Antivirus protection"
+    ];
+    var _fix_ok    = variable_struct_exists(_case, "correct_fix_idx") ? _case.correct_fix_idx : 0;
+    var _fix_order = [];
+    for (var _f = 0; _f < array_length(_fix_src); _f++) array_push(_fix_order, _f);
+    for (var _fo = array_length(_fix_order) - 1; _fo > 0; _fo--) {
+        var _fp = irandom(_fo);
+        var _fq = _fix_order[_fo];
+        _fix_order[_fo] = _fix_order[_fp];
+        _fix_order[_fp] = _fq;
+    }
+    var _fixes = [];
+    var _fix_correct = 0;
+    for (var _fw = 0; _fw < array_length(_fix_order); _fw++) {
+        array_push(_fixes, _fix_src[_fix_order[_fw]]);
+        if (_fix_order[_fw] == _fix_ok) _fix_correct = _fw;
+    }
+
+    global.case_suspects          = _sus;
+    global.case_culprit_idx       = _cul;
+    global.case_evidence          = _ev;
+    global.evidence_found         = 0;
+    global.evidence_needed        = array_length(_ev);
+    global.case_vectors           = _vecs;
+    global.case_vector_correct    = _vec_correct;
+    global.case_fixes             = _fixes;
+    global.case_fix_correct       = _fix_correct;
     global.case_wrong_accusations = 0;
     global.case_culprit_confirmed = false;
-    global.pc_screen_mode       = 0;
+    global.case_vector_confirmed  = false;
+    global.pc_screen_mode         = 0;
     scr_case_recompute();
 }

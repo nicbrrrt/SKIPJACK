@@ -39,3 +39,15 @@ if (variable_global_exists("newly_unlocked") && global.newly_unlocked != "" && g
     global.newly_unlocked = "";
     unlock_anim_timer     = 90;
 }
+
+// First-Time Chapter Selection Screen Spotlight Tutorial (4-Step Guided Tour)
+guide_btn_hover = false;
+tut_active      = false;
+tut_step        = 0;
+tut_anim_t      = 0;
+if (!variable_global_exists("chapter_select_tutorial_seen") || !global.chapter_select_tutorial_seen) {
+    global.chapter_select_tutorial_seen = true;
+    tut_active                          = true;
+    tut_step                            = 0;
+    selected_floor                      = 1;
+}
