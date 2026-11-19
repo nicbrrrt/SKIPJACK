@@ -35,12 +35,12 @@
   "resourceVersion":"2.0",
   "solid":false,
   "spriteId":{
-    "name":"spr_setting",
-    "path":"sprites/spr_setting/spr_setting.yy",
+    "name":"spr_intern_duty",
+    "path":"sprites/spr_intern_duty/spr_intern_duty.yy",
   },
   "spriteMaskId":{
-    "name":"spr_setting",
-    "path":"sprites/spr_setting/spr_setting.yy",
+    "name":"spr_intern_duty",
+    "path":"sprites/spr_intern_duty/spr_intern_duty.yy",
   },
   "visible":true,
 }
