@@ -55,8 +55,13 @@ scr_init_facility_puzzles();
 scr_init_floor_salvage_tasks();
 
 // Floor 1 always teaches the Chapter's Cipher Keyword (Case 0: CAESAR / VIGENERE / ATBASH),
-// and Floors 2..10 progress through Cases 1..9 so all 10 floors have a unique topic!
-global.floor_case_index  = (global.chapter_floor - 1) mod 10;
+// and Floors 2..10 rotate through Cases 1..9 with a chapter offset so each chapter's floor sequence feels fresh!
+if (global.chapter_floor == 1) {
+    global.floor_case_index = 0;
+} else {
+    var _ch_offset = (global.dungeon_chapter - 1) * 3;
+    global.floor_case_index = 1 + (((global.chapter_floor - 2) + _ch_offset) mod 9);
+}
 global.floor_case        = scr_get_floor_incident_case(global.floor_case_index);
 global.clues_found       = 0;
 global.clues_needed      = curriculum.clues_needed;

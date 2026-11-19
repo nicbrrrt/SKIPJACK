@@ -14,6 +14,34 @@ btn1_y = 88;
 btn2_y = btn1_y + btn_h + btn_gap;
 btn3_y = btn2_y + btn_h + btn_gap;
 
+// --- 0. Interactive First-Time Chapter Select Tutorial Tour ---
+if (variable_instance_exists(id, "tut_active") && tut_active) {
+    tut_anim_t++;
+    caesar_hover   = (tut_step == 3);
+    vigenere_hover = false;
+    atbash_hover   = false;
+
+    if (keyboard_check_pressed(vk_escape)) {
+        global.esc_block_frames = 2;
+        keyboard_clear(vk_escape);
+        tut_active = false;
+        audio_play_sound(snd_button_click, 10, false);
+        exit;
+    }
+
+    if (keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space) || mouse_check_button_pressed(mb_left)) {
+        audio_play_sound(snd_button_click, 10, false);
+        tut_step++;
+        if (tut_step == 3) {
+            selected_floor = 1;
+        }
+        if (tut_step > 3) {
+            tut_active = false;
+        }
+    }
+    exit;
+}
+
 // Allow ESC to return to Main Menu
 if (keyboard_check_pressed(vk_escape) && !instance_exists(obj_transition)) {
     audio_play_sound(snd_button_click, 10, false);
@@ -53,8 +81,18 @@ if ((home_hover && mouse_check_button_pressed(mb_left)) || keyboard_check_presse
     }
 }
 
-// --- 2. Panelist Demo Unlock Toggle (Top-Right) ---
-demo_unlock_hover = (mx >= _gw - 156 && mx <= _gw - 12 && my >= 12 && my <= 34);
+// Top-Bar [?] GUIDE button to replay the Chapter Select tutorial anytime
+guide_btn_hover = (mx >= 206 && mx <= 284 && my >= 12 && my <= 34);
+if ((guide_btn_hover && mouse_check_button_pressed(mb_left)) || keyboard_check_pressed(vk_f1)) {
+    tut_active = true;
+    tut_step   = 0;
+    tut_anim_t = 0;
+    audio_play_sound(snd_select, 10, false);
+    exit;
+}
+
+// --- 2. Panelist Demo Unlock Toggle (Top-Right: Click, [U], or [Ctrl + U]) ---
+demo_unlock_hover = (mx >= _gw - 168 && mx <= _gw - 12 && my >= 12 && my <= 34);
 if ((demo_unlock_hover && mouse_check_button_pressed(mb_left)) || keyboard_check_pressed(ord("U"))) {
     var _cur_unlock = (variable_global_exists("unlock_all_ciphers") && global.unlock_all_ciphers);
     global.unlock_all_ciphers = !_cur_unlock;

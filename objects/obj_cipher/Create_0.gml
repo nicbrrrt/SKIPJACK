@@ -101,6 +101,14 @@ scr_statue_ensure_globals();
 cipher_timer_max = instance_exists(obj_battle) ? 0 : scr_get_cipher_timer_frames("door");
 cipher_timer     = cipher_timer_max;
 
+// Auto-show the "HOW TO DECRYPT" Visual Demonstration Card on the 1st door lock in each chapter during Tutorial Floors 1-3
+demo_modal_open = false;
+var _seen_door_key = "tut_demo_door_ch" + string(chapter_mode);
+if (guided_ui && (!variable_global_exists(_seen_door_key) || !variable_global_get(_seen_door_key))) {
+    variable_global_set(_seen_door_key, true);
+    demo_modal_open = true;
+}
+
 if (instance_exists(obj_battle)) {
     audio_play_sound(ms_start, 10, false);
 } else {

@@ -550,8 +550,11 @@ if (player_near && keyboard_check_pressed(ord("E"))) {
             }
             var _plogs = _case.pc_logs;
             var _plog  = _plogs[log_variant mod array_length(_plogs)];
+            if (variable_struct_exists(_case, "vault_challenge")) {
+                _plog = _case.vault_challenge.scanner_note + "\n\nTHREAT CATEGORY:  " + _case.word + " (" + _case.title + ")";
+            }
             global.pc_screen_title = "SECURITY SECTOR TERMINAL";
-            global.pc_screen_body  = _plog + "\n\n[KEY VAULT BRIEFING LOGGED]";
+            global.pc_screen_body  = _plog + "\n\n[FORENSIC SCANNER UPLOADED TO KEY VAULT]";
             global.pc_screen_radar = _radar_hint;
             global.pc_screen_badge = "KEY VAULT HINT";
         } else if (!_has_key) {

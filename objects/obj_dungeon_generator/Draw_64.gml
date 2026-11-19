@@ -65,7 +65,7 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
     var _use_terminal_overlay = true; // Toggle for custom UI sprite overlays (spr_dungeon_terminal_ui / spr_dungeon_caseboard_ui)
     var _terminal_white_theme = true; // Toggle for Terminal Popups (Mode 0): solid white background, black text & 3x thick black boxes
 
-    var _is_board = (variable_global_exists("pc_screen_mode") && global.pc_screen_mode >= 1 && global.pc_screen_mode <= 3);
+    var _is_board = (variable_global_exists("pc_screen_mode") && global.pc_screen_mode >= 1 && global.pc_screen_mode <= 4);
     var _is_white = (_terminal_white_theme && !_is_board);
 
     var _col_grey_line = make_color_rgb(187, 187, 187); // #bbbbbb
@@ -417,12 +417,15 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
             global.pc_input_cooldown  = 10;
             global.pc_screen_select   = 0;
             global.pc_screen_feedback = "";
-            if (variable_global_exists("case_culprit_confirmed") && global.case_culprit_confirmed) {
+            if (variable_global_exists("case_vector_confirmed") && global.case_vector_confirmed) {
+                global.pc_screen_mode  = 4;
+                global.pc_screen_title = "CASE BOARD — STEP 3/3: PRESCRIBE SAFETY FIX";
+            } else if (variable_global_exists("case_culprit_confirmed") && global.case_culprit_confirmed) {
                 global.pc_screen_mode  = 2;
-                global.pc_screen_title = "CASE BOARD — IDENTIFY ATTACK VECTOR";
+                global.pc_screen_title = "CASE BOARD — STEP 2/3: IDENTIFY ATTACK VECTOR";
             } else {
                 global.pc_screen_mode  = 1;
-                global.pc_screen_title = "CASE BOARD — ACCUSE A SUSPECT";
+                global.pc_screen_title = "CASE BOARD — STEP 1/3: ACCUSE A SUSPECT";
             }
         }
 
@@ -430,27 +433,39 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
         draw_text_transformed(_mcx, _my2 - 10, "Wrong accusations: " + string(global.case_wrong_accusations) + "     [TAB / ESC] Close", 0.85, 0.85, 0);
         draw_text_transformed(_mcx + 0.8, _my2 - 10, "Wrong accusations: " + string(global.case_wrong_accusations) + "     [TAB / ESC] Close", 0.85, 0.85, 0);
 
-    } else if (_mode == 1 || _mode == 2) {
+    } else if (_mode == 1 || _mode == 2 || _mode == 4) {
         // =====================================================
-        // CASE BOARD ACCUSATION FLOW: Pick Suspect (Mode 1) -> Pick Attack Vector (Mode 2)
+        // CASE BOARD 3-STEP ACCUSATION FLOW:
+        //   Mode 1 (Step 1/3): Pick Suspect (Patient Zero)
+        //   Mode 2 (Step 2/3): Pick Accidental Slip-Up / Attack Vector
+        //   Mode 4 (Step 3/3): Prescribe Cybersecurity Safety Fix / Prevention Rule
         // =====================================================
         var _labels = [];
         var _desc   = "";
         var _bd_n2  = array_length(global.case_suspects);
 
         if (_mode == 1) {
-            _desc = "WHOSE ACCIDENTAL SLIP-UP LET THE HACKERS IN? Select Patient Zero based on your Case Board evidence (" + string(global.evidence_found) + "/" + string(global.evidence_needed) + " clues):";
+            _desc = "STEP 1/3 — WHOSE ACCIDENTAL SLIP-UP LET THE HACKERS IN? Select Patient Zero based on your Case Board evidence (" + string(global.evidence_found) + "/" + string(global.evidence_needed) + " clues):";
             for (var _s_i = 0; _s_i < _bd_n2; _s_i++) {
                 var _s_obj = global.case_suspects[_s_i];
                 var _w_tag = (variable_struct_exists(_s_obj, "accused_wrong") && _s_obj.accused_wrong) ? "  [RULED OUT]" : "";
                 array_push(_labels, "SELECT: " + _s_obj.name + "  (" + _s_obj.dept + " - Desk " + _s_obj.nameplate + ")" + _w_tag);
             }
             array_push(_labels, "< Back to Case Board");
-        } else {
+        } else if (_mode == 2) {
             var _cul_obj = global.case_suspects[global.case_culprit_idx];
-            _desc = "PATIENT ZERO IDENTIFIED: " + _cul_obj.name + " (Desk " + _cul_obj.nameplate + ")!\nNow select WHICH accidental slip-up / hazard caused the breach:";
+            _desc = "STEP 2/3 — PATIENT ZERO IDENTIFIED: " + _cul_obj.name + " (Desk " + _cul_obj.nameplate + ")!\nNow select WHICH accidental slip-up / hazard caused the breach:";
             for (var _v_i = 0; _v_i < array_length(global.case_vectors); _v_i++) {
                 array_push(_labels, global.case_vectors[_v_i]);
+            }
+            array_push(_labels, "< Back to Case Board");
+        } else {
+            var _cul_obj2 = global.case_suspects[global.case_culprit_idx];
+            var _vec_str  = global.case_vectors[global.case_vector_correct];
+            _desc = "STEP 3/3 — BREACH CONFIRMED: " + _cul_obj2.name + " -> " + _vec_str + "!\nNow select WHICH cybersecurity safety habit prevents this breach from happening again:";
+            var _fix_arr = variable_global_exists("case_fixes") ? global.case_fixes : [_case.prevention_rule];
+            for (var _f_i = 0; _f_i < array_length(_fix_arr); _f_i++) {
+                array_push(_labels, _fix_arr[_f_i]);
             }
             array_push(_labels, "< Back to Case Board");
         }
@@ -470,11 +485,12 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
         draw_set_halign(fa_center);
         draw_set_valign(fa_middle);
         draw_set_color(make_color_rgb(40, 45, 55));
-        draw_text_ext_transformed(_mcx, _my1 + 44, _desc, 15, (_mw - 30) / 0.95, 0.95, 0.95, 0);
-        draw_text_ext_transformed(_mcx + 0.8, _my1 + 44, _desc, 15, (_mw - 30) / 0.95, 0.95, 0.95, 0);
+        draw_text_ext_transformed(_mcx, _my1 + 44, _desc, 15, (_mw - 30) / 0.90, 0.90, 0.90, 0);
+        draw_text_ext_transformed(_mcx + 0.8, _my1 + 44, _desc, 15, (_mw - 30) / 0.90, 0.90, 0.90, 0);
 
         var _clicked_item = false;
         draw_set_halign(fa_left);
+        var _item_scale = (_mode == 4) ? 0.72 : 0.90;
         for (var _ii = 0; _ii < _num_items; _ii++) {
             var _iy = _my1 + 76 + (_ii * 25);
             var _is_sel = (global.pc_screen_select == _ii);
@@ -493,8 +509,8 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
             draw_set_color(_is_sel ? make_color_rgb(40, 120, 190) : _col_grey_line); // #bbbbbb
             draw_rectangle(_mx1 + 14, _iy - 11, _mx2 - 14, _iy + 11, true);
             draw_set_color(_is_sel ? make_color_rgb(10, 40, 80) : make_color_rgb(50, 60, 70));
-            draw_text_transformed(_mx1 + 20, _iy + 1, (_is_sel ? "> " : "  ") + _labels[_ii], 0.90, 0.90, 0);
-            draw_text_transformed(_mx1 + 20.8, _iy + 1, (_is_sel ? "> " : "  ") + _labels[_ii], 0.90, 0.90, 0);
+            draw_text_ext_transformed(_mx1 + 20, _iy + 1, (_is_sel ? "> " : "  ") + _labels[_ii], 12, (_mw - 48) / _item_scale, _item_scale, _item_scale, 0);
+            draw_text_ext_transformed(_mx1 + 20.8, _iy + 1, (_is_sel ? "> " : "  ") + _labels[_ii], 12, (_mw - 48) / _item_scale, _item_scale, _item_scale, 0);
         }
 
         var _trigger_flag = _can_input && (_clicked_item || keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space));
@@ -513,9 +529,9 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
                     global.case_culprit_confirmed = true;
                     global.pc_screen_mode         = 2;
                     global.pc_screen_select       = 0;
-                    global.pc_screen_title        = "CASE BOARD — IDENTIFY ATTACK VECTOR";
+                    global.pc_screen_title        = "CASE BOARD — STEP 2/3: IDENTIFY ATTACK VECTOR";
                     global.pc_screen_feedback     = "CORRECT! " + _acc_sus.name + "'s workstation was Patient Zero. Now select the attack vector!";
-                    global.pc_screen_feedback_col = c_lime;
+                    global.pc_screen_feedback_col = make_color_rgb(20, 140, 40);
                 } else {
                     audio_play_sound(wrong1, 10, false);
                     global.case_wrong_accusations++;
@@ -523,10 +539,26 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
                     _acc_sus.accused_wrong = true;
                     scr_case_recompute();
                     global.pc_screen_feedback     = "WRONG SUSPECT! " + _acc_sus.name + " had a verified alibi. (-2 SCRAP) Review your evidence!";
-                    global.pc_screen_feedback_col = make_color_rgb(255, 110, 95);
+                    global.pc_screen_feedback_col = make_color_rgb(210, 50, 45);
                 }
-            } else {
+            } else if (_mode == 2) {
                 if (global.pc_screen_select == global.case_vector_correct) {
+                    audio_play_sound(snd_correct_ping, 10, false);
+                    global.case_vector_confirmed  = true;
+                    global.pc_screen_mode         = 4;
+                    global.pc_screen_select       = 0;
+                    global.pc_screen_title        = "CASE BOARD — STEP 3/3: PRESCRIBE SAFETY FIX";
+                    global.pc_screen_feedback     = "SLIP-UP CONFIRMED! Final step: choose the safety rule that prevents this breach!";
+                    global.pc_screen_feedback_col = make_color_rgb(20, 140, 40);
+                } else {
+                    audio_play_sound(wrong1, 8, false);
+                    global.case_wrong_accusations++;
+                    global.pc_screen_feedback     = "INCORRECT VECTOR! Check the [LVL 3: CRITICAL] forensic trace from the culprit's desk.";
+                    global.pc_screen_feedback_col = make_color_rgb(210, 50, 45);
+                }
+            } else if (_mode == 4) {
+                var _corr_fix = variable_global_exists("case_fix_correct") ? global.case_fix_correct : 0;
+                if (global.pc_screen_select == _corr_fix) {
                     global.incident_solved        = true;
                     global.scrap_count           += 3;
                     global.floor_scrap_collected += 3;
@@ -539,14 +571,13 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
                     audio_play_sound(snd_objective_complete, 10, false);
                     global.pc_screen_mode         = 3;
                     global.pc_screen_title        = "CASE BOARD — CASE CLOSED";
-                    global.pc_screen_feedback     = "CASE SOLVED! +3 SCRAP. " + _case.kyle_debrief;
-                    global.pc_screen_feedback_col = c_lime;
+                    global.pc_screen_feedback     = "CASE SOLVED & SAFETY FIX LOGGED! +3 SCRAP. " + _case.kyle_debrief;
+                    global.pc_screen_feedback_col = make_color_rgb(20, 140, 40);
                     global.pc_screen_badge        = "OVERRIDE AUTHORIZED";
                 } else {
                     audio_play_sound(wrong1, 8, false);
-                    global.case_wrong_accusations++;
-                    global.pc_screen_feedback     = "INCORRECT VECTOR! Check the [LVL 3: CRITICAL] forensic trace from the culprit's desk.";
-                    global.pc_screen_feedback_col = make_color_rgb(255, 110, 95);
+                    global.pc_screen_feedback     = "UNSAFE PRACTICE! That wouldn't prevent this breach—choose the habit that directly fixes the slip-up!";
+                    global.pc_screen_feedback_col = make_color_rgb(210, 50, 45);
                 }
             }
         }
@@ -554,13 +585,16 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
         // Feedback / Educational debrief line
         draw_set_halign(fa_center);
         draw_set_valign(fa_middle);
+        var _default_fb = "Select a suspect to accuse, or return to the Case Board.";
+        if (_mode == 2) _default_fb = "Select the accidental slip-up described in the culprit's Level 3 Critical Forensics.";
+        if (_mode == 4) _default_fb = "Select the cybersecurity safety habit that stops this slip-up from happening again.";
         var _fb_txt = (variable_global_exists("pc_screen_feedback") && global.pc_screen_feedback != "")
             ? global.pc_screen_feedback
-            : (_mode == 2 ? "Select the attack method described in the culprit's Level 3 Critical Forensics." : "Select a suspect to accuse, or return to the Case Board.");
+            : _default_fb;
         var _fb_col = (variable_global_exists("pc_screen_feedback_col") && global.pc_screen_feedback != "") ? global.pc_screen_feedback_col : make_color_rgb(170, 115, 0);
         draw_set_color(_fb_col);
-        draw_text_ext_transformed(_mcx, _my2 - 58, _fb_txt, 14, (_mw - 30) / 0.88, 0.88, 0.88, 0);
-        draw_text_ext_transformed(_mcx + 0.8, _my2 - 58, _fb_txt, 14, (_mw - 30) / 0.88, 0.88, 0.88, 0);
+        draw_text_ext_transformed(_mcx, _my2 - 58, _fb_txt, 14, (_mw - 30) / 0.85, 0.85, 0.85, 0);
+        draw_text_ext_transformed(_mcx + 0.8, _my2 - 58, _fb_txt, 14, (_mw - 30) / 0.85, 0.85, 0.85, 0);
 
         // Action prompt pill
         draw_set_color(c_white);
@@ -737,8 +771,8 @@ if (!variable_instance_exists(id, "ms_init")) {
 if (!ms_hint_done && _clues_cur >= 1 && !_has_key) {
     ms_hint_done      = true;
     quest_toast_timer = 190;
-    quest_toast_title = "KEY VAULT HINT FOUND!";
-    quest_toast_sub   = "Next Quest: Unlock the Gold Key Vault door & grab the Cipher Key!";
+    quest_toast_title = "FORENSIC SCANNER UPLOADED!";
+    quest_toast_sub   = "Next Quest: Spot the Red Flag at the Gold Key Vault & grab the Cipher Key!";
     quest_toast_col   = make_color_rgb(255, 215, 65);
 }
 if (!ms_key_done && _has_key) {
@@ -1113,7 +1147,7 @@ if (instance_exists(obj_jack)) {
 
     with (obj_door_quiz_lock) {
         if (locked && point_distance(obj_jack.x, obj_jack.y - 8, draw_x + 8, draw_y + 8) < 28) {
-            _prompt = "[E] Answer Cybersecurity Question (Unlock Key Vault)";
+            _prompt = "[E] Analyze Security Log & Spot the Red Flag (Unlock Key Vault)";
             _pcol   = make_color_rgb(255, 210, 55);
             break;
         }

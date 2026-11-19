@@ -18,29 +18,111 @@ switch (phase) {
 
     case "display":
         screen_alpha = 1;
+        if (safety_quiz_shake > 0) safety_quiz_shake--;
 
         if (phase_timer >= 20) {
-            // Page 0 -> Paystub; Page 1 -> confirm next floor / next chapter: E, Enter, or Space
-            if (keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space)) {
-                audio_play_sound(snd_button_click, 10, false);
-                if (page == 0) {
+            if (page == 0) {
+                // Page 0 (Incident Debrief) -> Page 1 (Interactive Cyber Safety Check)
+                if (keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space)) {
+                    audio_play_sound(snd_button_click, 10, false);
                     page        = 1;
-                    phase_timer = 0; // brief lockout so the paystub isn't skipped by a double-press
+                    phase_timer = 0;
+                }
+            } else if (page == 1) {
+                // Page 1: Interactive "What Would You Do?" Cyber Safety Check
+                if (!safety_quiz_solved) {
+                    if (keyboard_check_pressed(vk_up) || keyboard_check_pressed(ord("W"))) {
+                        safety_quiz_sel = (safety_quiz_sel + 2) mod 3;
+                        audio_play_sound(snd_button_hover, 6, false);
+                    }
+                    if (keyboard_check_pressed(vk_down) || keyboard_check_pressed(ord("S"))) {
+                        safety_quiz_sel = (safety_quiz_sel + 1) mod 3;
+                        audio_play_sound(snd_button_hover, 6, false);
+                    }
+
+                    var _sq_submit = false;
+                    if (keyboard_check_pressed(ord("1"))) { safety_quiz_sel = 0; _sq_submit = true; }
+                    if (keyboard_check_pressed(ord("2"))) { safety_quiz_sel = 1; _sq_submit = true; }
+                    if (keyboard_check_pressed(ord("3"))) { safety_quiz_sel = 2; _sq_submit = true; }
+                    if (keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space)) {
+                        _sq_submit = true;
+                    }
+
+                    // Mouse click support on the 3 option cards
+                    var _gw  = display_get_gui_width();
+                    var _gh  = display_get_gui_height();
+                    var _cx  = _gw * 0.5;
+                    var _cy  = _gh * 0.5;
+                    var _pw  = 580;
+                    var _ph  = 324;
+                    var _x1  = _cx - _pw * 0.5;
+                    var _y1  = _cy - _ph * 0.5;
+                    var _x2  = _cx + _pw * 0.5;
+                    var _gmx = device_mouse_x_to_gui(0);
+                    var _gmy = device_mouse_y_to_gui(0);
+
+                    for (var _qi = 0; _qi < 3; _qi++) {
+                        var _qy1 = _y1 + 108 + (_qi * 40);
+                        var _qy2 = _qy1 + 34;
+                        if (point_in_rectangle(_gmx, _gmy, _x1 + 20, _qy1, _x2 - 20, _qy2)) {
+                            if (mouse_check_button_pressed(mb_left)) {
+                                safety_quiz_sel = _qi;
+                                _sq_submit      = true;
+                            }
+                        }
+                    }
+
+                    if (_sq_submit) {
+                        if (safety_quiz_sel == safety_quiz_correct_idx) {
+                            safety_quiz_solved = true;
+                            phase_timer        = 12; // brief guard before advancing to paystub
+                            if (safety_quiz_first_try) {
+                                safety_quiz_bonus   = 50;
+                                paycheck.total     += 50;
+                                global.player_cash += 50;
+                                safety_quiz_feedback = "FIRST-TRY MASTERY (+$50 BONUS)! " + safety_quiz_feedback_ok;
+                            } else {
+                                safety_quiz_bonus    = 0;
+                                safety_quiz_feedback = safety_quiz_feedback_ok;
+                            }
+                            safety_quiz_feedback_col = c_lime;
+                            audio_play_sound(snd_correct_ping, 10, false);
+                        } else {
+                            safety_quiz_first_try                  = false;
+                            safety_quiz_eliminated[safety_quiz_sel] = true;
+                            safety_quiz_shake                      = 10;
+                            safety_quiz_feedback                   = "UNSAFE CHOICE — Think about what happened on this floor and pick the safe habit!";
+                            safety_quiz_feedback_col               = make_color_rgb(255, 110, 95);
+                            audio_play_sound(wrong1, 10, false);
+                        }
+                    }
                 } else {
+                    // Once solved, pressing E / Enter / Space / Click advances to Page 2 (Corporate Paystub)
+                    if (keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space) || mouse_check_button_pressed(mb_left)) {
+                        audio_play_sound(snd_button_click, 10, false);
+                        page        = 2;
+                        phase_timer = 0;
+                    }
+                }
+            } else {
+                // Page 2 (Corporate Paystub) -> confirm next floor / next chapter: E, Enter, or Space
+                if (keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space)) {
+                    audio_play_sound(snd_button_click, 10, false);
                     next_action = "next_dungeon";
-                    phase        = "fade_out";
-                    phase_timer  = 0;
+                    phase       = "fade_out";
+                    phase_timer = 0;
+                }
+                // Visit the Homeroom (Wall Telephone & Statue Display Table) between workdays — disabled when Intern Duty is flagged!
+                else if (!(variable_global_exists("intern_duty_flagged") && global.intern_duty_flagged) && keyboard_check_pressed(ord("H"))) {
+                    next_action = "homeroom";
+                    phase       = "fade_out";
+                    phase_timer = 0;
+                    audio_play_sound(snd_button_click, 10, false);
                 }
             }
-            // Visit the Homeroom (Wall Telephone & Statue Display Table) between workdays — disabled when Intern Duty is flagged!
-            else if (page == 1 && !(variable_global_exists("intern_duty_flagged") && global.intern_duty_flagged) && keyboard_check_pressed(ord("H"))) {
-                next_action = "homeroom";
-                phase       = "fade_out";
-                phase_timer = 0;
-                audio_play_sound(snd_button_click, 10, false);
-            }
+
             // Return to Chapter Select Screen: Escape
-            else if (keyboard_check_pressed(vk_escape)) {
+            if (keyboard_check_pressed(vk_escape)) {
                 global.esc_block_frames = 2;
                 keyboard_clear(vk_escape);
                 next_action = "chapter_select";

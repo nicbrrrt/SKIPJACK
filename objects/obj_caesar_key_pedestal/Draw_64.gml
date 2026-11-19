@@ -48,29 +48,25 @@ var _hdr_title = "FIND THE CAESAR SHIFT KEY";
 var _sub_line  = "Slide the dial until '" + sample_enc + "' lands on '" + sample_plain + "'";
 
 if (_ch == CHAPTER_VIGENERE) {
-    _hdr_title = "CALIBRATE VIGENERE KEYWORD ('" + _vig_key + "')";
+    var _kw_breakdown = "";
+    for (var _ki = 1; _ki <= string_length(_vig_key); _ki++) {
+        var _kch = string_char_at(_vig_key, _ki);
+        var _ksh = ord(_kch) - ord("A");
+        _kw_breakdown += ((_ki > 1) ? "  •  " : "") + _kch + "=+" + string(_ksh);
+    }
+    _hdr_title = "CALIBRATE VIGENERE KEYWORD ('" + _vig_key + "'  |  " + _kw_breakdown + ")";
     _sub_line  = "Match 1st Keyword Letter: Slide until '" + sample_enc + "' lands on '" + sample_plain + "'";
 } else if (_ch == CHAPTER_ATBASH) {
-    _hdr_title = "CALIBRATE ATBASH MIRROR (A <-> Z)";
-    _sub_line  = "Count inward from 'Z' to match '" + sample_enc + "' with its mirror '" + sample_plain + "'";
+    _hdr_title = "CALIBRATE ATBASH MIRROR (A <-> Z, B <-> Y)";
+    _sub_line  = "Look at the 2-Row Mirror Bar: Match top letter '" + sample_enc + "' to its bottom mirror '" + sample_plain + "'";
 }
 
 draw_set_color(make_color_rgb(255, 215, 55));
-draw_text_transformed(_cx, _y1 + 20, _hdr_title, 1.02, 1.02, 0);
+draw_text_transformed(_cx, _y1 + 20, _hdr_title, 0.92, 0.92, 0);
 draw_set_color(make_color_rgb(190, 210, 235));
-draw_text_transformed(_cx, _y1 + 42, _sub_line, 0.85, 0.85, 0);
+draw_text_transformed(_cx, _y1 + 42, _sub_line, 0.82, 0.82, 0);
 
-// 3. Visual A-Z Alphabet Ruler
-var _strip_y  = _y1 + 82;
-var _cell_w   = 20;
-var _strip_w  = 26 * _cell_w;
-var _strip_x1 = _cx - _strip_w * 0.5;
-
-draw_set_color(make_color_rgb(20, 26, 40));
-draw_rectangle(_strip_x1 - 5, _strip_y - 14, _strip_x1 + _strip_w + 5, _strip_y + 14, false);
-draw_set_color(make_color_rgb(70, 90, 125));
-draw_rectangle(_strip_x1 - 5, _strip_y - 14, _strip_x1 + _strip_w + 5, _strip_y + 14, true);
-
+// 3. Visual A-Z Alphabet Ruler (or 2-Row Mirror Bar in Chapter 3 Atbash)
 var _enc_idx    = ord(sample_enc) - ord("A");
 var _plain_idx  = ord(sample_plain) - ord("A");
 var _landed_ch  = (_ch == CHAPTER_ATBASH)
@@ -79,28 +75,45 @@ var _landed_ch  = (_ch == CHAPTER_ATBASH)
 var _landed_idx = ord(_landed_ch) - ord("A");
 var _aligned    = (_landed_ch == sample_plain);
 
-for (var _a = 0; _a < 26; _a++) {
-    var _lx = _strip_x1 + _a * _cell_w + _cell_w * 0.5;
-    var _ch_lbl = chr(ord("A") + _a);
+if (_ch == CHAPTER_ATBASH) {
+    scr_draw_atbash_mirror_bar(_cx, _y1 + 70, _enc_idx, _landed_idx, _plain_idx, true, _aligned ? c_lime : c_aqua);
+} else {
+    var _strip_y  = _y1 + 82;
+    var _cell_w   = 20;
+    var _strip_w  = 26 * _cell_w;
+    var _strip_x1 = _cx - _strip_w * 0.5;
 
-    if (_a == _landed_idx) {
-        draw_set_color(_aligned ? c_lime : c_aqua);
-        draw_rectangle(_lx - 9, _strip_y - 12, _lx + 9, _strip_y + 12, false);
-        draw_set_color(c_black);
-        draw_text(_lx, _strip_y, _ch_lbl);
-    } else if (_a == _enc_idx) {
-        draw_set_color(make_color_rgb(255, 190, 40));
-        draw_rectangle(_lx - 9, _strip_y - 12, _lx + 9, _strip_y + 12, false);
-        draw_set_color(c_black);
-        draw_text(_lx, _strip_y, _ch_lbl);
-    } else if (_a == _plain_idx) {
-        draw_set_color(c_lime);
-        draw_rectangle(_lx - 9, _strip_y - 12, _lx + 9, _strip_y + 12, true);
-        draw_rectangle(_lx - 8, _strip_y - 11, _lx + 8, _strip_y + 11, true);
-        draw_text(_lx, _strip_y, _ch_lbl);
-    } else {
-        draw_set_color(make_color_rgb(160, 175, 200));
-        draw_text_transformed(_lx, _strip_y, _ch_lbl, 0.85, 0.85, 0);
+    draw_set_color(make_color_rgb(20, 26, 40));
+    draw_rectangle(_strip_x1 - 5, _strip_y - 14, _strip_x1 + _strip_w + 5, _strip_y + 14, false);
+    draw_set_color(make_color_rgb(70, 90, 125));
+    draw_rectangle(_strip_x1 - 5, _strip_y - 14, _strip_x1 + _strip_w + 5, _strip_y + 14, true);
+
+    for (var _a = 0; _a < 26; _a++) {
+        var _lx = _strip_x1 + _a * _cell_w + _cell_w * 0.5;
+        var _ch_lbl = chr(ord("A") + _a);
+
+        if (_a == _landed_idx) {
+            draw_set_color(_aligned ? c_lime : c_aqua);
+            draw_rectangle(_lx - 9, _strip_y - 12, _lx + 9, _strip_y + 12, false);
+            draw_set_color(c_black);
+            draw_text(_lx, _strip_y, _ch_lbl);
+        } else if (_a == _enc_idx) {
+            draw_set_color(make_color_rgb(255, 190, 40));
+            draw_rectangle(_lx - 9, _strip_y - 12, _lx + 9, _strip_y + 12, false);
+            draw_set_color(c_black);
+            draw_text(_lx, _strip_y, _ch_lbl);
+        } else if (_a == _plain_idx) {
+            draw_set_color(c_lime);
+            draw_rectangle(_lx - 9, _strip_y - 12, _lx + 9, _strip_y + 12, true);
+            draw_rectangle(_lx - 8, _strip_y - 11, _lx + 8, _strip_y + 11, true);
+            draw_text(_lx, _strip_y, _ch_lbl);
+        } else {
+            draw_set_color(make_color_rgb(160, 175, 200));
+            draw_text_transformed(_lx, _strip_y, _ch_lbl, 0.85, 0.85, 0);
+        }
+    }
+    if (_guided) {
+        scr_draw_tutorial_ruler_hops(_strip_x1, _strip_y, _cell_w, _enc_idx, target_shift);
     }
 }
 
@@ -158,11 +171,18 @@ if (status_msg != "") {
     if (_ch == CHAPTER_VIGENERE) _t_str = chr(ord("A") + target_shift) + " (+" + string(target_shift) + ")";
     if (_ch == CHAPTER_ATBASH)   _t_str = sample_plain;
     draw_set_color(c_aqua);
-    draw_text_transformed(_cx, _y2 - 42, "TUTORIAL: Press " + _dir_hint + " until dial reaches " + _t_str + "!", 0.84, 0.84, 0);
+    draw_text_transformed(_cx, _y2 - 42, "STEP-BY-STEP: Count from Amber '" + sample_enc + "' to Green '" + sample_plain + "' -> Press " + _dir_hint + " to reach " + _t_str + "!   [TAB: How to Solve]", 0.72, 0.72, 0);
 }
 
 draw_set_color(make_color_rgb(150, 170, 195));
-draw_text_transformed(_cx, _y2 - 16, "[LEFT / RIGHT] Turn Dial   |   [ENTER] Confirm   |   [ESC] Back", 0.82, 0.82, 0);
+draw_text_transformed(_cx, _y2 - 16, _guided
+    ? "[LEFT / RIGHT] Turn Dial   |   [ENTER] Confirm   |   [TAB] How to Solve   |   [ESC] Back"
+    : "[LEFT / RIGHT] Turn Dial   |   [ENTER] Confirm   |   [ESC] Back", 0.78, 0.78, 0);
+
+// 6. Full Visual "HOW TO CALIBRATE" Demonstration Modal (Tutorial Floors 1-3)
+if (_guided && variable_instance_exists(id, "demo_modal_open") && demo_modal_open) {
+    scr_draw_tutorial_how_to_solve_modal(_gui_w, _gui_h, "pedestal", _ch, sample_enc, sample_plain, target_shift, _vig_key, 1);
+}
 
 draw_set_font(fnt_default);
 draw_set_color(c_white);

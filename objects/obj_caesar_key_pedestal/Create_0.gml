@@ -21,4 +21,5 @@ last_vig_key     = "";
 sample_plain     = "H";
 sample_enc       = "E";
 target_shift     = 3;
+demo_modal_open  = false;
 global.key_analyzer_open = false;

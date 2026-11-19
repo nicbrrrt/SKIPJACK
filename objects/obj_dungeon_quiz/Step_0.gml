@@ -1,14 +1,15 @@
 /// @description obj_dungeon_quiz — Step Event
-/// Handles letter typing, backspace, answer verification, and unlocking obj_door_quiz_lock.
+/// Handles interactive option selection ([W/S], [UP/DOWN], [1/2/3], Mouse Click, [E/ENTER])
+/// for the Key Vault "Spot the Cyber Red Flag" inspection challenge.
 
 if (variable_global_exists("is_paused") && global.is_paused) exit;
 
 if (shake_timer > 0) shake_timer--;
 
-// Handle post-solve delay (allow Enter/Space to advance early)
+// Handle post-solve delay (allow E/Enter/Space/Click to advance early)
 if (success_timer > 0) {
     success_timer--;
-    if (keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space)) {
+    if (keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space) || keyboard_check_pressed(ord("E")) || mouse_check_button_pressed(mb_left)) {
         success_timer = 0;
     }
     if (success_timer <= 0) {
@@ -35,61 +36,66 @@ if (keyboard_check_pressed(vk_escape)) {
     exit;
 }
 
-var _len = array_length(letter_chars);
+// Keyboard navigation (W/S or Up/Down)
+if (keyboard_check_pressed(vk_up) || keyboard_check_pressed(ord("W"))) {
+    selected_option = (selected_option + 2) mod 3;
+    audio_play_sound(snd_button_hover, 6, false);
+}
+if (keyboard_check_pressed(vk_down) || keyboard_check_pressed(ord("S"))) {
+    selected_option = (selected_option + 1) mod 3;
+    audio_play_sound(snd_button_hover, 6, false);
+}
 
-// Backspace: remove last typed letter
-if (keyboard_check_pressed(vk_backspace)) {
-    var _glen = string_length(player_guess);
-    if (_glen > 0) {
-        var _pop_idx = guess_indices[_glen - 1];
-        letter_used[_pop_idx] = false;
-        array_delete(guess_indices, _glen - 1, 1);
-        player_guess = string_delete(player_guess, _glen, 1);
-        status_msg = "";
-        audio_play_sound(snd_button_click, 10, false);
+var _submit = false;
+
+// Direct number shortcuts [1], [2], [3]
+if (keyboard_check_pressed(ord("1"))) { selected_option = 0; _submit = true; }
+if (keyboard_check_pressed(ord("2"))) { selected_option = 1; _submit = true; }
+if (keyboard_check_pressed(ord("3"))) { selected_option = 2; _submit = true; }
+
+// Confirm with E, Enter, or Space
+if (keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space)) {
+    _submit = true;
+}
+
+// Mouse hover & click on the 3 option cards (matching Draw_64 coordinates)
+var _gui_w = display_get_gui_width();
+var _gui_h = display_get_gui_height();
+var _cx    = _gui_w * 0.5;
+var _cy    = _gui_h * 0.5;
+var _pw    = 556;
+var _ph    = 312;
+var _x1    = _cx - (_pw * 0.5);
+var _y1    = _cy - (_ph * 0.5);
+var _x2    = _cx + (_pw * 0.5);
+var _gmx   = device_mouse_x_to_gui(0);
+var _gmy   = device_mouse_y_to_gui(0);
+
+for (var _i = 0; _i < 3; _i++) {
+    var _oy1 = _y1 + 148 + (_i * 38);
+    var _oy2 = _oy1 + 32;
+    if (point_in_rectangle(_gmx, _gmy, _x1 + 18, _oy1, _x2 - 18, _oy2)) {
+        if (mouse_check_button_pressed(mb_left)) {
+            selected_option = _i;
+            _submit = true;
+        }
     }
 }
 
-// Typing A-Z: pick from available scrambled letters
-for (var _k = ord("A"); _k <= ord("Z"); _k++) {
-    if (keyboard_check_pressed(_k)) {
-        var _typed = chr(_k);
-        var _found = -1;
-        for (var _i = 0; _i < _len; _i++) {
-            if (!letter_used[_i] && letter_chars[_i] == _typed) {
-                _found = _i;
-                break;
-            }
-        }
-        if (_found != -1) {
-            letter_used[_found] = true;
-            array_push(guess_indices, _found);
-            player_guess += _typed;
-            status_msg = "";
-            audio_play_sound(snd_button_click, 10, false);
-        } else {
-            shake_timer = 6;
-            audio_play_sound(wrong1, 10, false);
-        }
-    }
-}
-
-// Auto-verify once all letters are entered
-if (string_length(player_guess) == _len) {
-    if (player_guess == target_word) {
-        status_msg    = "CORRECT! KEY VAULT UNLOCKED";
+if (_submit) {
+    if (selected_option == correct_option_idx) {
+        status_msg    = "RED FLAG IDENTIFIED (" + target_word + ")!  " + explain_win;
         status_col    = c_lime;
-        success_timer = 55;
+        success_timer = 110;
         audio_play_sound(snd_correct_ping, 10, false);
     } else {
-        shake_timer  = 12;
-        status_msg   = "INCORRECT — TRY AGAIN";
-        status_col   = c_red;
-        player_guess = "";
-        guess_indices = [];
-        for (var _i = 0; _i < _len; _i++) {
-            letter_used[_i] = false;
-        }
+        shake_timer = 12;
+        option_eliminated[selected_option] = true;
+        var _clues_cur = variable_global_exists("clues_found") ? global.clues_found : 0;
+        status_msg = (_clues_cur >= 1)
+            ? "NOT A THREAT — Check the green Forensic Scanner hint above for the real red flag!"
+            : "NOT A THREAT — Look closely at the suspicious log above (or inspect the Security Sector PC for a scan)!";
+        status_col = make_color_rgb(255, 110, 95);
         audio_play_sound(wrong1, 10, false);
     }
 }
