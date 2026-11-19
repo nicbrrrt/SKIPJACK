@@ -565,23 +565,28 @@ if (player_near && keyboard_check_pressed(ord("E"))) {
             global.pc_screen_radar = _radar_hint;
             global.pc_screen_badge = "KEY REQUIRED";
         } else if (suspect_idx >= 0) {
-            talked_once = true;
-            // Suspect's desk terminal: provides Level 3 Critical Evidence (accusation happens in [TAB] Case Board!)
-            var _sp = global.case_suspects[suspect_idx];
-            var _s_new = (evidence_idx >= 0) ? scr_log_evidence(evidence_idx) : false;
-            if (_s_new) {
-                var _sping = audio_play_sound(snd_correct_ping, 6, false);
-                audio_sound_gain(_sping, 0.45, 0);
+            var _sp           = global.case_suspects[suspect_idx];
+            var _already_done = (evidence_idx >= 0 && global.case_evidence[evidence_idx].found)
+                             || (variable_struct_exists(_sp, "audit_done") && _sp.audit_done);
+
+            if (!_already_done) {
+                // Interactive 3-Item Workstation Audit (Mode 5): Player inspects the 3 desktop items & flags the breach (or verifies clean)!
+                global.pc_screen_mode        = 5;
+                global.pc_screen_suspect_idx = suspect_idx;
+                global.pc_screen_select      = 0;
+                global.pc_screen_feedback    = "";
+                global.pc_screen_title       = "WORKSTATION AUDIT: DESK " + nameplate + "  [" + _sp.dept + "]";
+                global.pc_screen_badge       = "AUDIT 3 ITEMS";
+            } else {
+                talked_once = true;
+                var _s_txt = (evidence_idx >= 0)
+                    ? global.case_evidence[evidence_idx].text
+                    : ("[LVL 3: CRITICAL] Desk " + nameplate + " (" + _sp.name + ") workstation audit complete.");
+                global.pc_screen_title = "SUSPECT DESK: " + nameplate + "  [" + _sp.dept + "]";
+                global.pc_screen_body  = _s_txt + "\n\n(Workstation audit complete — recorded on Case Board.)\nPress [TAB] to open the Case Board and ACCUSE a suspect.";
+                global.pc_screen_radar = "EVIDENCE " + string(global.evidence_found) + "/" + string(global.evidence_needed) + "   [TAB] ACCUSE ON BOARD";
+                global.pc_screen_badge = "LVL 3: CRITICAL";
             }
-            var _s_txt = (evidence_idx >= 0)
-                ? global.case_evidence[evidence_idx].text
-                : ("[LVL 3: CRITICAL] Desk " + nameplate + " (" + _sp.name + ") workstation audit complete.");
-            global.pc_screen_title = "SUSPECT DESK: " + nameplate + "  [" + _sp.dept + "]";
-            global.pc_screen_body  = _s_txt + "\n\n"
-                + (_s_new ? "CRITICAL EVIDENCE ADDED TO CASE BOARD!" : "(Already recorded on Case Board.)")
-                + "\nPress [TAB] to open the Case Board and ACCUSE a suspect.";
-            global.pc_screen_radar = "EVIDENCE " + string(global.evidence_found) + "/" + string(global.evidence_needed) + "   [TAB] ACCUSE ON BOARD";
-            global.pc_screen_badge = "LVL 3: CRITICAL";
         } else if (evidence_idx >= 0) {
             // Evidence terminal: Level 1 / Level 2 proof
             talked_once = true;

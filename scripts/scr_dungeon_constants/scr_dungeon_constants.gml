@@ -346,9 +346,9 @@ function scr_get_floor_incident_case(_case_idx) {
         correct_suspect_idx: 0,
         correct_vector_idx:  0,
         desktop_items: [
-            { label: "Mistake: Used Coffee-Shop Wi-Fi Without VPN", is_breach: true,  desc: "David forgot to turn on his VPN on free public Wi-Fi, so hackers on the same network saw our secret Caesar shift number!" },
-            { label: "Memo: Scheduled Key Rotation for Q3",          is_breach: false, desc: "Normal security policy reminder to rotate employee keys." },
-            { label: "Report: Firewall Packet Inspection Log",       is_breach: false, desc: "Normal inbound traffic inspection." }
+            { label: "Network: Connected to 'Free_Cafe_Guest_WiFi' (VPN: OFF)", is_breach: true,  desc: "David forgot to turn on his VPN on free public Wi-Fi, so hackers on the same network saw our secret Caesar shift number!" },
+            { label: "Memo: Scheduled Key Rotation for Q3",                     is_breach: false, desc: "Normal security policy reminder to rotate employee keys." },
+            { label: "Report: Firewall Packet Inspection Log",                  is_breach: false, desc: "Normal inbound traffic inspection." }
         ],
         kyle_debrief: "David forgot to turn on his VPN on public Wi-Fi! Always use a VPN on public Wi-Fi so hackers can't snoop on your connection.",
         lesson_story: "David (Security Lead) worked from a coffee shop on free public Wi-Fi and accidentally forgot to turn on his VPN. Because public Wi-Fi isn't encrypted, hackers sitting nearby intercepted his connection and saw the floor's secret Caesar shift number!",
@@ -369,17 +369,17 @@ function scr_get_floor_incident_case(_case_idx) {
             "[IT MEMO]: 'Key Vault Word: C-A-E-S-A-R.'"
         ],
         vault_challenge: {
-            artifact_header: "CAPTURED NETWORK LOG:  Wi-Fi = 'Free_Cafe_Guest' (OPEN / NO PASSWORD)",
-            artifact_body:   "VPN TUNNEL: OFF  |  OUTBOUND: Sent plain-text Caesar Shift Key (+K) over public Wi-Fi!",
-            scanner_note:    "FORENSIC SCAN: Public Wi-Fi is unencrypted! Sending a Caesar Shift Key with VPN OFF lets anyone nearby snoop it.",
-            prompt:          "Spot the red flag in this network log that exposed the floor's Caesar Cipher Key:",
+            artifact_header: "CAPTURED WI-FI SESSION:  SSID = 'BeanScene_Cafe_Free_Guest' (Security: OPEN)",
+            artifact_body:   "VPN STATUS: Disconnected  |  TRAFFIC: Synced 'floor_caesar_shift_config.json' over local Wi-Fi",
+            scanner_note:    "FORENSIC GUIDE: Inspect the Wi-Fi security type ('OPEN') and whether an encrypted VPN tunnel was active during the file sync!",
+            prompt:          "Analyze this network log—what security mistake allowed an attacker in the cafe to intercept the Caesar Key?",
             options: [
-                "Public Wi-Fi used with VPN OFF — anyone on the cafe network could read the Caesar Shift Key",
-                "The coffee shop Wi-Fi signal strength was too weak to load emails quickly",
-                "The Caesar Cipher shifts letters by a fixed number instead of mirroring A to Z"
+                "Syncing sensitive data over an OPEN public Wi-Fi network while the encrypted VPN was Disconnected",
+                "Public Wi-Fi is automatically encrypted as long as the Wi-Fi signal strength is 100%",
+                "Using a '.json' configuration file instead of a '.txt' file over a corporate VPN"
             ],
             correct_idx: 0,
-            explain_win: "SPOT ON! Always turn on an encrypted VPN on public Wi-Fi so snoops can't read your connection!"
+            explain_win: "SPOT ON! Open public Wi-Fi isn't encrypted—always turn on a VPN so snoops on the same network can't read your traffic!"
         },
         fixes: [
             "Always turn on an encrypted VPN before working on public Wi-Fi",
@@ -413,9 +413,9 @@ function scr_get_floor_incident_case(_case_idx) {
             correct_suspect_idx: 0,
             correct_vector_idx:  0,
             desktop_items: [
-                { label: "Mistake: Saved Keyword in Shared Public Note", is_breach: true,  desc: "David was afraid of forgetting the Vigenere keyword, so he typed it into an unlocked public folder where hackers found it!" },
-                { label: "Memo: Vigenere Table Matrix Reference",  is_breach: false, desc: "26x26 Caesar shift grid for manual decryption." },
-                { label: "Notice: Password Hygiene Guidelines",     is_breach: false, desc: "Standard company password security memo." }
+                { label: "File: '/Public_Shared_Drive/vigenere_keyword_backup.txt' (Access: Everyone)", is_breach: true,  desc: "David was afraid of forgetting the Vigenere keyword, so he typed it into an unlocked public folder where hackers found it!" },
+                { label: "Memo: Vigenere Table Matrix Reference",                                       is_breach: false, desc: "26x26 Caesar shift grid for manual decryption." },
+                { label: "Notice: Password Hygiene Guidelines",                                         is_breach: false, desc: "Standard company password security memo." }
             ],
             kyle_debrief: "David saved the secret keyword in an unlocked public folder! Always store passwords and keys inside an encrypted Password Manager.",
             lesson_story: "David (Security Lead) was worried he might forget the floor's repeating Vigenere keyword, so he saved it inside an unlocked shared folder. Hackers found the plain-text note and used the keyword to lock down the floor!",
@@ -436,17 +436,17 @@ function scr_get_floor_incident_case(_case_idx) {
                 "[IT MEMO]: 'Key Vault Word: V-I-G-E-N-E-R-E.'"
             ],
             vault_challenge: {
-                artifact_header: "CAPTURED FILE AUDIT:  /Public_Shared_Drive/vigenere_floor_key.txt",
-                artifact_body:   "PERMISSIONS: Everyone (Read/Write)  |  CONTENTS: 'Floor Repeating Vigenere Keyword = CAB'",
-                scanner_note:    "FORENSIC SCAN: The secret Vigenere keyword was saved in an unlocked public folder where any intruder can read it!",
-                prompt:          "Spot the security mistake in this file audit that leaked the Vigenere Keyword:",
+                artifact_header: "CAPTURED FILE PROPERTIES:  Path = /Company_Guest_Share/floor_vigenere_key.txt",
+                artifact_body:   "ENCRYPTION: None (Plain Text)  |  SHARE ACCESS: Guest_Network (Read / Write Allowed)",
+                scanner_note:    "FORENSIC GUIDE: Check the file's Encryption setting and who has Share Access to '/Company_Guest_Share/'!",
+                prompt:          "Analyze this file audit—why were attackers able to steal the floor's Vigenere Keyword without hacking a password?",
                 options: [
-                    "Saving a secret Vigenere keyword in an unlocked, plain-text public folder anyone can open",
-                    "Using a repeating keyword where A=+0, B=+1, and C=+2 to shift letters",
-                    "Backing up encrypted system files to an offline vault"
+                    "The secret keyword was saved as an unencrypted plain-text '.txt' file inside a Guest-accessible shared folder",
+                    "Plain-text password files are safe on shared drives as long as you don't put the word 'password' in the filename",
+                    "The Vigenere cipher used a 3-letter keyword instead of a single Caesar shift number"
                 ],
                 correct_idx: 0,
-                explain_win: "SPOT ON! Never store passwords or cipher keywords in plain-text public folders—use an encrypted Password Manager!"
+                explain_win: "SPOT ON! Never store passwords or cipher keywords in plain-text shared folders—use an encrypted Password Manager!"
             },
             fixes: [
                 "Store secret keys and passwords in an encrypted Password Manager, never plain-text public folders",
@@ -479,9 +479,9 @@ function scr_get_floor_incident_case(_case_idx) {
             correct_suspect_idx: 0,
             correct_vector_idx:  0,
             desktop_items: [
-                { label: "Mistake: Left 'No-Password' Mirror Test Mode On", is_breach: true,  desc: "David tested the doors with an Atbash mirror cipher (A<->Z) and forgot that Atbash has NO secret password—anyone can flip it back!" },
-                { label: "Doc: Ancient Hebrew Cipher History",        is_breach: false, desc: "Historical document on Biblical monoalphabetic ciphers." },
-                { label: "Memo: Terminal Maintenance Schedule",        is_breach: false, desc: "Routine cleaning and dusting for server racks." }
+                { label: "Config: 'Door_Lock_Mode = ATBASH_MIRROR (Secret_Key: NONE)'", is_breach: true,  desc: "David tested the doors with an Atbash mirror cipher (A<->Z) and forgot that Atbash has NO secret password—anyone can flip it back!" },
+                { label: "Doc: Ancient Hebrew Cipher History",                          is_breach: false, desc: "Historical document on Biblical monoalphabetic ciphers." },
+                { label: "Memo: Terminal Maintenance Schedule",                          is_breach: false, desc: "Routine cleaning and dusting for server racks." }
             ],
             kyle_debrief: "David accidentally left the doors on an Atbash mirror test mode that doesn't require a secret key!",
             lesson_story: "David (Security Lead) switched the security doors to an old Atbash mirror cipher (which just flips A to Z and B to Y) during a morning test and forgot to switch it back. Because Atbash has no secret key, hackers reversed the letters immediately!",
@@ -502,14 +502,14 @@ function scr_get_floor_incident_case(_case_idx) {
                 "[IT MEMO]: 'Key Vault Word: A-T-B-A-S-H.'"
             ],
             vault_challenge: {
-                artifact_header: "CAPTURED DOOR CONFIG:  MODE = ATBASH_MIRROR (A<->Z, B<->Y)",
-                artifact_body:   "SECRET KEY REQUIRED: NONE  |  WARNING: Fixed mirror rule can be reversed by anyone!",
-                scanner_note:    "FORENSIC SCAN: Atbash always flips A<->Z with NO secret key—relying on a fixed rule is 'security by obscurity'!",
-                prompt:          "Spot the weakness in this door configuration that let hackers decode it instantly:",
+                artifact_header: "CAPTURED LOCK DIAGNOSTIC:  Cipher_Algorithm = ATBASH_REFLECT (A<->Z)",
+                artifact_body:   "KEY PARAMETER: None (Fixed Rule: Output = 25 - Input)  |  AUTH_REQUIRED: False",
+                scanner_note:    "FORENSIC GUIDE: Check the 'KEY PARAMETER' field—does Atbash use a secret key, or does it always use the exact same A<->Z flip?",
+                prompt:          "Analyze this door lock config—what cryptographic flaw let intruders decode the lock without a key?",
                 options: [
-                    "Atbash has NO secret key—anyone who knows the A<->Z mirror rule can flip the letters right back",
-                    "The Atbash mirror cipher requires a 64-character hardware token",
-                    "The door lock timed out because the password was too long"
+                    "Atbash has NO secret key (Key Parameter: None)—anyone who recognizes the A<->Z mirror rule can reverse it immediately",
+                    "Hiding the cipher name ('Security by Obscurity') is just as strong as using a secret password key",
+                    "Flipping a message with Atbash twice in a row makes it twice as hard for computers to decrypt"
                 ],
                 correct_idx: 0,
                 explain_win: "SPOT ON! Because Atbash has no secret key, anyone who knows A<->Z can reverse it. Real encryption requires a secret key!"
@@ -548,9 +548,9 @@ function scr_get_floor_incident_case(_case_idx) {
             correct_suspect_idx: 0,
             correct_vector_idx:  0,
             desktop_items: [
-                { label: "Mistake: Clicked Fake 'Urgent Invoice' Email", is_breach: true,  desc: "Dave was rushing before lunch and clicked an 'URGENT: Overdue Invoice' link without noticing the sender's email was fake (Phishing)!" },
-                { label: "Email: 'Weekly Shipping Schedule'",             is_breach: false, desc: "From dispatch@skipjack.com - standard logistics spreadsheet." },
-                { label: "Email: 'Warehouse Coffee Machine Repaired'",    is_breach: false, desc: "Office announcement from building maintenance." }
+                { label: "Email: 'URGENT: Overdue Invoice' (From: support@skipj4ck-verify.net)", is_breach: true,  desc: "Dave was rushing before lunch and clicked an 'URGENT: Overdue Invoice' link without noticing the sender's domain ('skipj4ck-verify.net') was fake (Phishing)!" },
+                { label: "Email: 'Weekly Shipping Schedule' (From: dispatch@skipjack.com)",      is_breach: false, desc: "From dispatch@skipjack.com - standard logistics spreadsheet." },
+                { label: "Email: 'Warehouse Coffee Machine Repaired' (From: facilities@skipjack.com)", is_breach: false, desc: "Office announcement from building maintenance." }
             ],
             kyle_debrief: "Dave was in a rush and accidentally fell for a fake Phishing email! Always check the sender's address before logging in.",
             lesson_story: "Dave Miller (Logistics) received an email marked 'URGENT: Overdue Invoice' right before lunch. Wanting to resolve it quickly, he clicked the link and typed his password into a fake look-alike website without noticing the sender address was misspelled!",
@@ -571,17 +571,17 @@ function scr_get_floor_incident_case(_case_idx) {
                 "[IT MEMO]: 'Key Vault Word: P-H-I-S-H-I-N-G.'"
             ],
             vault_challenge: {
-                artifact_header: "CAPTURED EMAIL:  From: support@skipj4ck-login-verify.net  |  Subject: URGENT INVOICE!",
-                artifact_body:   "MESSAGE: 'Your account will be locked in 10 minutes! Click http://skipj4ck-login-verify.net to enter your password.'",
-                scanner_note:    "FORENSIC SCAN: Look at the domain ('skipj4ck-login-verify.net') and the fake urgency—classic PHISHING bait!",
-                prompt:          "Spot the red flag in this captured email that proves it is a Phishing attack:",
+                artifact_header: "CAPTURED INBOX MESSAGE:  From: support@skipj4ck-login-verify.net  |  Subject: URGENT INVOICE!",
+                artifact_body:   "BODY: 'Account suspension in 10 mins! Sign in at https://skipj4ck-login-verify.net/auth to keep access.'",
+                scanner_note:    "FORENSIC GUIDE: Compare the sender domain ('skipj4ck-login-verify.net') against our official domain ('skipjack.com') and note the 10-minute panic timer!",
+                prompt:          "Analyze this email—how can you tell it is a Phishing trap rather than a real IT notice?",
                 options: [
-                    "Misspelled look-alike domain ('skipj4ck') + fake 'URGENT!' panic demanding a password login",
-                    "The email was sent during normal weekday lunch hours",
-                    "The email mentions an invoice instead of a calendar invite"
+                    "It uses a look-alike domain ('skipj4ck') and artificial '10-minute' urgency to trick you into typing your password",
+                    "The link starts with 'https://', which guarantees the website is owned by your real company",
+                    "Any email marked 'URGENT' in the subject line is automatically verified by the mail server"
                 ],
                 correct_idx: 0,
-                explain_win: "SPOT ON! Phishing uses fake urgency and look-alike domains ('skipj4ck') as bait to steal your login!"
+                explain_win: "SPOT ON! Even fake Phishing sites can use 'https://'—always check the exact domain spelling ('skipj4ck') and ignore panic timers!"
             },
             fixes: [
                 "Always inspect the real sender address/URL and never log in through urgent email links",
@@ -613,9 +613,9 @@ function scr_get_floor_incident_case(_case_idx) {
             correct_suspect_idx: 0,
             correct_vector_idx:  0,
             desktop_items: [
-                { label: "Mistake: Installed Unofficial 'Free_PDF_Helper.exe'", is_breach: true,  desc: "Karen downloaded a free PDF tool from a random website to finish her HR forms faster—not realizing a Trojan virus was hiding inside!" },
-                { label: "Doc: 'Benefits Enrollment Form 2026.docx'",is_breach: false, desc: "Standard company insurance policy documentation." },
-                { label: "Memo: 'Intern Babysitting Shift Rota'",     is_breach: false, desc: "Shift schedule for supervising the intern ward." }
+                { label: "Download: 'Free_PDF_Helper_Pro.exe' (Source: mega-freeware-dl.biz)", is_breach: true,  desc: "Karen downloaded a free PDF tool from a random website to finish her HR forms faster—not realizing a Trojan virus was hiding inside!" },
+                { label: "Doc: 'Benefits Enrollment Form 2026.docx'",                          is_breach: false, desc: "Standard company insurance policy documentation." },
+                { label: "Memo: 'Intern Babysitting Shift Rota'",                              is_breach: false, desc: "Shift schedule for supervising the intern ward." }
             ],
             kyle_debrief: "Karen only wanted to finish her forms faster, but that unofficial free app hid a Trojan virus inside!",
             lesson_story: "Karen Jenkins (HR) had a pile of paperwork due and downloaded 'Free_PDF_Helper.exe' from a random website to speed up her job. The app looked helpful on the outside, but secretly installed a Trojan virus in the background!",
@@ -636,17 +636,17 @@ function scr_get_floor_incident_case(_case_idx) {
                 "[IT MEMO]: 'Key Vault Word: T-R-O-J-A-N.'"
             ],
             vault_challenge: {
-                artifact_header: "CAPTURED DOWNLOAD LOG:  File = 'Free_PDF_Helper_Pro.exe'  |  Source: mega-free-tools.biz",
-                artifact_body:   "PUBLISHER: Unknown (Unverified)  |  HIDDEN ACTION: Unpacked 'remote_backdoor.dll' in background!",
-                scanner_note:    "FORENSIC SCAN: An unverified '.exe' pretending to be a helpful PDF tool while hiding malware inside is a TROJAN!",
-                prompt:          "Spot the red flag in this download log that reveals a Trojan Horse attack:",
+                artifact_header: "CAPTURED INSTALLER PROMPT:  File = 'Free_PDF_Helper_Pro.exe'  |  Source: mega-free-tools.biz",
+                artifact_body:   "DIGITAL SIGNATURE: None (Unknown Publisher)  |  PERMISSIONS REQUESTED: Full System & Network Access",
+                scanner_note:    "FORENSIC GUIDE: Check the installer's Digital Signature ('Unknown Publisher'), download site, and why a simple PDF tool wants Full Network Access!",
+                prompt:          "Analyze this installer prompt—what warning sign reveals this 'free utility' is likely a Trojan Horse?",
                 options: [
-                    "An unverified '.exe' from a random site disguised as a helpful PDF tool while secretly installing malware",
-                    "Opening a normal '.docx' word document created by Human Resources",
-                    "Using an official PDF reader pre-installed by the IT department"
+                    "It is an unsigned '.exe' from an unofficial third-party site requesting Full System & Network Access",
+                    "Any program with 'Pro' or 'Helper' in its filename is verified safe by Windows automatically",
+                    "Running an unknown '.exe' as Administrator prevents hidden background scripts from executing"
                 ],
                 correct_idx: 0,
-                explain_win: "SPOT ON! Just like the wooden Trojan Horse, a Trojan disguises malware inside a 'free' useful program!"
+                explain_win: "SPOT ON! Trojans disguise themselves as useful free utilities—always check for a verified publisher and official source!"
             },
             fixes: [
                 "Only download software from official, verified publishers or IT-approved app stores",
@@ -678,9 +678,9 @@ function scr_get_floor_incident_case(_case_idx) {
             correct_suspect_idx: 0,
             correct_vector_idx:  0,
             desktop_items: [
-                { label: "Mistake: Turned Off Firewall & Forgot It", is_breach: true,  desc: "Bob switched off his Firewall for 5 minutes because his video call was lagging, and accidentally forgot to turn it back on!" },
-                { label: "Draft: 'New Product Press Release'",             is_breach: false, desc: "Marketing copy for the upcoming Skipjack cipher tool." },
-                { label: "Bookmark: 'Social Media Analytics Dashboard'",   is_breach: false, desc: "Official marketing metrics page." }
+                { label: "System Setting: 'Inbound Network Firewall = OFF (Paused for video call)'", is_breach: true,  desc: "Bob switched off his Firewall for 5 minutes because his video call was lagging, and accidentally forgot to turn it back on!" },
+                { label: "Draft: 'New Product Press Release'",                                       is_breach: false, desc: "Marketing copy for the upcoming Skipjack cipher tool." },
+                { label: "Bookmark: 'Social Media Analytics Dashboard'",                             is_breach: false, desc: "Official marketing metrics page." }
             ],
             kyle_debrief: "Bob turned off his Firewall to fix a laggy call and forgot to turn it back on! Never leave your Firewall disabled.",
             lesson_story: "Bob Higgins (Marketing) was having trouble with a laggy video stream, so he temporarily turned off his computer's Firewall to test the connection—and completely forgot to turn it back on. Without that digital security barrier, hackers slipped right in!",
@@ -701,17 +701,17 @@ function scr_get_floor_incident_case(_case_idx) {
                 "[IT MEMO]: 'Key Vault Word: F-I-R-E-W-A-L-L.'"
             ],
             vault_challenge: {
-                artifact_header: "CAPTURED SECURITY LOG:  Network Packet Shield (FIREWALL) = DISABLED",
-                artifact_body:   "OPEN PORTS: All Inbound Traffic Allowed  |  REASON LOGGED: 'Turned off to fix laggy video call'",
-                scanner_note:    "FORENSIC SCAN: Turning off the FIREWALL removed the security barrier that blocks unauthorized internet traffic!",
-                prompt:          "Spot the security failure in this network log that let hackers connect directly to the PC:",
+                artifact_header: "CAPTURED NETWORK SHIELD STATUS:  Inbound_Packet_Filter (FIREWALL) = OFF",
+                artifact_body:   "PORT POLICY: Accept All Incoming Connections (Ports 1-65535 Open)  |  UPTIME: Disabled for 3 hrs",
+                scanner_note:    "FORENSIC GUIDE: Look at the 'PORT POLICY' when the Firewall is turned OFF—every network port is left open to external scanners!",
+                prompt:          "Analyze this security status—what risk was created when the user turned off the Firewall to troubleshoot video lag?",
                 options: [
-                    "The Firewall was turned OFF, removing the security barrier that blocks unauthorized network traffic",
-                    "The user joined a scheduled marketing video call during work hours",
-                    "The computer monitor brightness was set too high"
+                    "All incoming network ports were left wide open without a traffic barrier to block unauthorized outside connections",
+                    "Turning off the Firewall only affects video streaming apps and keeps all other network ports locked",
+                    "Disabling the Firewall doubles Wi-Fi download speed without changing computer security"
                 ],
                 correct_idx: 0,
-                explain_win: "SPOT ON! A Firewall acts as a 24/7 traffic barrier—turning it off leaves your computer's ports wide open!"
+                explain_win: "SPOT ON! Your Firewall filters incoming traffic across all ports—turning it off leaves the system exposed to automated attacks!"
             },
             fixes: [
                 "Keep your Firewall enabled at all times so unauthorized network traffic is blocked automatically",
@@ -743,9 +743,9 @@ function scr_get_floor_incident_case(_case_idx) {
             correct_suspect_idx: 0,
             correct_vector_idx:  0,
             desktop_items: [
-                { label: "Mistake: Left Smart Devices on Default '1234' Password", is_breach: true,  desc: "Chloe plugged in the new office smart printers and lights in a rush and forgot to change their factory 'admin / 1234' password!" },
-                { label: "Log: 'Breakroom Thermostat Schedule'",                 is_breach: false, desc: "Normal AC settings for the 3rd floor." },
-                { label: "Notice: 'Elevator Maintenance Due'",                    is_breach: false, desc: "Routine building service log." }
+                { label: "Device Config: 'Smart_Printers_&_Lights_Setup (Login: admin / Pass: 1234)'", is_breach: true,  desc: "Chloe plugged in the new office smart printers and lights in a rush and forgot to change their factory 'admin / 1234' password!" },
+                { label: "Log: 'Breakroom Thermostat Schedule'",                                       is_breach: false, desc: "Normal AC settings for the 3rd floor." },
+                { label: "Notice: 'Elevator Maintenance Due'",                                         is_breach: false, desc: "Routine building service log." }
             ],
             kyle_debrief: "Chloe forgot to change the factory '1234' password on the new smart devices, so hackers hijacked them into a Botnet!",
             lesson_story: "Chloe Rivera (Facilities) set up the floor's new Wi-Fi printers and smart lights in a hurry and forgot to change their factory-default '1234' password. Hackers guessed '1234' automatically and hijacked the devices into a zombie Botnet army!",
@@ -766,17 +766,17 @@ function scr_get_floor_incident_case(_case_idx) {
                 "[IT MEMO]: 'Key Vault Word: B-O-T-N-E-T.'"
             ],
             vault_challenge: {
-                artifact_header: "CAPTURED IOT DEVICE SCAN:  240 Office Smart Printers & Wi-Fi Lights Hijacked",
-                artifact_body:   "LOGIN CREDENTIALS: Username = 'admin' | Password = '1234' (Factory Default — Never Changed!)",
-                scanner_note:    "FORENSIC SCAN: Automated hacker scripts guessed the factory 'admin / 1234' login and linked the devices into a BOTNET!",
-                prompt:          "Spot the red flag that allowed hackers to hijack 240 smart devices into a Botnet army:",
+                artifact_header: "CAPTURED SMART DEVICE CONFIG:  240 Wi-Fi Printers & Smart Lights Online",
+                artifact_body:   "REMOTE ADMIN PORT: Enabled  |  AUTH CREDENTIALS: User = 'admin' / Pass = '1234' (Factory Preset)",
+                scanner_note:    "FORENSIC GUIDE: Inspect the 'AUTH CREDENTIALS' on these 240 network-connected smart devices—were the factory presets ever changed?",
+                prompt:          "Analyze this device configuration—how were attackers able to hijack all 240 smart devices at once into a Botnet?",
                 options: [
-                    "The smart devices were left on their factory-default password ('admin / 1234') instead of a strong new password",
-                    "The office printers were connected to electrical outlets during the day",
-                    "The breakroom thermostat was set to 70 degrees"
+                    "The devices were left on their well-known factory-default login ('admin / 1234') with Remote Admin enabled",
+                    "Smart printers and Wi-Fi lightbulbs cannot be hacked because they don't have keyboards or monitors",
+                    "Leaving all 240 devices on '1234' is safe as long as they are inside an office building"
                 ],
                 correct_idx: 0,
-                explain_win: "SPOT ON! Hackers scan automatically for factory passwords like '1234' to hijack smart devices into a Botnet!"
+                explain_win: "SPOT ON! Automated Botnet scanners test factory passwords like 'admin / 1234' across thousands of smart devices per second!"
             },
             fixes: [
                 "Change factory-default passwords ('admin / 1234') to a strong, unique password immediately upon setup",
@@ -808,9 +808,9 @@ function scr_get_floor_incident_case(_case_idx) {
             correct_suspect_idx: 0,
             correct_vector_idx:  0,
             desktop_items: [
-                { label: "Mistake: Clicked 'Allow' on a Fake Update Pop-Up", is_breach: true,  desc: "Greg accidentally clicked 'Allow' on a flashing browser pop-up ad, which silently installed Spyware that recorded his keyboard!" },
-                { label: "Sheet: 'Q2 Tax Returns.xlsx'",                    is_breach: false, desc: "Quarterly accounting spreadsheet." },
-                { label: "Receipt: 'Office Supplies Order #401'",           is_breach: false, desc: "Purchased printer toner and pens." }
+                { label: "Browser History: 'Clicked ALLOW on Pop-Up: Browser_Update_Patch.exe'", is_breach: true,  desc: "Greg accidentally clicked 'Allow' on a flashing browser pop-up ad, which silently installed Spyware that recorded his keyboard!" },
+                { label: "Sheet: 'Q2 Tax Returns.xlsx'",                                         is_breach: false, desc: "Quarterly accounting spreadsheet." },
+                { label: "Receipt: 'Office Supplies Order #401'",                                is_breach: false, desc: "Purchased printer toner and pens." }
             ],
             kyle_debrief: "Greg clicked a fake browser update pop-up that secretly installed Spyware to record his passwords!",
             lesson_story: "Greg Vance (Accounting) saw a flashing pop-up ad while browsing that said 'Your Browser Is Out of Date—Click Here!' Thinking he was being responsible, he clicked it—accidentally installing Spyware that secretly recorded every password he typed!",
@@ -831,17 +831,17 @@ function scr_get_floor_incident_case(_case_idx) {
                 "[IT MEMO]: 'Key Vault Word: S-P-Y-W-A-R-E.'"
             ],
             vault_challenge: {
-                artifact_header: "CAPTURED BROWSER ALERT:  Flashing Pop-Up Ad on 'free-coupons-daily.net'",
-                artifact_body:   "POP-UP CLICKED: 'SYSTEM OUT OF DATE! Click ALLOW to run update_patch.exe' -> Installed hidden keylogger!",
-                scanner_note:    "FORENSIC SCAN: Clicking a fake website pop-up ad installed SPYWARE (a hidden keylogger recording every keystroke)!",
-                prompt:          "Spot the red flag in this browser log that installed Spyware on the computer:",
+                artifact_header: "CAPTURED WEB POP-UP BANNER:  Origin = 'ad-server.free-coupons-daily.net'",
+                artifact_body:   "BANNER TEXT: 'WARNING: Your Browser Is Out of Date! Click [ALLOW] to install Browser_Security_Fix.exe'",
+                scanner_note:    "FORENSIC GUIDE: Check the Origin of the update alert ('ad-server.free-coupons-daily.net')—do real browser updates come from website ad banners?",
+                prompt:          "Analyze this browser alert—why did clicking '[ALLOW]' infect the PC with keylogging Spyware?",
                 options: [
-                    "Clicking 'ALLOW' on a flashing website pop-up ad pretending to be a browser update",
-                    "Updating the browser through the official Settings -> About menu",
-                    "Typing numbers into an offline Excel tax spreadsheet"
+                    "The update prompt came from a third-party website ad banner ('ad-server...') rather than the browser's built-in Settings menu",
+                    "Any pop-up banner that says 'Security Fix' comes directly from your computer's operating system",
+                    "Spyware can only record passwords if your webcam light is turned on"
                 ],
                 correct_idx: 0,
-                explain_win: "SPOT ON! Fake update pop-up ads often install Spyware that silently records your screen and keyboard!"
+                explain_win: "SPOT ON! Real browser and OS updates never appear as website pop-up ads—fake update banners are a classic Spyware trap!"
             },
             fixes: [
                 "Close flashing website pop-up ads immediately and only update apps via your official Settings menu",
@@ -873,9 +873,9 @@ function scr_get_floor_incident_case(_case_idx) {
             correct_suspect_idx: 0,
             correct_vector_idx:  0,
             desktop_items: [
-                { label: "Mistake: Plugged In a 'Lost' USB to Return It", is_breach: true,  desc: "Marcus found a lost USB drive outside and plugged it into his work PC just to see whose name was on it—accidentally launching Malware!" },
-                { label: "Code: 'skipjack_core.c (Clean Git Commit)'",           is_breach: false, desc: "Normal source code repository checkout." },
-                { label: "Doc: 'API Documentation v2.1'",                         is_breach: false, desc: "Internal developer documentation." }
+                { label: "External Drive: 'Mounted USB Drive [FOUND_IN_PARKING_LOT] -> Ran Owner_Info.scr.exe'", is_breach: true,  desc: "Marcus found a lost USB drive outside and plugged it into his work PC just to see whose name was on it—accidentally launching Malware!" },
+                { label: "Code: 'skipjack_core.c (Clean Git Commit)'",                                           is_breach: false, desc: "Normal source code repository checkout." },
+                { label: "Doc: 'API Documentation v2.1'",                                                        is_breach: false, desc: "Internal developer documentation." }
             ],
             kyle_debrief: "Marcus was just trying to return a lost USB drive, but plugging it in automatically launched Malware!",
             lesson_story: "Marcus Vance (Engineering) found a USB flash drive in the parking lot and wanted to be helpful by checking whose files were on it so he could return it. The USB was a hacker trap that automatically installed Malware (Malicious Software) the second he plugged it in!",
@@ -896,17 +896,17 @@ function scr_get_floor_incident_case(_case_idx) {
                 "[IT MEMO]: 'Key Vault Word: M-A-L-W-A-R-E.'"
             ],
             vault_challenge: {
-                artifact_header: "CAPTURED USB PORT LOG:  External Drive 'PARKING_LOT_USB' Inserted on Port #2",
-                artifact_body:   "AUTORUN EXECUTED: 'owner_contact_info.scr.exe' -> Deployed MALWARE (Malicious Software) payload!",
-                scanner_note:    "FORENSIC SCAN: Attackers drop 'lost' USB drives in parking lots hoping someone plugs them in and launches MALWARE!",
-                prompt:          "Spot the risky action in this hardware log that infected the workstation with Malware:",
+                artifact_header: "CAPTURED HARDWARE EVENT:  USB Mass Storage Device Connected (Volume: 'LOST_DRIVE')",
+                artifact_body:   "FILE OPENED: 'If_Found_Read_Me.pdf.exe'  |  PROCESS SPAWNED: cmd.exe /c powershell - hidden",
+                scanner_note:    "FORENSIC GUIDE: Look closely at the double file extension ('If_Found_Read_Me.pdf.exe') and the hidden PowerShell process it launched from the found USB!",
+                prompt:          "Analyze this USB event log—how did plugging in a 'lost' flash drive infect the workstation with Malware?",
                 options: [
-                    "Plugging an unknown 'lost' USB drive found outside directly into a work computer",
-                    "Saving code documentation to an authorized local folder",
-                    "Locking the computer screen before walking to lunch"
+                    "Plugging in the unknown USB and opening 'If_Found_Read_Me.pdf.exe' executed a disguised '.exe' Malware script",
+                    "A file ending in '.pdf.exe' is a harmless PDF document that cannot run code",
+                    "USB flash drives found outside are safe to inspect on a work PC as long as you unplug them within 30 seconds"
                 ],
                 correct_idx: 0,
-                explain_win: "SPOT ON! 'USB Drop' attacks count on curiosity or helpfulness—never plug an unknown USB drive into your PC!"
+                explain_win: "SPOT ON! Attackers bait 'lost' USB drives and use double extensions ('.pdf.exe') to trick helpful people into launching Malware!"
             },
             fixes: [
                 "Never plug an unknown USB drive into your computer—turn found drives directly over to IT Security",
@@ -938,9 +938,9 @@ function scr_get_floor_incident_case(_case_idx) {
             correct_suspect_idx: 0,
             correct_vector_idx:  0,
             desktop_items: [
-                { label: "Mistake: Trusted a Faked 'From: CEO' Display Name", is_breach: true,  desc: "Sarah replied to an email whose display name said 'Company CEO' without noticing the actual email address was a fake Gmail account (Spoofing)!" },
-                { label: "Contract: 'Vendor NDA Agreement'",                           is_breach: false, desc: "Standard mutual non-disclosure contract." },
-                { label: "Email: 'Reminder: Compliance Training Friday'",              is_breach: false, desc: "Legitimate HR compliance notification." }
+                { label: "Sent Email: 'Re: Urgent Access Code' (To: 'Company CEO' <ceo.task88@free-mail-host.org>)", is_breach: true,  desc: "Sarah replied to an email whose display name said 'Company CEO' without noticing the actual email address was a fake external account (Spoofing)!" },
+                { label: "Contract: 'Vendor NDA Agreement'",                                                         is_breach: false, desc: "Standard mutual non-disclosure contract." },
+                { label: "Email: 'Reminder: Compliance Training Friday'",                                            is_breach: false, desc: "Legitimate HR compliance notification." }
             ],
             kyle_debrief: "Sarah saw 'Company CEO' in the display name and didn't notice the email address was Spoofed (faked)!",
             lesson_story: "Sarah Connor (Legal) got an email whose display name said 'Company CEO' asking for an urgent security code. Wanting to help the boss right away, she sent the code—not noticing the hacker had 'Spoofed' (faked) the display name using an outside email address!",
@@ -961,17 +961,17 @@ function scr_get_floor_incident_case(_case_idx) {
                 "[IT MEMO]: 'Key Vault Word: S-P-O-O-F-I-N-G.'"
             ],
             vault_challenge: {
-                artifact_header: "CAPTURED EMAIL HEADER:  Display Name = 'Company CEO (Director)'",
-                artifact_body:   "ACTUAL SENDER ADDRESS: <ceo.urgent.giftcards99@free-mail-host.org>  |  REQUEST: 'Send floor access code now!'",
-                scanner_note:    "FORENSIC SCAN: The attacker SPOOFED (faked) the display name 'Company CEO' while sending from an outside address!",
-                prompt:          "Spot the red flag in this email header that proves the sender's identity was Spoofed:",
+                artifact_header: "CAPTURED MESSAGE HEADER:  From: \"Company CEO (Director)\" <exec.office.task99@free-mail-host.org>",
+                artifact_body:   "REPLY-TO: exec.office.task99@free-mail-host.org  |  BODY: 'I'm in a board meeting—text me the floor override code now.'",
+                scanner_note:    "FORENSIC GUIDE: Compare the Display Name in quotes (\"Company CEO\") against the actual email address inside the '< >' brackets!",
+                prompt:          "Analyze this email header—how can you tell the sender's identity is Spoofed?",
                 options: [
-                    "The display name says 'Company CEO', but the actual email address is a random external account",
-                    "The email was received by the Legal & Compliance department",
-                    "The subject line used capital letters"
+                    "The display name says 'Company CEO', but the actual address inside '< >' is an unrelated external free-mail account",
+                    "Email apps verify display names automatically, so no one can type 'Company CEO' unless they own the account",
+                    "Because the sender says they are in a board meeting, you should send the security code without calling to verify"
                 ],
                 correct_idx: 0,
-                explain_win: "SPOT ON! Display names and caller IDs are easy to Spoof—always check the real address and verify on a second channel!"
+                explain_win: "SPOT ON! Anyone can set their display name to 'Company CEO'—always inspect the real '<address>' and verify via a known phone number!"
             },
             fixes: [
                 "Inspect the full email address behind the display name and verify urgent requests via a known phone number",
@@ -1003,9 +1003,9 @@ function scr_get_floor_incident_case(_case_idx) {
             correct_suspect_idx: 0,
             correct_vector_idx:  0,
             desktop_items: [
-                { label: "Mistake: Reused the Same Password Across Every Account", is_breach: true,  desc: "Toby used the exact same password ('Toby123!') on his work PC as on an old gaming forum that got hacked, letting attackers lock his files for Ransom!" },
-                { label: "Pitch: 'Q3 Enterprise Sales Deck.pptx'", is_breach: false, desc: "Client presentation slides." },
-                { label: "Contact: 'Lead List - West Coast'",       is_breach: false, desc: "Normal sales prospect directory." }
+                { label: "Account Audit: 'Work Login Password = Same as Leaked 2024 Gaming Forum Account'", is_breach: true,  desc: "Toby used the exact same password ('Toby123!') on his work PC as on an old gaming forum that got hacked, letting attackers lock his files for Ransom!" },
+                { label: "Pitch: 'Q3 Enterprise Sales Deck.pptx'",                                          is_breach: false, desc: "Client presentation slides." },
+                { label: "Contact: 'Lead List - West Coast'",                                               is_breach: false, desc: "Normal sales prospect directory." }
             ],
             kyle_debrief: "Toby reused the same password on every website, so when a gaming site leaked it, hackers locked his work PC with Ransomware!",
             lesson_story: "Toby Flend (Sales) used the exact same password for his work computer, his email, and an old gaming forum. When that gaming forum was hacked, criminals tried his leaked password on his work account, logged right in, and locked the company files with Ransomware!",
@@ -1026,17 +1026,17 @@ function scr_get_floor_incident_case(_case_idx) {
                 "[IT MEMO]: 'Key Vault Word: R-A-N-S-O-M.'"
             ],
             vault_challenge: {
-                artifact_header: "CAPTURED CREDENTIAL & EXTORTION LOG:  Account = tflend@skipjack.com",
-                artifact_body:   "PASSWORD REUSED: 'Toby123!' (Matched 2024 Gaming Forum Leak) -> Files Encrypted for RANSOM Payment!",
-                scanner_note:    "FORENSIC SCAN: Reusing a leaked password let attackers log in and lock the server with RANSOMWARE!",
-                prompt:          "Spot the mistake that let attackers break into the account and lock the files for Ransom:",
+                artifact_header: "CAPTURED BREACH & EXTORTION REPORT:  User = tflend@skipjack.com",
+                artifact_body:   "LOGIN METHOD: Valid Password ('Toby123!' — matched public breach dump from 'RetroGamesForum.net')  |  FILES: Encrypted (.LOCKED)",
+                scanner_note:    "FORENSIC GUIDE: Look at how the attacker logged in ('Valid Password matched public breach dump from RetroGamesForum.net') before deploying Ransomware!",
+                prompt:          "Analyze this incident report—how did the Ransomware attackers get into Toby's work account on the first try?",
                 options: [
-                    "Reusing the exact same password ('Toby123!') across a gaming website and a work account",
-                    "Keeping an offline backup copy of important sales presentations",
-                    "Using a different 14-character password for every website"
+                    "Toby reused the exact same password ('Toby123!') on a public gaming forum and his work computer",
+                    "A breach on an outside gaming website can never affect your work account if the two sites have different domain names",
+                    "Paying the hacker's ransom demand is the only way to protect files because backups cannot restore encrypted folders"
                 ],
                 correct_idx: 0,
-                explain_win: "SPOT ON! When you reuse one password everywhere, a leak on one site gives hackers the key to all your other accounts!"
+                explain_win: "SPOT ON! Credential stuffing attacks test leaked passwords from old websites on work/email accounts—always use unique passwords and offline backups!"
             },
             fixes: [
                 "Use a unique password for every account and keep offline Backups so Ransomware can never hold your files hostage",
@@ -1068,9 +1068,9 @@ function scr_get_floor_incident_case(_case_idx) {
             correct_suspect_idx: 0,
             correct_vector_idx:  0,
             desktop_items: [
-                { label: "Mistake: Forgot to Close a Temporary 'Skip-Password' Link", is_breach: true,  desc: "Frank turned on a temporary 'skip-password' remote link while fixing a server from home and accidentally fell asleep before turning it off!" },
-                { label: "Config: 'Nginx Reverse Proxy Config'",               is_breach: false, desc: "Normal web server routing configuration." },
-                { label: "Log: 'System Uptime: 412 Days'",                     is_breach: false, desc: "Standard Linux server uptime statistics." }
+                { label: "Remote Config: 'Port_8080_Debug_Tunnel (Skip_Password_&_2FA = TRUE)'", is_breach: true,  desc: "Frank turned on a temporary 'skip-password' remote link while fixing a server from home and accidentally fell asleep before turning it off!" },
+                { label: "Config: 'Nginx Reverse Proxy Config'",                                  is_breach: false, desc: "Normal web server routing configuration." },
+                { label: "Log: 'System Uptime: 412 Days'",                                        is_breach: false, desc: "Standard Linux server uptime statistics." }
             ],
             kyle_debrief: "Frank accidentally left a temporary 'skip-password' link open overnight, creating a Backdoor for hackers!",
             lesson_story: "Frank Castle (Infrastructure) created a temporary remote-access shortcut that skipped the password screen so he could finish late-night server maintenance from home—but he fell asleep and forgot to close it, leaving an accidental Backdoor wide open!",
@@ -1091,17 +1091,17 @@ function scr_get_floor_incident_case(_case_idx) {
                 "[IT MEMO]: 'Key Vault Word: B-A-C-K-D-O-O-R.'"
             ],
             vault_challenge: {
-                artifact_header: "CAPTURED SERVER CONFIG:  Port 8080 Maintenance Shortcut = ACTIVE",
-                artifact_body:   "SETTING: 'skip_password_and_2fa = TRUE' (Left open overnight after remote maintenance!)",
-                scanner_note:    "FORENSIC SCAN: Leaving a 'skip-password' shortcut active creates an open BACKDOOR that bypasses login security!",
-                prompt:          "Spot the dangerous setting in this server config that gave hackers a Backdoor into the building:",
+                artifact_header: "CAPTURED SERVER CONFIG:  Endpoint = '/admin_quick_maint' (Port 8080)",
+                artifact_body:   "AUTH_CHECK: Bypassed (require_password = FALSE, require_2fa = FALSE)  |  STATUS: Active Overnight",
+                scanner_note:    "FORENSIC GUIDE: Inspect the 'AUTH_CHECK' settings on '/admin_quick_maint'—both password and 2FA verification were set to FALSE!",
+                prompt:          "Analyze this server configuration—why did this maintenance shortcut act as a Backdoor for attackers?",
                 options: [
-                    "A temporary 'skip_password_and_2fa = TRUE' shortcut that was left open overnight",
-                    "Requiring Two-Factor Authentication (2FA) for every remote login",
-                    "Logging server uptime statistics for 412 days"
+                    "It disabled both password and 2FA checks ('require_password = FALSE') on an active external port overnight",
+                    "Hidden maintenance URLs are safe without passwords because hackers only check the main login page",
+                    "Turning off Two-Factor Authentication (2FA) overnight makes servers more secure against automated bots"
                 ],
                 correct_idx: 0,
-                explain_win: "SPOT ON! Any shortcut that skips password or 2FA checks is a Backdoor that attackers can slip right through!"
+                explain_win: "SPOT ON! Attackers scan all ports and endpoints—any shortcut that skips password and 2FA checks is an open Backdoor!"
             },
             fixes: [
                 "Never create shortcuts that skip password checks, always close temporary access links, and enforce Two-Factor Auth (2FA)",
@@ -2868,12 +2868,47 @@ function scr_init_case_dossier(_case, _floor) {
         if (_sus[_c].is_culprit) _cul = _c;
     }
 
-    // --- Evidence trail ---
+    // --- Evidence trail & per-suspect interactive Desktop Audit items ---
     var _hours   = [9, 10, 11, 12, 13, 14, 15, 16, 8, 17];
     var _cidx    = variable_global_exists("floor_case_index") ? global.floor_case_index : 0;
     var _hr      = _hours[((_cidx mod 10) + 10) mod 10];
     var _t_str   = ((_hr < 10) ? "0" : "") + string(_hr) + ":20";
     var _tb_str  = ((_hr - 1 < 10) ? "0" : "") + string(_hr - 1) + ":45";
+
+    for (var _sa = 0; _sa < array_length(_sus); _sa++) {
+        _sus[_sa].audit_done = false;
+        if (_sus[_sa].is_culprit && variable_struct_exists(_case, "desktop_items")) {
+            var _c_items = [];
+            for (var _ci2 = 0; _ci2 < array_length(_case.desktop_items); _ci2++) {
+                array_push(_c_items, _case.desktop_items[_ci2]);
+            }
+            for (var _sh1 = array_length(_c_items) - 1; _sh1 > 0; _sh1--) {
+                var _sh2  = irandom(_sh1);
+                var _stmp = _c_items[_sh1];
+                _c_items[_sh1] = _c_items[_sh2];
+                _c_items[_sh2] = _stmp;
+            }
+            _sus[_sa].audit_items = _c_items;
+        } else {
+            _sus[_sa].audit_items = [
+                {
+                    label:     "Network: Corporate VPN Tunnel = CONNECTED & Firewall = ON",
+                    is_breach: false,
+                    desc:      "SAFE HABIT: Encrypted VPN tunnel and inbound Firewall are both active on " + _sus[_sa].name + "'s workstation."
+                },
+                {
+                    label:     "Login: Encrypted Password Manager (Unique 16-Char Key + 2FA ON)",
+                    is_breach: false,
+                    desc:      "SAFE HABIT: " + _sus[_sa].name + " uses a unique password stored in an encrypted Password Manager with 2FA enabled."
+                },
+                {
+                    label:     "Session: Screen Auto-Locked at " + _tb_str + " (0 Unverified Downloads/USBs)",
+                    is_breach: false,
+                    desc:      "SAFE HABIT: Workstation was locked at " + _tb_str + " before the " + _t_str + " breach, with no suspicious links or USBs opened."
+                }
+            ];
+        }
+    }
 
     var _how_label = "Suspicious activity detected";
     var _how_desc  = "";

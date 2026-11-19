@@ -605,6 +605,153 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
         draw_text_transformed(_mcx, _my2 - 29, "[W/S or CLICK] Select   [E / ENTER] Confirm", 0.88, 0.88, 0);
         draw_text_transformed(_mcx + 0.8, _my2 - 29, "[W/S or CLICK] Select   [E / ENTER] Confirm", 0.88, 0.88, 0);
 
+    } else if (_mode == 5) {
+        // =====================================================
+        // INTERACTIVE 3-ITEM SUSPECT WORKSTATION AUDIT (Mode 5)
+        // Player inspects the 3 desktop items on this coworker's PC and either:
+        //   - Flags the 1 risky cybersecurity slip-up (if Patient Zero's desk)
+        //   - Verifies the workstation is CLEAN (if an innocent coworker's desk)
+        // =====================================================
+        var _s_idx = (variable_global_exists("pc_screen_suspect_idx") && global.pc_screen_suspect_idx >= 0)
+            ? global.pc_screen_suspect_idx : 0;
+        var _sp_obj = global.case_suspects[_s_idx];
+        var _a_items = variable_struct_exists(_sp_obj, "audit_items") ? _sp_obj.audit_items : [];
+
+        var _audit_labels = [];
+        for (var _ai = 0; _ai < array_length(_a_items); _ai++) {
+            array_push(_audit_labels, "[ITEM " + string(_ai + 1) + "]  " + _a_items[_ai].label);
+        }
+        array_push(_audit_labels, "[VERIFY CLEAN]  All 3 items follow safe cybersecurity habits (Log Alibi)");
+        var _n_audit = array_length(_audit_labels);
+
+        if (keyboard_check_pressed(vk_up) || keyboard_check_pressed(ord("W"))) {
+            global.pc_screen_select = (global.pc_screen_select + _n_audit - 1) mod _n_audit;
+            audio_play_sound(select1, 6, false);
+        }
+        if (keyboard_check_pressed(vk_down) || keyboard_check_pressed(ord("S"))) {
+            global.pc_screen_select = (global.pc_screen_select + 1) mod _n_audit;
+            audio_play_sound(select1, 6, false);
+        }
+        global.pc_screen_select = clamp(global.pc_screen_select, 0, _n_audit - 1);
+
+        var _shortcut_trigger = false;
+        if (_can_input) {
+            if (keyboard_check_pressed(ord("1")) && _n_audit >= 1) { global.pc_screen_select = 0; _shortcut_trigger = true; }
+            if (keyboard_check_pressed(ord("2")) && _n_audit >= 2) { global.pc_screen_select = 1; _shortcut_trigger = true; }
+            if (keyboard_check_pressed(ord("3")) && _n_audit >= 3) { global.pc_screen_select = 2; _shortcut_trigger = true; }
+            if (keyboard_check_pressed(ord("4")) && _n_audit >= 4) { global.pc_screen_select = 3; _shortcut_trigger = true; }
+        }
+
+        draw_set_font(fnt_dialogue);
+        draw_set_halign(fa_center);
+        draw_set_valign(fa_middle);
+        draw_set_color(make_color_rgb(35, 45, 60));
+        var _audit_hdr = "AUDIT " + string_upper(_sp_obj.name) + "'S COMPUTER: Inspect the 3 desktop items below.\nFlag the risky cybersecurity slip-up [1-3], or select [4] if all 3 items are safe!";
+        draw_text_ext_transformed(_mcx, _my1 + 42, _audit_hdr, 14, (_mw - 32) / 0.78, 0.78, 0.78, 0);
+        draw_text_ext_transformed(_mcx + 0.7, _my1 + 42, _audit_hdr, 14, (_mw - 32) / 0.78, 0.78, 0.78, 0);
+
+        var _audit_clicked = false;
+        draw_set_halign(fa_left);
+        for (var _aj = 0; _aj < _n_audit; _aj++) {
+            var _ay     = _my1 + 74 + (_aj * 28);
+            var _asel   = (global.pc_screen_select == _aj);
+            var _is_vfy = (_aj == _n_audit - 1);
+
+            var _gmx_a = device_mouse_x_to_gui(0);
+            var _gmy_a = device_mouse_y_to_gui(0);
+            var _ahov  = point_in_rectangle(_gmx_a, _gmy_a, _mx1 + 14, _ay - 12, _mx2 - 14, _ay + 12);
+            if (_ahov && mouse_check_button_pressed(mb_left)) {
+                global.pc_screen_select = _aj;
+                _asel          = true;
+                _audit_clicked = true;
+            }
+
+            var _abg = _asel
+                ? (_is_vfy ? make_color_rgb(220, 248, 228) : make_color_rgb(228, 240, 252))
+                : make_color_rgb(246, 248, 250);
+            var _abd = _asel
+                ? (_is_vfy ? make_color_rgb(25, 145, 55) : make_color_rgb(35, 115, 185))
+                : _col_grey_line;
+            var _atx = _asel
+                ? (_is_vfy ? make_color_rgb(10, 85, 30) : make_color_rgb(10, 40, 80))
+                : make_color_rgb(45, 55, 65);
+
+            draw_set_color(_abg);
+            draw_rectangle(_mx1 + 14, _ay - 12, _mx2 - 14, _ay + 12, false);
+            draw_set_color(_abd);
+            draw_rectangle(_mx1 + 14, _ay - 12, _mx2 - 14, _ay + 12, true);
+            draw_set_color(_atx);
+            draw_text_ext_transformed(_mx1 + 20, _ay, (_asel ? "> " : "  ") + _audit_labels[_aj], 12, (_mw - 48) / 0.72, 0.72, 0.72, 0);
+            draw_text_ext_transformed(_mx1 + 20.7, _ay, (_asel ? "> " : "  ") + _audit_labels[_aj], 12, (_mw - 48) / 0.72, 0.72, 0.72, 0);
+        }
+
+        // Handle audit selection confirmation
+        if (_can_input && (_audit_clicked || _shortcut_trigger || keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space))) {
+            global.pc_input_cooldown = 12;
+            var _pick = global.pc_screen_select;
+            var _t_prop = variable_global_exists("pc_screen_target") ? global.pc_screen_target : noone;
+
+            if (_pick < array_length(_a_items)) {
+                var _p_item = _a_items[_pick];
+                if (_p_item.is_breach) {
+                    // Player correctly spotted the risky slip-up on the Culprit's desktop!
+                    _sp_obj.audit_done = true;
+                    var _ev_logged = false;
+                    if (instance_exists(_t_prop)) {
+                        _t_prop.talked_once = true;
+                        if (_t_prop.evidence_idx >= 0) _ev_logged = scr_log_evidence(_t_prop.evidence_idx);
+                    }
+                    audio_play_sound(snd_correct_ping, 10, false);
+                    global.pc_screen_mode  = 0;
+                    global.pc_screen_title = "BREACH EVIDENCE FLAGGED: DESK " + _sp_obj.nameplate;
+                    global.pc_screen_body  = "[LVL 3: CRITICAL PROOF LOGGED!]\n" + _p_item.label + "\n\n" + _p_item.desc + "\n\nPress [TAB] to open the Case Board and ACCUSE a suspect!";
+                    global.pc_screen_radar = "EVIDENCE " + string(global.evidence_found) + "/" + string(global.evidence_needed) + "   [TAB] ACCUSE ON BOARD";
+                    global.pc_screen_badge = "LVL 3: CRITICAL";
+                } else {
+                    // Player clicked a safe/normal item -> explain why it's safe!
+                    audio_play_sound(wrong1, 8, false);
+                    global.pc_screen_feedback = _sp_obj.is_culprit
+                        ? ("SAFE WORK ITEM: '" + _p_item.label + "' is normal work (" + _p_item.desc + "). Inspect the other items on this PC!")
+                        : (_p_item.desc + " If all 3 items on this PC are safe, select [VERIFY CLEAN] below!");
+                    global.pc_screen_feedback_col = make_color_rgb(185, 85, 15);
+                }
+            } else {
+                // Player selected [4] VERIFY WORKSTATION CLEAN
+                if (!_sp_obj.is_culprit) {
+                    // Correct! All 3 items on this innocent coworker's desktop follow safe habits
+                    _sp_obj.audit_done = true;
+                    if (instance_exists(_t_prop)) {
+                        _t_prop.talked_once = true;
+                        if (_t_prop.evidence_idx >= 0) scr_log_evidence(_t_prop.evidence_idx);
+                    }
+                    audio_play_sound(snd_correct_ping, 10, false);
+                    global.pc_screen_mode  = 0;
+                    global.pc_screen_title = "WORKSTATION CLEAN: DESK " + _sp_obj.nameplate;
+                    global.pc_screen_body  = "[LVL 3: CRITICAL ALIBI LOGGED!]\n" + _sp_obj.name + " followed every cybersecurity safety rule (VPN ON, unique Password Manager login + 2FA, and locked screen).\n\n->" + _sp_obj.name + " is CLEARED on your [TAB] Case Board!";
+                    global.pc_screen_radar = "EVIDENCE " + string(global.evidence_found) + "/" + string(global.evidence_needed) + "   [TAB] CASE BOARD";
+                    global.pc_screen_badge = "CLEARED (LVL 3)";
+                } else {
+                    // Wrong! This is the culprit's desk—one of the 3 items above is a breach!
+                    audio_play_sound(wrong1, 8, false);
+                    global.pc_screen_feedback     = "WAIT — Look closer at Items 1, 2, and 3! One of the items on this computer is a risky cybersecurity slip-up!";
+                    global.pc_screen_feedback_col = make_color_rgb(205, 45, 45);
+                }
+            }
+        }
+
+        // Bottom Feedback / Inspection Note
+        draw_set_halign(fa_center);
+        draw_set_valign(fa_middle);
+        var _audit_fb = (variable_global_exists("pc_screen_feedback") && global.pc_screen_feedback != "")
+            ? global.pc_screen_feedback
+            : "Tip: Use [W/S], [1-4], or Click to flag the risky item—or select [VERIFY CLEAN] if all 3 are safe!";
+        var _audit_fcol = (variable_global_exists("pc_screen_feedback_col") && global.pc_screen_feedback != "")
+            ? global.pc_screen_feedback_col
+            : make_color_rgb(20, 95, 145);
+        draw_set_color(_audit_fcol);
+        draw_text_ext_transformed(_mcx, _my2 - 42, _audit_fb, 13, (_mw - 32) / 0.72, 0.72, 0.72, 0);
+        draw_text_ext_transformed(_mcx + 0.7, _my2 - 42, _audit_fb, 13, (_mw - 32) / 0.72, 0.72, 0.72, 0);
+
     } else {
         // Centered Main Clue Box
         draw_set_halign(fa_center);
