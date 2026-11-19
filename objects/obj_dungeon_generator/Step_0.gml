@@ -235,6 +235,30 @@ if (instance_exists(obj_jack)) {
         active_col = _new_col;
         active_row = _new_row;
     }
+
+    // Smooth fade in / persistent display / fade out for top-right Room Name Popup
+    var _target_room = (variable_instance_exists(id, "room_names") && array_length(room_names) > active_col)
+        ? room_names[active_col][active_row]
+        : "";
+
+    if (_target_room == "") {
+        // In hallway or unassigned space -> fade out
+        room_popup_alpha = max(0.0, room_popup_alpha - 0.07);
+        if (room_popup_alpha <= 0.0) room_popup_text = "";
+    } else if (room_popup_text == _target_room) {
+        // Inside room -> fade in smoothly and persistently stay visible
+        room_popup_alpha = min(1.0, room_popup_alpha + 0.08);
+    } else if (room_popup_text == "") {
+        // Entering a room from hallway
+        room_popup_text  = _target_room;
+        room_popup_alpha = min(1.0, room_popup_alpha + 0.08);
+    } else {
+        // Moving directly between two different named rooms -> cross-fade
+        room_popup_alpha = max(0.0, room_popup_alpha - 0.08);
+        if (room_popup_alpha <= 0.0) {
+            room_popup_text = _target_room;
+        }
+    }
 }
 
 var _in_hallway      = (logic_map[active_col][active_row] == ROOM_HALLWAY);

@@ -99,6 +99,9 @@ cutscene_power_shown        = false;
 gen_complete            = false;
 active_col              = 0;
 active_row              = 0;
+room_names              = [];
+room_popup_text         = "";
+room_popup_alpha        = 0.0;
 
 // ===========================================================================
 // Step 1 — Initialise the logic map & fog alpha grid
@@ -383,6 +386,7 @@ show_debug_message(
 );
 
 // ===========================================================================
-// Step 5 — Invoke the spawner to build the physical dungeon
+// Step 5 — Invoke the spawner to build the physical dungeon & assign room names
 // ===========================================================================
 scr_dungeon_spawn(logic_map, path_list);
+room_names = scr_init_dungeon_room_names(logic_map, path_list, door_links);

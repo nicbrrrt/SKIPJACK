@@ -59,73 +59,177 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
     draw_rectangle(0, 0, _gui_w, _gui_h, false);
     draw_set_alpha(1.0);
 
-    var _mcx = _gui_w * 0.5;
-    var _mcy = _gui_h * 0.47;
+    // =========================================================
+    // EXPERIMENTAL TOGGLES (Reversible)
+    // =========================================================
+    var _use_terminal_overlay = true; // Toggle for custom UI sprite overlays (spr_dungeon_terminal_ui / spr_dungeon_caseboard_ui)
+    var _terminal_white_theme = true; // Toggle for Terminal Popups (Mode 0): solid white background, black text & 3x thick black boxes
+
     var _is_board = (variable_global_exists("pc_screen_mode") && global.pc_screen_mode >= 1 && global.pc_screen_mode <= 3);
-    var _mw  = _is_board ? min(540, _gui_w - 36) : 410;
-    var _mh  = _is_board ? min(304, _gui_h - 40) : 204;
+    var _is_white = (_terminal_white_theme && !_is_board);
+
+    var _col_grey_line = make_color_rgb(187, 187, 187); // #bbbbbb
+    var _col_gold_top  = make_color_rgb(253, 207, 73);  // #fdcf49
+
+    // Use spr_dungeon_caseboard_ui for case board, spr_dungeon_terminal_ui for terminal popups
+    var _overlay_sprite = spr_dungeon_terminal_ui;
+    if (_is_board && sprite_exists(spr_dungeon_caseboard_ui)) {
+        _overlay_sprite = spr_dungeon_caseboard_ui;
+    }
+    var _has_overlay_sprite = (_use_terminal_overlay && sprite_exists(_overlay_sprite));
+
+    var _mcx = _gui_w * 0.5;
+    var _mcy = _has_overlay_sprite ? (_gui_h * 0.5) : (_gui_h * 0.47);
+    var _mw  = _has_overlay_sprite ? 598 : (_is_board ? min(540, _gui_w - 36) : 410);
+    var _mh  = _has_overlay_sprite ? 303 : (_is_board ? min(304, _gui_h - 40) : 204);
     var _mx1 = _mcx - _mw * 0.5;
     var _my1 = _mcy - _mh * 0.5;
     var _mx2 = _mcx + _mw * 0.5;
     var _my2 = _mcy + _mh * 0.5;
 
-    // Monitor Stand & Base
-    draw_set_color(make_color_rgb(38, 44, 56));
-    draw_rectangle(_mcx - 24, _my2, _mcx + 24, _my2 + 16, false);
-    draw_rectangle(_mcx - 60, _my2 + 14, _mcx + 60, _my2 + 22, false);
-    draw_set_color(make_color_rgb(75, 88, 110));
-    draw_rectangle(_mcx - 60, _my2 + 14, _mcx + 60, _my2 + 22, true);
+    // Monitor Stand & Outer Bezel (drawn only when not using custom sprite overlay)
+    if (!_has_overlay_sprite) {
+        // Monitor Stand & Base
+        draw_set_color(make_color_rgb(38, 44, 56));
+        draw_rectangle(_mcx - 24, _my2, _mcx + 24, _my2 + 16, false);
+        draw_rectangle(_mcx - 60, _my2 + 14, _mcx + 60, _my2 + 22, false);
+        draw_set_color(make_color_rgb(75, 88, 110));
+        draw_rectangle(_mcx - 60, _my2 + 14, _mcx + 60, _my2 + 22, true);
 
-    // Outer Monitor Bezel
-    draw_set_color(make_color_rgb(46, 54, 68));
-    draw_roundrect(_mx1 - 8, _my1 - 8, _mx2 + 8, _my2 + 8, false);
-    draw_set_color(make_color_rgb(105, 120, 145));
-    draw_roundrect(_mx1 - 8, _my1 - 8, _mx2 + 8, _my2 + 8, true);
+        // Outer Monitor Bezel
+        draw_set_color(make_color_rgb(46, 54, 68));
+        draw_roundrect(_mx1 - 8, _my1 - 8, _mx2 + 8, _my2 + 8, false);
+        draw_set_color(make_color_rgb(105, 120, 145));
+        draw_roundrect(_mx1 - 8, _my1 - 8, _mx2 + 8, _my2 + 8, true);
 
-    // Power LED
-    draw_set_color(c_lime);
-    draw_circle(_mx2 - 6, _my2 + 4, 2, false);
-
-    // Inner CRT Screen
-    draw_set_color(make_color_rgb(8, 18, 22));
-    draw_rectangle(_mx1, _my1, _mx2, _my2, false);
-    draw_set_color(c_lime);
-    draw_rectangle(_mx1, _my1, _mx2, _my2, true);
-
-    // Top Terminal OS Title Bar
-    draw_set_color(make_color_rgb(16, 48, 42));
-    draw_rectangle(_mx1 + 1, _my1 + 1, _mx2 - 1, _my1 + 24, false);
-    draw_set_color(c_lime);
-    draw_line(_mx1, _my1 + 24, _mx2, _my1 + 24);
-
-    draw_set_font(fnt_dialogue);
-    draw_set_halign(fa_left);
-    draw_set_valign(fa_middle);
-    draw_set_color(c_lime);
-    draw_text(_mx1 + 10, _my1 + 13, global.pc_screen_title);
-
-    // Clue counter pill on top bar right
-    draw_set_halign(fa_right);
-    draw_set_color(make_color_rgb(255, 210, 55));
-    draw_text_transformed(_mx2 - 30, _my1 + 13, global.pc_screen_badge, 0.80, 0.80, 0);
-
-    // Close [X] button in top-right of screen
-    var _bx1 = _mx2 - 22, _by1 = _my1 + 3, _bx2 = _mx2 - 4, _by2 = _my1 + 21;
-    var _gmx = device_mouse_x_to_gui(0);
-    var _gmy = device_mouse_y_to_gui(0);
-    var _hover_x = point_in_rectangle(_gmx, _gmy, _bx1, _by1, _bx2, _by2);
-    draw_set_color(_hover_x ? c_red : c_lime);
-    draw_rectangle(_bx1, _by1, _bx2, _by2, true);
-    draw_set_halign(fa_center);
-    draw_text((_bx1 + _bx2) * 0.5, (_by1 + _by2) * 0.5, "X");
-
-    // Subtle CRT horizontal scanlines
-    draw_set_alpha(0.06);
-    draw_set_color(c_aqua);
-    for (var _sy = _my1 + 28; _sy < _my2 - 4; _sy += 5) {
-        draw_line(_mx1 + 2, _sy, _mx2 - 2, _sy);
+        // Power LED
+        draw_set_color(c_lime);
+        draw_circle(_mx2 - 6, _my2 + 4, 2, false);
     }
-    draw_set_alpha(1.0);
+
+    // Inner Screen Background (Solid white for Case Board and White Theme Popups)
+    var _bg_col = (_is_board || _is_white) ? c_white : make_color_rgb(8, 18, 22);
+    draw_set_color(_bg_col);
+    if (_has_overlay_sprite) {
+        // Extend slightly behind the sprite bezel to eliminate any seam gaps
+        draw_rectangle(_mx1 - 10, _my1 - 10, _mx2 + 10, _my2 + 10, false);
+    } else {
+        draw_rectangle(_mx1, _my1, _mx2, _my2, false);
+    }
+    if (!_has_overlay_sprite) {
+        draw_set_color((_is_board || _is_white) ? _col_grey_line : c_lime);
+        if (_is_white) {
+            for (var _th = 0; _th < 3; _th++) {
+                draw_rectangle(_mx1 + _th, _my1 + _th, _mx2 - _th, _my2 - _th, true);
+            }
+        } else {
+            draw_rectangle(_mx1, _my1, _mx2, _my2, true);
+        }
+    }
+
+    // Top Section / Title Bar
+    if (_is_board) {
+        // Case Board top section: background #fdcf49 extended to fill gaps left by sprite
+        draw_set_color(_col_gold_top);
+        if (_has_overlay_sprite) {
+            draw_rectangle(_mx1 - 10, _my1 - 10, _mx2 + 10, _my1 + 26, false);
+            draw_set_color(_col_grey_line); // #bbbbbb divider line
+            draw_line(_mx1 - 10, _my1 + 26, _mx2 + 10, _my1 + 26);
+        } else {
+            draw_rectangle(_mx1 + 1, _my1 + 1, _mx2 - 1, _my1 + 26, false);
+            draw_set_color(_col_grey_line); // #bbbbbb divider line
+            draw_line(_mx1, _my1 + 26, _mx2, _my1 + 26);
+        }
+
+        draw_set_font(fnt_dialogue);
+        draw_set_halign(fa_left);
+        draw_set_valign(fa_middle);
+        draw_set_color(c_white); // CASE BOARD text in white
+        draw_text(_mx1 + 10, _my1 + 14, global.pc_screen_title);
+
+        // TAB TO CLOSE badge on top bar right in white
+        draw_set_halign(fa_right);
+        draw_set_color(c_white);
+        draw_text_transformed(_mx2 - 30, _my1 + 14, global.pc_screen_badge, 0.80, 0.80, 0);
+
+        // Close [X] button in top-right of screen in white
+        var _bx1 = _mx2 - 22, _by1 = _my1 + 4, _bx2 = _mx2 - 4, _by2 = _my1 + 22;
+        var _gmx = device_mouse_x_to_gui(0);
+        var _gmy = device_mouse_y_to_gui(0);
+        var _hover_x = point_in_rectangle(_gmx, _gmy, _bx1, _by1, _bx2, _by2);
+        draw_set_color(_hover_x ? c_red : c_white);
+        draw_rectangle(_bx1, _by1, _bx2, _by2, true);
+        draw_set_halign(fa_center);
+        draw_text((_bx1 + _bx2) * 0.5, (_by1 + _by2) * 0.5, "X");
+    } else if (!_is_white) {
+        draw_set_color(make_color_rgb(16, 48, 42));
+        draw_rectangle(_mx1 + 1, _my1 + 1, _mx2 - 1, _my1 + 24, false);
+        draw_set_color(c_lime);
+        draw_line(_mx1, _my1 + 24, _mx2, _my1 + 24);
+
+        draw_set_font(fnt_dialogue);
+        draw_set_halign(fa_left);
+        draw_set_valign(fa_middle);
+        draw_set_color(c_lime);
+        draw_text(_mx1 + 10, _my1 + 13, global.pc_screen_title);
+
+        // Clue counter pill on top bar right
+        draw_set_halign(fa_right);
+        draw_set_color(make_color_rgb(255, 210, 55));
+        draw_text_transformed(_mx2 - 30, _my1 + 13, global.pc_screen_badge, 0.80, 0.80, 0);
+
+        // Close [X] button in top-right of screen
+        var _bx1 = _mx2 - 22, _by1 = _my1 + 3, _bx2 = _mx2 - 4, _by2 = _my1 + 21;
+        var _gmx = device_mouse_x_to_gui(0);
+        var _gmy = device_mouse_y_to_gui(0);
+        var _hover_x = point_in_rectangle(_gmx, _gmy, _bx1, _by1, _bx2, _by2);
+        draw_set_color(_hover_x ? c_red : c_lime);
+        draw_rectangle(_bx1, _by1, _bx2, _by2, true);
+        draw_set_halign(fa_center);
+        draw_text((_bx1 + _bx2) * 0.5, (_by1 + _by2) * 0.5, "X");
+    } else {
+        draw_set_color(c_white);
+        draw_rectangle(_mx1 + 1, _my1 + 1, _mx2 - 1, _my1 + 24, false);
+        draw_set_color(c_black);
+        // 3x thicker divider line
+        for (var _th = 0; _th < 3; _th++) {
+            draw_line(_mx1, _my1 + 24 + _th, _mx2, _my1 + 24 + _th);
+        }
+
+        draw_set_font(fnt_dialogue);
+        draw_set_halign(fa_left);
+        draw_set_valign(fa_middle);
+        draw_set_color(c_black);
+        draw_text(_mx1 + 10, _my1 + 13, global.pc_screen_title);
+
+        // Clue counter pill on top bar right
+        draw_set_halign(fa_right);
+        draw_set_color(c_black);
+        draw_text_transformed(_mx2 - 30, _my1 + 13, global.pc_screen_badge, 0.80, 0.80, 0);
+
+        // Close [X] button in top-right of screen
+        var _bx1 = _mx2 - 22, _by1 = _my1 + 3, _bx2 = _mx2 - 4, _by2 = _my1 + 21;
+        var _gmx = device_mouse_x_to_gui(0);
+        var _gmy = device_mouse_y_to_gui(0);
+        var _hover_x = point_in_rectangle(_gmx, _gmy, _bx1, _by1, _bx2, _by2);
+        draw_set_color(_hover_x ? c_red : c_black);
+        // 3x thicker box border around [X]
+        for (var _th = 0; _th < 3; _th++) {
+            draw_rectangle(_bx1 + _th, _by1 + _th, _bx2 - _th, _by2 - _th, true);
+        }
+        draw_set_halign(fa_center);
+        draw_text((_bx1 + _bx2) * 0.5, (_by1 + _by2) * 0.5, "X");
+    }
+
+    // Subtle CRT horizontal scanlines (omitted in solid white theme and case board)
+    if (!_is_white && !_is_board) {
+        draw_set_alpha(0.06);
+        draw_set_color(c_aqua);
+        for (var _sy = _my1 + 28; _sy < _my2 - 4; _sy += 5) {
+            draw_line(_mx1 + 2, _sy, _mx2 - 2, _sy);
+        }
+        draw_set_alpha(1.0);
+    }
 
     var _case   = variable_global_exists("floor_case") ? global.floor_case : scr_get_floor_incident_case(0);
     var _mode   = variable_global_exists("pc_screen_mode") ? global.pc_screen_mode : 0;
@@ -145,57 +249,62 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
         draw_set_halign(fa_left);
         draw_set_valign(fa_middle);
         var _is_tutorial = (!variable_global_exists("chapter_floor") || global.chapter_floor <= 3);
-        var _bd_y = _my1 + 34;
-        draw_set_color(make_color_rgb(255, 210, 55));
-        draw_text_transformed(_mx1 + 12, _bd_y, "SUSPECTS  (inspect their desks for Critical Lvl 3 Evidence)", 0.72, 0.72, 0);
-        _bd_y += 14;
+        var _bd_y = _my1 + 36;
+        draw_set_color(make_color_rgb(175, 125, 20));
+        draw_text_transformed(_mx1 + 14, _bd_y, "SUSPECTS  (inspect their desks for Critical Lvl 3 Evidence)", 0.98, 0.98, 0);
+        draw_text_transformed(_mx1 + 14.8, _bd_y, "SUSPECTS  (inspect their desks for Critical Lvl 3 Evidence)", 0.98, 0.98, 0);
+        _bd_y += 16;
 
         var _bd_n = array_length(global.case_suspects);
         for (var _bs = 0; _bs < _bd_n; _bs++) {
             var _sp = global.case_suspects[_bs];
             var _wrong_acc = (variable_struct_exists(_sp, "accused_wrong") && _sp.accused_wrong);
             var _st_txt = _is_tutorial ? "UNKNOWN" : "SUSPECT";
-            var _st_col = make_color_rgb(190, 205, 220);
+            var _st_col = make_color_rgb(50, 60, 70);
             if (_is_tutorial) {
-                if (_sp.status == 1) { _st_txt = "CLEARED";       _st_col = make_color_rgb(120, 140, 150); }
-                if (_sp.status == 2) { _st_txt = "PRIME SUSPECT"; _st_col = make_color_rgb(255, 95, 95); }
+                if (_sp.status == 1) { _st_txt = "CLEARED";       _st_col = make_color_rgb(140, 145, 150); }
+                if (_sp.status == 2) { _st_txt = "PRIME SUSPECT"; _st_col = make_color_rgb(215, 45, 45); }
             } else if (_wrong_acc) {
                 _st_txt = "WRONG ACCUSATION";
-                _st_col = make_color_rgb(120, 140, 150);
+                _st_col = make_color_rgb(140, 145, 150);
             }
-            if (_solved && _bs == global.case_culprit_idx) { _st_txt = "PATIENT ZERO"; _st_col = c_lime; }
+            if (_solved && _bs == global.case_culprit_idx) { _st_txt = "PATIENT ZERO"; _st_col = make_color_rgb(20, 150, 40); }
             draw_set_color(_st_col);
-            draw_text_transformed(_mx1 + 18, _bd_y, _sp.name + "  -  " + _sp.dept + "  [Desk " + _sp.nameplate + "]", 0.68, 0.68, 0);
+            draw_text_transformed(_mx1 + 18, _bd_y, _sp.name + "  -  " + _sp.dept + "  [Desk " + _sp.nameplate + "]", 0.90, 0.90, 0);
+            draw_text_transformed(_mx1 + 18.8, _bd_y, _sp.name + "  -  " + _sp.dept + "  [Desk " + _sp.nameplate + "]", 0.90, 0.90, 0);
             draw_set_halign(fa_right);
-            draw_text_transformed(_mx2 - 14, _bd_y, _st_txt, 0.68, 0.68, 0);
+            draw_text_transformed(_mx2 - 14, _bd_y, _st_txt, 0.90, 0.90, 0);
+            draw_text_transformed(_mx2 - 13.2, _bd_y, _st_txt, 0.90, 0.90, 0);
             draw_set_halign(fa_left);
             if (((_is_tutorial && _sp.status == 1) || (!_is_tutorial && _wrong_acc)) && !(_solved && _bs == global.case_culprit_idx)) {
-                var _tw = string_width(_sp.name + "  -  " + _sp.dept + "  [Desk " + _sp.nameplate + "]") * 0.68;
+                var _tw = string_width(_sp.name + "  -  " + _sp.dept + "  [Desk " + _sp.nameplate + "]") * 0.90;
+                draw_set_color(_col_grey_line); // #bbbbbb strikethrough line
                 draw_line(_mx1 + 18, _bd_y, _mx1 + 18 + _tw, _bd_y);
             }
-            _bd_y += 14;
+            _bd_y += 16;
         }
 
         _bd_y += 4;
-        draw_set_color(make_color_rgb(115, 220, 255));
-        draw_text_transformed(_mx1 + 12, _bd_y, "EVIDENCE LOG  (" + string(global.evidence_found) + "/" + string(global.evidence_needed) + ")   [W/S or WHEEL to Scroll]", 0.72, 0.72, 0);
-        _bd_y += 11;
+        draw_set_color(make_color_rgb(20, 95, 135));
+        draw_text_transformed(_mx1 + 14, _bd_y, "EVIDENCE LOG  (" + string(global.evidence_found) + "/" + string(global.evidence_needed) + ")   [W/S or WHEEL to Scroll]", 0.98, 0.98, 0);
+        draw_text_transformed(_mx1 + 14.8, _bd_y, "EVIDENCE LOG  (" + string(global.evidence_found) + "/" + string(global.evidence_needed) + ")   [W/S or WHEEL to Scroll]", 0.98, 0.98, 0);
+        _bd_y += 14;
 
         // Scrollable Evidence Viewport (Item-Index Pagination — 100% resolution-independent, no gpu_set_scissor bug!)
         var _ev_x1 = _mx1 + 10;
         var _ev_y1 = _bd_y;
         var _ev_x2 = _mx2 - 10;
-        var _ev_y2 = _my2 - 44;
+        var _ev_y2 = _my2 - 46;
         var _ev_w  = _ev_x2 - _ev_x1;
         var _ev_h  = max(40, _ev_y2 - _ev_y1);
 
-        draw_set_color(make_color_rgb(6, 14, 18));
+        draw_set_color(make_color_rgb(250, 252, 253));
         draw_rectangle(_ev_x1, _ev_y1, _ev_x2, _ev_y2, false);
-        draw_set_color(make_color_rgb(35, 80, 90));
+        draw_set_color(_col_grey_line); // #bbbbbb viewport outline
         draw_rectangle(_ev_x1, _ev_y1, _ev_x2, _ev_y2, true);
 
-        var _ev_scale = 0.62;
-        var _ev_sep   = 17;
+        var _ev_scale = 0.88;
+        var _ev_sep   = 18;
         var _wrap_w   = (_ev_w - 24) / _ev_scale;
         var _bd_ne    = array_length(global.case_evidence);
         var _ev_texts = array_create(_bd_ne, "");
@@ -208,7 +317,7 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
                 ? (string(_be + 1) + ". " + string_replace_all(_evi.text, "\n", " "))
                 : (string(_be + 1) + ". [LVL " + string(_tier) + " LOCKED] ??? (Search " + (_tier == 3 ? "Suspect Desk Terminals" : "coworkers, memos & office PCs") + ")");
             _ev_texts[_be] = _txt;
-            _ev_hs[_be]    = string_height_ext(_txt, _ev_sep, _wrap_w) * _ev_scale + 7;
+            _ev_hs[_be]    = string_height_ext(_txt, _ev_sep, _wrap_w) * _ev_scale + 8;
         }
 
         if (!variable_global_exists("case_board_scroll")) global.case_board_scroll = 0;
@@ -230,18 +339,19 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
             var _ih   = _ev_hs[_be2];
             if (_vis_count > 0 && _cy + _ih > _ev_y2 - 3) break;
 
-            draw_set_color((_be2 mod 2 == 0) ? make_color_rgb(12, 26, 34) : make_color_rgb(9, 20, 26));
+            draw_set_color((_be2 mod 2 == 0) ? make_color_rgb(240, 244, 248) : c_white);
             draw_rectangle(_ev_x1 + 3, _cy, _ev_x2 - 12, min(_ev_y2 - 2, _cy + _ih - 2), false);
 
-            var _t_col = make_color_rgb(100, 118, 132);
+            var _t_col = make_color_rgb(130, 140, 150);
             if (_evi2.found) {
                 var _tr = variable_struct_exists(_evi2, "tier") ? _evi2.tier : 2;
-                if (_tr == 1)      _t_col = make_color_rgb(255, 220, 110); // Level 1: Warm Gold
-                else if (_tr == 3) _t_col = make_color_rgb(135, 255, 165); // Level 3: Critical Mint/Lime
-                else               _t_col = make_color_rgb(185, 235, 255); // Level 2: Corroborating Ice/Cyan
+                if (_tr == 1)      _t_col = make_color_rgb(170, 115, 0);   // Level 1: Warm Amber
+                else if (_tr == 3) _t_col = make_color_rgb(15, 135, 45);    // Level 3: Critical Mint/Green
+                else               _t_col = make_color_rgb(15, 95, 145);    // Level 2: Corroborating Navy
             }
             draw_set_color(_t_col);
             draw_text_ext_transformed(_ev_x1 + 7, _cy + 3, _ev_texts[_be2], _ev_sep, _wrap_w, _ev_scale, _ev_scale, 0);
+            draw_text_ext_transformed(_ev_x1 + 7.8, _cy + 3, _ev_texts[_be2], _ev_sep, _wrap_w, _ev_scale, _ev_scale, 0);
             _cy += _ih + 2;
             _vis_count++;
         }
@@ -255,9 +365,11 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
             var _sb_h  = _sb_y2 - _sb_y1;
             var _thumb_h = max(14, _sb_h * (_vis_count / _bd_ne));
             var _thumb_y = _sb_y1 + (_sb_h - _thumb_h) * (global.case_board_scroll / max(1, _bd_ne - 1));
-            draw_set_color(make_color_rgb(20, 42, 50));
+            draw_set_color(make_color_rgb(240, 240, 240));
             draw_rectangle(_sb_x1, _sb_y1, _sb_x2, _sb_y2, false);
-            draw_set_color(c_aqua);
+            draw_set_color(_col_grey_line); // #bbbbbb scrollbar line
+            draw_rectangle(_sb_x1, _sb_y1, _sb_x2, _sb_y2, true);
+            draw_set_color(make_color_rgb(160, 160, 160));
             draw_rectangle(_sb_x1, _thumb_y, _sb_x2, _thumb_y + _thumb_h, false);
         }
 
@@ -269,16 +381,16 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
                 _crit_found++;
             }
         }
-        var _ab_x1 = _mcx - 195;
-        var _ab_y1 = _my2 - 40;
-        var _ab_x2 = _mcx + 195;
-        var _ab_y2 = _my2 - 22;
+        var _ab_x1 = _mcx - 205;
+        var _ab_y1 = _my2 - 42;
+        var _ab_x2 = _mcx + 205;
+        var _ab_y2 = _my2 - 20;
         var _can_accuse = (!_solved && global.evidence_found >= _min_ev && _crit_found >= 1);
         var _hover_acc  = point_in_rectangle(_gmx, _gmy, _ab_x1, _ab_y1, _ab_x2, _ab_y2);
 
-        draw_set_color(_solved ? make_color_rgb(14, 42, 24) : (_can_accuse ? (_hover_acc ? make_color_rgb(35, 75, 95) : make_color_rgb(18, 48, 64)) : make_color_rgb(24, 28, 34)));
+        draw_set_color(_solved ? make_color_rgb(215, 245, 220) : (_can_accuse ? (_hover_acc ? make_color_rgb(45, 95, 125) : make_color_rgb(30, 70, 95)) : make_color_rgb(240, 242, 245)));
         draw_rectangle(_ab_x1, _ab_y1, _ab_x2, _ab_y2, false);
-        draw_set_color(_solved ? c_lime : (_can_accuse ? c_aqua : make_color_rgb(90, 105, 115)));
+        draw_set_color(_solved ? make_color_rgb(20, 140, 40) : _col_grey_line); // #bbbbbb border line
         draw_rectangle(_ab_x1, _ab_y1, _ab_x2, _ab_y2, true);
 
         draw_set_valign(fa_middle);
@@ -286,18 +398,19 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
         var _btn_lbl = "";
         if (_solved) {
             _btn_lbl = "CASE SOLVED — PROCEED TO LOCKDOWN OVERRIDE";
-            draw_set_color(c_lime);
+            draw_set_color(make_color_rgb(20, 140, 40));
         } else if (_can_accuse) {
             _btn_lbl = "[E / ENTER / CLICK]  ACCUSE A SUSPECT";
             draw_set_color(c_white);
         } else if (_crit_found < 1) {
             _btn_lbl = "INSPECT A SUSPECT DESK FOR 1 [LVL 3: CRITICAL] CLUE";
-            draw_set_color(make_color_rgb(255, 205, 90));
+            draw_set_color(make_color_rgb(160, 110, 0));
         } else {
             _btn_lbl = "GATHER " + string(_min_ev) + " CLUES TO ACCUSE (" + string(global.evidence_found) + "/" + string(_min_ev) + " FOUND)";
-            draw_set_color(make_color_rgb(255, 205, 90));
+            draw_set_color(make_color_rgb(160, 110, 0));
         }
-        draw_text_transformed(_mcx, (_ab_y1 + _ab_y2) * 0.5, _btn_lbl, 0.70, 0.70, 0);
+        draw_text_transformed(_mcx, (_ab_y1 + _ab_y2) * 0.5, _btn_lbl, 0.88, 0.88, 0);
+        draw_text_transformed(_mcx + 0.8, (_ab_y1 + _ab_y2) * 0.5, _btn_lbl, 0.88, 0.88, 0);
 
         if (_can_accuse && _can_input && (keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || (_hover_acc && mouse_check_button_pressed(mb_left)))) {
             audio_play_sound(snd_button_click, 6, false);
@@ -313,8 +426,9 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
             }
         }
 
-        draw_set_color(make_color_rgb(150, 200, 175));
-        draw_text_transformed(_mcx, _my2 - 11, "Wrong accusations: " + string(global.case_wrong_accusations) + "     [TAB / ESC] Close", 0.70, 0.70, 0);
+        draw_set_color(make_color_rgb(110, 120, 130));
+        draw_text_transformed(_mcx, _my2 - 10, "Wrong accusations: " + string(global.case_wrong_accusations) + "     [TAB / ESC] Close", 0.85, 0.85, 0);
+        draw_text_transformed(_mcx + 0.8, _my2 - 10, "Wrong accusations: " + string(global.case_wrong_accusations) + "     [TAB / ESC] Close", 0.85, 0.85, 0);
 
     } else if (_mode == 1 || _mode == 2) {
         // =====================================================
@@ -355,30 +469,32 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
         draw_set_font(fnt_dialogue);
         draw_set_halign(fa_center);
         draw_set_valign(fa_middle);
-        draw_set_color(c_white);
-        draw_text_ext_transformed(_mcx, _my1 + 42, _desc, 14, (_mw - 30) / 0.74, 0.74, 0.74, 0);
+        draw_set_color(make_color_rgb(40, 45, 55));
+        draw_text_ext_transformed(_mcx, _my1 + 44, _desc, 15, (_mw - 30) / 0.95, 0.95, 0.95, 0);
+        draw_text_ext_transformed(_mcx + 0.8, _my1 + 44, _desc, 15, (_mw - 30) / 0.95, 0.95, 0.95, 0);
 
         var _clicked_item = false;
         draw_set_halign(fa_left);
         for (var _ii = 0; _ii < _num_items; _ii++) {
-            var _iy = _my1 + 74 + (_ii * 24);
+            var _iy = _my1 + 76 + (_ii * 25);
             var _is_sel = (global.pc_screen_select == _ii);
 
             var _gmx2 = device_mouse_x_to_gui(0);
             var _gmy2 = device_mouse_y_to_gui(0);
-            var _hover_item = point_in_rectangle(_gmx2, _gmy2, _mx1 + 14, _iy - 10, _mx2 - 14, _iy + 10);
+            var _hover_item = point_in_rectangle(_gmx2, _gmy2, _mx1 + 14, _iy - 11, _mx2 - 14, _iy + 11);
             if (_hover_item && mouse_check_button_pressed(mb_left)) {
                 global.pc_screen_select = _ii;
                 _is_sel = true;
                 _clicked_item = true;
             }
 
-            draw_set_color(_is_sel ? make_color_rgb(18, 45, 60) : make_color_rgb(12, 22, 28));
-            draw_rectangle(_mx1 + 14, _iy - 10, _mx2 - 14, _iy + 10, false);
-            draw_set_color(_is_sel ? c_aqua : make_color_rgb(60, 90, 110));
-            draw_rectangle(_mx1 + 14, _iy - 10, _mx2 - 14, _iy + 10, true);
-            draw_set_color(_is_sel ? c_white : make_color_rgb(180, 200, 215));
-            draw_text_transformed(_mx1 + 20, _iy + 1, (_is_sel ? "> " : "  ") + _labels[_ii], 0.72, 0.72, 0);
+            draw_set_color(_is_sel ? make_color_rgb(230, 242, 252) : make_color_rgb(248, 249, 250));
+            draw_rectangle(_mx1 + 14, _iy - 11, _mx2 - 14, _iy + 11, false);
+            draw_set_color(_is_sel ? make_color_rgb(40, 120, 190) : _col_grey_line); // #bbbbbb
+            draw_rectangle(_mx1 + 14, _iy - 11, _mx2 - 14, _iy + 11, true);
+            draw_set_color(_is_sel ? make_color_rgb(10, 40, 80) : make_color_rgb(50, 60, 70));
+            draw_text_transformed(_mx1 + 20, _iy + 1, (_is_sel ? "> " : "  ") + _labels[_ii], 0.90, 0.90, 0);
+            draw_text_transformed(_mx1 + 20.8, _iy + 1, (_is_sel ? "> " : "  ") + _labels[_ii], 0.90, 0.90, 0);
         }
 
         var _trigger_flag = _can_input && (_clicked_item || keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space));
@@ -441,37 +557,64 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
         var _fb_txt = (variable_global_exists("pc_screen_feedback") && global.pc_screen_feedback != "")
             ? global.pc_screen_feedback
             : (_mode == 2 ? "Select the attack method described in the culprit's Level 3 Critical Forensics." : "Select a suspect to accuse, or return to the Case Board.");
-        var _fb_col = (variable_global_exists("pc_screen_feedback_col") && global.pc_screen_feedback != "") ? global.pc_screen_feedback_col : make_color_rgb(255, 215, 60);
+        var _fb_col = (variable_global_exists("pc_screen_feedback_col") && global.pc_screen_feedback != "") ? global.pc_screen_feedback_col : make_color_rgb(170, 115, 0);
         draw_set_color(_fb_col);
-        draw_text_ext_transformed(_mcx, _my2 - 58, _fb_txt, 12, (_mw - 30) / 0.68, 0.68, 0.68, 0);
+        draw_text_ext_transformed(_mcx, _my2 - 58, _fb_txt, 14, (_mw - 30) / 0.88, 0.88, 0.88, 0);
+        draw_text_ext_transformed(_mcx + 0.8, _my2 - 58, _fb_txt, 14, (_mw - 30) / 0.88, 0.88, 0.88, 0);
 
         // Action prompt pill
-        draw_set_color(make_color_rgb(14, 30, 44));
-        draw_rectangle(_mcx - 165, _my2 - 38, _mcx + 165, _my2 - 22, false);
-        draw_set_color(c_aqua);
-        draw_rectangle(_mcx - 165, _my2 - 38, _mcx + 165, _my2 - 22, true);
         draw_set_color(c_white);
-        draw_text_transformed(_mcx, _my2 - 30, "[W/S or CLICK] Select   [E / ENTER] Confirm", 0.70, 0.70, 0);
+        draw_rectangle(_mcx - 180, _my2 - 38, _mcx + 180, _my2 - 20, false);
+        draw_set_color(_col_grey_line); // #bbbbbb
+        draw_rectangle(_mcx - 180, _my2 - 38, _mcx + 180, _my2 - 20, true);
+        draw_set_color(make_color_rgb(30, 40, 50));
+        draw_text_transformed(_mcx, _my2 - 29, "[W/S or CLICK] Select   [E / ENTER] Confirm", 0.88, 0.88, 0);
+        draw_text_transformed(_mcx + 0.8, _my2 - 29, "[W/S or CLICK] Select   [E / ENTER] Confirm", 0.88, 0.88, 0);
 
     } else {
         // Centered Main Clue Box
         draw_set_halign(fa_center);
         draw_set_valign(fa_middle);
-        draw_set_color(c_white);
-        draw_text_ext_transformed(_mcx, _my1 + 92, global.pc_screen_body, 18, (_mw - 48) / 0.82, 0.82, 0.82, 0);
+        draw_set_color(_is_white ? c_black : c_white);
+        var _clue_y = _has_overlay_sprite ? ((_my1 + 24 + _my2 - 54) * 0.5) : (_my1 + 92);
+        draw_text_ext_transformed(_mcx, _clue_y, global.pc_screen_body, 18, (_mw - 48) / 0.82, 0.82, 0.82, 0);
 
         // Compact Radar Pill at bottom of monitor
-        draw_set_color(make_color_rgb(14, 30, 44));
-        draw_rectangle(_mcx - 135, _my2 - 52, _mcx + 135, _my2 - 28, false);
-        draw_set_color(c_aqua);
-        draw_rectangle(_mcx - 135, _my2 - 52, _mcx + 135, _my2 - 28, true);
-        draw_text_transformed(_mcx, _my2 - 40, global.pc_screen_radar, 0.85, 0.85, 0);
+        var _rx1 = _mcx - 135;
+        var _ry1 = _my2 - 52;
+        var _rx2 = _mcx + 135;
+        var _ry2 = _my2 - 28;
+
+        if (_is_white) {
+            draw_set_color(c_white);
+            draw_rectangle(_rx1, _ry1, _rx2, _ry2, false);
+            draw_set_color(c_black);
+            // 3x thicker box border around radar text
+            for (var _th = 0; _th < 3; _th++) {
+                draw_rectangle(_rx1 + _th, _ry1 + _th, _rx2 - _th, _ry2 - _th, true);
+            }
+            draw_text_transformed(_mcx, _my2 - 40, global.pc_screen_radar, 0.85, 0.85, 0);
+        } else {
+            draw_set_color(make_color_rgb(14, 30, 44));
+            draw_rectangle(_rx1, _ry1, _rx2, _ry2, false);
+            draw_set_color(c_aqua);
+            draw_rectangle(_rx1, _ry1, _rx2, _ry2, true);
+            draw_set_color(c_white);
+            draw_text_transformed(_mcx, _my2 - 40, global.pc_screen_radar, 0.85, 0.85, 0);
+        }
     }
 
     // Minimal close prompt (mode 3 draws its own combined footer)
     if (_mode != 3) {
-        draw_set_color(make_color_rgb(150, 200, 175));
+        draw_set_color(_is_white ? c_black : make_color_rgb(150, 200, 175));
         draw_text_transformed(_mcx, _my2 - 13, "[ESC] Close", 0.80, 0.80, 0);
+    }
+
+    // Custom UI Sprite Overlay (spr_dungeon_caseboard_ui / spr_dungeon_terminal_ui) layered over the UI
+    if (_has_overlay_sprite) {
+        var _spr_w = sprite_get_width(_overlay_sprite);
+        var _spr_h = sprite_get_height(_overlay_sprite);
+        draw_sprite_ext(_overlay_sprite, 0, 0, 0, _gui_w / _spr_w, _gui_h / _spr_h, 0, c_white, 1.0);
     }
 
     if (keyboard_check_pressed(ord("X"))
@@ -788,6 +931,35 @@ if (banner_timer > 0) {
     draw_text_transformed(_bcx, _by1 + 31, _curr.objective_title, 0.78, 0.78, 0);
     draw_set_halign(fa_left);
     draw_set_alpha(1.0);
+}
+
+// =========================================================
+// ROOM NAME POPUP BANNER (Top-Right, Persistent in Room)
+// =========================================================
+if (variable_instance_exists(id, "room_popup_alpha") && room_popup_alpha > 0 && room_popup_text != "") {
+    draw_set_font(fnt_dialogue);
+    var _scale = 0.74;
+    var _str_w = string_width(room_popup_text) * _scale;
+    var _pad_x = 12;
+    var _box_w = ceil(_str_w + (_pad_x * 2));
+    var _box_h = 22;
+
+    var _rx2 = _gui_w - 14;
+    var _rx1 = round(_rx2 - _box_w);
+    var _ry1 = (banner_timer > 0) ? 58 : 12;
+    var _ry2 = _ry1 + _box_h;
+
+    draw_set_alpha(room_popup_alpha);
+    draw_set_color(c_white);
+    draw_rectangle(_rx1, _ry1, _rx2, _ry2, true);
+
+    draw_set_halign(fa_center);
+    draw_set_valign(fa_middle);
+    draw_text_transformed((_rx1 + _rx2) * 0.5, (_ry1 + _ry2) * 0.5, room_popup_text, _scale, _scale, 0);
+
+    draw_set_alpha(1.0);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
 }
 
 // =========================================================

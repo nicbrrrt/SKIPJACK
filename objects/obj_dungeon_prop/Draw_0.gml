@@ -384,10 +384,6 @@ else if (prop_type == TILE_PROP_BREAKER) {
         var _by_draw = (y + 16) - sprite_get_height(spr_power_breaker_panel) + sprite_get_yoffset(spr_power_breaker_panel);
         draw_set_alpha(1.0);
         draw_sprite_ext(spr_power_breaker_panel, 0, _bx, _by_draw, 1.0, 1.0, 0, c_white, 1.0);
-
-        // Power status indicator light
-        draw_set_color(_pwr_on ? c_lime : ((current_time mod 240 < 120) ? c_red : c_yellow));
-        draw_circle(_cx + 4, _by_draw + 5, 1.5, false);
     } else {
         // Industrial Breaker Cabinet Box (Procedural Fallback)
         draw_set_alpha(0.95);

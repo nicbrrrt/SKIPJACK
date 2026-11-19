@@ -599,3 +599,178 @@ function scr_dungeon_spawn(logic_map, path_list) {
 
     show_debug_message("[scr_dungeon_spawn] Spawning complete. Total rooms: " + string(path_len));
 }
+
+
+// ---------------------------------------------------------------------------
+/// @function scr_init_dungeon_room_names(logic_map, path_list, door_links)
+/// @description Builds a 2D grid [col][row] of descriptive room designation names
+///              for HUD popups (e.g. "Kyle's Office", "Key Vault", "Security Office",
+///              "Legal Office", "Sarah's Office", etc.).
+// ---------------------------------------------------------------------------
+function scr_init_dungeon_room_names(logic_map, path_list, door_links) {
+    var _names = array_create(LOGIC_GRID_W);
+    for (var _c = 0; _c < LOGIC_GRID_W; _c++) {
+        _names[_c] = array_create(LOGIC_GRID_H, "");
+    }
+
+    var _chunk_px = CHUNK_SIZE * TILE_SIZE; // 144
+    var _path_len = array_length(path_list);
+
+    // 1) First pass: identify static milestone rooms
+    for (var _p = 0; _p < _path_len; _p++) {
+        var _c = path_list[_p][0];
+        var _r = path_list[_p][1];
+        var _rtype = logic_map[_c][_r];
+
+        switch (_rtype) {
+            case ROOM_START:
+                _names[_c][_r] = "Kyle's Office";
+                break;
+            case ROOM_CAESAR_KEY:
+                _names[_c][_r] = "Key Vault";
+                break;
+            case ROOM_CAESAR_LOCKED:
+                _names[_c][_r] = "Override Control Room";
+                break;
+            case ROOM_POWER:
+                _names[_c][_r] = "Electrical Breaker Room";
+                break;
+            case ROOM_END:
+                _names[_c][_r] = "Elevator";
+                break;
+            case ROOM_HOLDING:
+                _names[_c][_r] = "Holding Room";
+                break;
+            case ROOM_HALLWAY:
+                _names[_c][_r] = "";
+                break;
+        }
+    }
+
+    // 2) Second pass: gather all non-milestone / office chunks and resolve merged clusters
+    var _clusters = [];
+    var _visited = array_create(LOGIC_GRID_W);
+    for (var _c = 0; _c < LOGIC_GRID_W; _c++) {
+        _visited[_c] = array_create(LOGIC_GRID_H, false);
+    }
+
+    for (var _p = 0; _p < _path_len; _p++) {
+        var _c = path_list[_p][0];
+        var _r = path_list[_p][1];
+        var _rtype = logic_map[_c][_r];
+
+        if (_rtype != ROOM_NORMAL || _visited[_c][_r]) continue;
+
+        var _cluster = [];
+        var _queue = [[_c, _r]];
+        _visited[_c][_r] = true;
+
+        while (array_length(_queue) > 0) {
+            var _cur = _queue[0];
+            array_delete(_queue, 0, 1);
+            array_push(_cluster, _cur);
+
+            var _cc = _cur[0];
+            var _cr = _cur[1];
+
+            var _dirs = [[0, -1], [0, 1], [-1, 0], [1, 0]];
+            for (var _d = 0; _d < 4; _d++) {
+                var _nc = _cc + _dirs[_d][0];
+                var _nr = _cr + _dirs[_d][1];
+                if (_nc >= 0 && _nc < LOGIC_GRID_W && _nr >= 0 && _nr < LOGIC_GRID_H) {
+                    if (logic_map[_nc][_nr] == ROOM_NORMAL && !_visited[_nc][_nr]) {
+                        var _lnk = scr_get_border_door_type(_cc, _cr, _nc, _nr, door_links);
+                        if (_lnk == TILE_ROOM_MERGE) {
+                            _visited[_nc][_nr] = true;
+                            array_push(_queue, [_nc, _nr]);
+                        }
+                    }
+                }
+            }
+        }
+        array_push(_clusters, _cluster);
+    }
+
+    // 3) Third pass: For each office cluster, inspect all props located inside its chunks
+    for (var _ci = 0; _ci < array_length(_clusters); _ci++) {
+        var _cl = _clusters[_ci];
+        
+        var _has_vault_pc   = false;
+        var _suspect_dept   = "";
+        var _npc_first_name = "";
+        var _npc_count      = 0;
+
+        with (obj_dungeon_prop) {
+            var _p_c = floor(x / _chunk_px);
+            var _p_r = floor(y / _chunk_px);
+
+            var _in_cluster = false;
+            for (var _k = 0; _k < array_length(_cl); _k++) {
+                if (_cl[_k][0] == _p_c && _cl[_k][1] == _p_r) {
+                    _in_cluster = true;
+                    break;
+                }
+            }
+
+            if (_in_cluster) {
+                // Check for vault hint PC
+                if (variable_instance_exists(id, "is_vault_hint_pc") && is_vault_hint_pc) {
+                    _has_vault_pc = true;
+                }
+
+                // Check for suspect desk
+                if (variable_instance_exists(id, "suspect_idx") && suspect_idx >= 0) {
+                    if (variable_global_exists("case_suspects") && suspect_idx < array_length(global.case_suspects)) {
+                        var _sp = global.case_suspects[suspect_idx];
+                        if (variable_struct_exists(_sp, "dept")) {
+                            _suspect_dept = _sp.dept;
+                        }
+                    }
+                }
+
+                // Check for Coworker NPC (TILE_PROP_NPC)
+                if (prop_type == TILE_PROP_NPC) {
+                    _npc_count++;
+                    var _raw_name = "";
+                    if (variable_instance_exists(id, "myName") && myName != "Terminal" && myName != "") {
+                        _raw_name = myName;
+                    } else if (variable_instance_exists(id, "npc_id")) {
+                        var _npc_names = ["Greg", "Sarah", "Kyle", "Lea", "David"];
+                        _raw_name = _npc_names[clamp(npc_id, 0, 4)];
+                    }
+
+                    var _sp_pos = string_pos(" ", _raw_name);
+                    if (_sp_pos > 1) {
+                        _npc_first_name = string_copy(_raw_name, 1, _sp_pos - 1);
+                    } else if (_raw_name != "") {
+                        _npc_first_name = _raw_name;
+                    }
+                }
+            }
+        }
+
+        // Determine room designation name
+        var _assigned_name = "Office";
+
+        if (_has_vault_pc) {
+            _assigned_name = "Security Office";
+        } else if (_suspect_dept != "") {
+            if (string_pos("Office", _suspect_dept) == 0 && string_pos("Dept", _suspect_dept) == 0 && string_pos("Ops", _suspect_dept) == 0) {
+                _assigned_name = _suspect_dept + " Office";
+            } else {
+                _assigned_name = _suspect_dept;
+            }
+        } else if (_npc_count == 1 && _npc_first_name != "") {
+            _assigned_name = _npc_first_name + "'s Office";
+        }
+
+        // Assign to all chunks in this cluster
+        for (var _k = 0; _k < array_length(_cl); _k++) {
+            var _ac = _cl[_k][0];
+            var _ar = _cl[_k][1];
+            _names[_ac][_ar] = _assigned_name;
+        }
+    }
+
+    return _names;
+}
