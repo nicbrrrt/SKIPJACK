@@ -169,29 +169,57 @@ if (!_is_jack_speaking) {
 	}
 }
 
+var _is_dungeon = instance_exists(obj_dungeon_generator) || (room == dungeon_test);
+
 var _partner_spr  = -1;
 var _partner_name = "";
 if (_partner_idx != -1) {
 	_partner_name = name[_partner_idx];
 	var _p_inst   = speaker[_partner_idx];
 	var _p_port   = portrait[_partner_idx];
+	var _p_name_l = string_lower(_partner_name);
 
-	if (instance_exists(_p_inst) && variable_instance_exists(_p_inst, "npc_spr") && _p_inst.npc_spr != -1) {
-		_partner_spr = _p_inst.npc_spr;
-	} else if (_p_port == spr_greg_portrait || _p_port == spr_npc1_portrait) {
-		_partner_spr = spr_npc1_idle;
-	} else if (_p_port == spr_npc2_portrait) {
-		_partner_spr = spr_npc2_idle;
-	} else if (_p_port == spr_kyle_portrait) {
-		_partner_spr = spr_kyle_idle;
-	} else if (_p_port == spr_lea_portrait) {
-		_partner_spr = spr_lea_idle;
-	} else if (_p_port == spr_david_portrait) {
-		_partner_spr = spr_david_idle;
-	} else if (_p_port == spr_clipper_portrait) {
-		_partner_spr = spr_clipper_idle;
-	} else if (instance_exists(_p_inst) && _p_inst.sprite_index != -1 && _p_inst.object_index != obj_dungeon_prop) {
-		_partner_spr = _p_inst.sprite_index;
+	if (_is_dungeon) {
+		// Dungeon mode: Use high-res visual novel stage portraits outside dialogue box
+		if (_p_port == spr_greg_dungeon_sprite || string_pos("greg", _p_name_l) > 0 || _p_port == spr_greg_portrait || _p_port == spr_npc1_portrait || (instance_exists(_p_inst) && variable_instance_exists(_p_inst, "npc_spr") && _p_inst.npc_spr == spr_npc1_idle)) {
+			_partner_spr = spr_greg_dungeon_sprite;
+		} else if (string_pos("kyle", _p_name_l) > 0 || _p_port == spr_kyle_portrait || (instance_exists(_p_inst) && variable_instance_exists(_p_inst, "npc_spr") && _p_inst.npc_spr == spr_kyle_idle)) {
+			_partner_spr = spr_kyle_dungeon_portrait;
+		} else if (string_pos("lea", _p_name_l) > 0 || _p_port == spr_lea_portrait || (instance_exists(_p_inst) && variable_instance_exists(_p_inst, "npc_spr") && _p_inst.npc_spr == spr_lea_idle)) {
+			_partner_spr = spr_lea_dungeon_portrait;
+		} else if (string_pos("david", _p_name_l) > 0 || _p_port == spr_david_portrait || (instance_exists(_p_inst) && variable_instance_exists(_p_inst, "npc_spr") && _p_inst.npc_spr == spr_david_idle)) {
+			_partner_spr = spr_david_dungeon_portrait;
+		} else if (string_pos("sarah", _p_name_l) > 0 || _p_port == spr_npc2_portrait || (instance_exists(_p_inst) && variable_instance_exists(_p_inst, "npc_spr") && _p_inst.npc_spr == spr_npc2_idle)) {
+			_partner_spr = spr_sarah_dungeon_portrait;
+		} else if (string_pos("jack", _p_name_l) > 0 || _p_port == spr_jack_portrait) {
+			_partner_spr = spr_jack_dungeon_portrait;
+		} else if (instance_exists(_p_inst) && variable_instance_exists(_p_inst, "npc_spr") && _p_inst.npc_spr != -1) {
+			_partner_spr = _p_inst.npc_spr;
+		} else if (_p_port == spr_greg_portrait || _p_port == spr_npc1_portrait) {
+			_partner_spr = spr_npc1_idle;
+		} else if (_p_port == spr_clipper_portrait) {
+			_partner_spr = spr_clipper_idle;
+		} else if (instance_exists(_p_inst) && _p_inst.sprite_index != -1 && _p_inst.object_index != obj_dungeon_prop) {
+			_partner_spr = _p_inst.sprite_index;
+		}
+	} else {
+		if (instance_exists(_p_inst) && variable_instance_exists(_p_inst, "npc_spr") && _p_inst.npc_spr != -1) {
+			_partner_spr = _p_inst.npc_spr;
+		} else if (_p_port == spr_greg_portrait || _p_port == spr_npc1_portrait) {
+			_partner_spr = spr_npc1_idle;
+		} else if (_p_port == spr_npc2_portrait) {
+			_partner_spr = spr_npc2_idle;
+		} else if (_p_port == spr_kyle_portrait) {
+			_partner_spr = spr_kyle_idle;
+		} else if (_p_port == spr_lea_portrait) {
+			_partner_spr = spr_lea_idle;
+		} else if (_p_port == spr_david_portrait) {
+			_partner_spr = spr_david_idle;
+		} else if (_p_port == spr_clipper_portrait) {
+			_partner_spr = spr_clipper_idle;
+		} else if (instance_exists(_p_inst) && _p_inst.sprite_index != -1 && _p_inst.object_index != obj_dungeon_prop) {
+			_partner_spr = _p_inst.sprite_index;
+		}
 	}
 }
 
@@ -204,17 +232,19 @@ var _right_cx     = _is_cam_cutscene ? 572 : 492;
 var _stage_mult   = _is_cam_cutscene ? 0.74 : 1.0;
 
 // --- LEFT STAGE: JACK ---
-var _jack_spr   = spr_jack_idle;
-var _jack_scale = (_is_jack_speaking ? 4.8 : 4.1) * _stage_mult;
-var _jack_col   = _is_jack_speaking ? c_white : make_color_rgb(105, 118, 142);
-var _jack_alpha = _is_jack_speaking ? 1.0 : 0.82;
-var _jack_bob   = (_is_jack_speaking && _talking) ? (abs(sin(current_time / 75)) * -4) : 0;
+var _jack_spr     = _is_dungeon ? spr_jack_dungeon_portrait : spr_jack_idle;
+var _jack_is_bust = (sprite_get_height(_jack_spr) > 48);
+var _jack_base_sc = _jack_is_bust ? (_is_jack_speaking ? 2.05 : 1.75) : (_is_jack_speaking ? 4.8 : 4.1);
+var _jack_scale   = _jack_base_sc * _stage_mult;
+var _jack_col     = _is_jack_speaking ? c_white : make_color_rgb(105, 118, 142);
+var _jack_alpha   = _is_jack_speaking ? 1.0 : 0.82;
+var _jack_bob     = (_is_jack_speaking && _talking) ? (abs(sin(current_time / 75)) * -4) : 0;
 
 if (_is_jack_speaking) {
 	// Soft cyan stage spotlight behind Jack when speaking
 	draw_set_alpha(0.14);
 	draw_set_color(c_aqua);
-	draw_circle(_left_cx, _stage_feet_y - 52 * _stage_mult, 54 * _stage_mult, false);
+	draw_circle(_left_cx, _stage_feet_y - (_jack_is_bust ? 86 : 52) * _stage_mult, (_jack_is_bust ? 70 : 54) * _stage_mult, false);
 }
 
 var _j_anim  = scr_dir_idle_anim(_jack_spr, "down", vn_stage_acc, 0);
@@ -226,7 +256,9 @@ draw_sprite_ext(_jack_spr, _j_frame, _j_dx, _j_dy, _jack_scale, _jack_scale, 0, 
 // --- RIGHT STAGE: CONVERSATION PARTNER NPC (if present) ---
 if (_partner_spr != -1) {
 	var _npc_speaking = !_is_jack_speaking;
-	var _npc_scale    = (_npc_speaking ? 4.8 : 4.1) * _stage_mult;
+	var _npc_is_bust  = (sprite_get_height(_partner_spr) > 48);
+	var _npc_base_sc  = _npc_is_bust ? (_npc_speaking ? 2.05 : 1.75) : (_npc_speaking ? 4.8 : 4.1);
+	var _npc_scale    = _npc_base_sc * _stage_mult;
 	var _npc_col      = _npc_speaking ? c_white : make_color_rgb(105, 118, 142);
 	var _npc_alpha    = _npc_speaking ? 1.0 : 0.82;
 	var _npc_bob      = (_npc_speaking && _talking) ? (abs(sin(current_time / 75)) * -4) : 0;
@@ -235,7 +267,7 @@ if (_partner_spr != -1) {
 		// Soft amber/gold stage spotlight behind NPC when speaking
 		draw_set_alpha(0.14);
 		draw_set_color(make_color_rgb(255, 200, 55));
-		draw_circle(_right_cx, _stage_feet_y - 52 * _stage_mult, 54 * _stage_mult, false);
+		draw_circle(_right_cx, _stage_feet_y - (_npc_is_bust ? 86 : 52) * _stage_mult, (_npc_is_bust ? 70 : 54) * _stage_mult, false);
 	}
 
 	var _n_anim  = scr_dir_idle_anim(_partner_spr, "down", vn_stage_acc, 0);
