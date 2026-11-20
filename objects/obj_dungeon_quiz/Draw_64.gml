@@ -9,7 +9,7 @@ var _sx = (shake_timer > 0) ? irandom_range(-4, 4) : 0;
 var _sy = (shake_timer > 0) ? irandom_range(-4, 4) : 0;
 
 var _cx = (_gui_w * 0.5) + _sx;
-var _cy = (_gui_h * 0.5) + _sy;
+var _cy = (_gui_h * 0.5) - 16 + _sy;
 
 var _curr      = variable_global_exists("floor_curriculum") ? global.floor_curriculum : scr_get_floor_curriculum(1, 4);
 var _guided    = _curr.guided_ui;
@@ -145,6 +145,17 @@ if (status_msg != "") {
 
 draw_set_color(make_color_rgb(145, 165, 190));
 draw_text_transformed(_cx, _y2 - 12, (success_timer > 0) ? "[E / ENTER / CLICK] Open Gold Key Vault >" : "[W/S or 1-3 or CLICK] Select Red Flag   |   [E / ENTER] Confirm   |   [ESC] Cancel", 0.68, 0.68, 0);
+
+// Clickable Cyber Terms Bar below Key Vault panel + Quick-Definition Popup
+var _qz_scan = [artifact_header, artifact_body, prompt_text, current_takeaway];
+for (var _qi = 0; _qi < array_length(quiz_options); _qi++) {
+    array_push(_qz_scan, quiz_options[_qi]);
+}
+var _qz_terms = scr_scan_clickable_terms(_qz_scan, 5);
+if (array_length(_qz_terms) > 0) {
+    scr_draw_clickable_term_bar(_x1 + 12, _y2 + 4, _pw - 24, _qz_terms, "CLICK ANY TERM TO DEFINE & ARCHIVE TO CODEX:");
+}
+scr_draw_term_quick_popup();
 
 draw_set_font(fnt_default);
 draw_set_halign(fa_left);

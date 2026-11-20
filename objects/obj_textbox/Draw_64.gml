@@ -540,6 +540,23 @@ draw_set_alpha(_pulse);
 draw_set_color(_accent_col);
 draw_text_transformed(vn_panel_x2 - 14, vn_panel_y2 - 12, _prompt, 0.80, 0.80, 0);
 
+// ---------------------------------------------------------------------------
+// 7. Clickable Cyber Terms Bar (above VN panel) + Quick-Definition Popup
+// ---------------------------------------------------------------------------
+var _tb_scan_src = [];
+if (type[page] == 0 && is_string(text[page])) {
+	array_push(_tb_scan_src, text[page]);
+} else if (is_array(text[page])) {
+	for (var _ti = 0; _ti < array_length(text[page]); _ti++) {
+		array_push(_tb_scan_src, string(text[page][_ti]));
+	}
+}
+var _tb_terms = scr_scan_clickable_terms(_tb_scan_src, 4);
+if (array_length(_tb_terms) > 0) {
+	scr_draw_clickable_term_bar(vn_panel_x1 + 12, vn_panel_y1 - 64, (vn_panel_x2 - vn_panel_x1 - 24), _tb_terms, "CLICK TERM TO DEFINE & ARCHIVE:");
+}
+scr_draw_term_quick_popup();
+
 draw_set_alpha(1);
 draw_set_halign(fa_left);
 draw_set_valign(fa_top);

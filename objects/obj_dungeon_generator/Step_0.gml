@@ -5,6 +5,7 @@
 
 if (variable_instance_exists(id, "is_intern_mode") && is_intern_mode) exit;
 if (!gen_complete) exit;
+if (scr_handle_term_popup_input()) exit;
 
 // Ensure Jack is snapped into ROOM_START even if inst_DT_JACK was created after obj_dungeon_generator
 if (variable_instance_exists(id, "jack_spawn_snapped") && !jack_spawn_snapped && instance_exists(obj_jack)) {
@@ -42,9 +43,13 @@ if (keyboard_check(vk_control) && keyboard_check_pressed(ord("U"))) {
         obj_codex_manager.tab_locked[2] = false;
         obj_codex_manager.tab_locked[3] = false;
     }
+    scr_init_cyber_glossary();
+    for (var _gi = 0; _gi < array_length(global.cyber_glossary); _gi++) {
+        global.codex_unlocked_terms[$ global.cyber_glossary[_gi].id] = true;
+    }
     quest_toast_timer = 180;
-    quest_toast_title = "DEMO: ALL 3 CHAPTERS UNLOCKED!";
-    quest_toast_sub   = "Caesar, Vigenere & Atbash are now unlocked on Chapter Select!";
+    quest_toast_title = "DEMO: ALL CHAPTERS & CODEX UNLOCKED!";
+    quest_toast_sub   = "Caesar, Vigenere, Atbash & all 27 Homeroom Codex entries unlocked!";
     quest_toast_col   = c_lime;
     audio_play_sound(snd_correct_ping, 10, false);
 }

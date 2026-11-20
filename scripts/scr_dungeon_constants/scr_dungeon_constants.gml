@@ -3056,3 +3056,552 @@ function scr_init_case_dossier(_case, _floor) {
     global.pc_screen_mode         = 0;
     scr_case_recompute();
 }
+
+// =============================================================================
+// CYBERSECURITY GLOSSARY, CLICKABLE TERM SCANNER & QUICK-DEFINITION POPUP
+// =============================================================================
+function scr_init_cyber_glossary() {
+    if (!variable_global_exists("codex_unlocked_terms") || !is_struct(global.codex_unlocked_terms)) {
+        global.codex_unlocked_terms = {};
+    }
+    if (!variable_global_exists("codex_new_count")) {
+        global.codex_new_count = 0;
+    }
+    if (!variable_global_exists("active_term_popup")) {
+        global.active_term_popup = undefined;
+    }
+    if (!variable_global_exists("active_term_popup_just_new")) {
+        global.active_term_popup_just_new = false;
+    }
+    if (!variable_global_exists("term_popup_block_frames")) {
+        global.term_popup_block_frames = 0;
+    }
+    if (variable_global_exists("cyber_glossary") && is_array(global.cyber_glossary) && array_length(global.cyber_glossary) > 0) {
+        return;
+    }
+
+    global.cyber_branch_names = [
+        "SOCIAL ENGINEERING",
+        "IDENTITY & ACCESS",
+        "MALWARE & ENDPOINTS",
+        "NETWORK & PHYSICAL",
+        "CRYPTOGRAPHY"
+    ];
+
+    global.cyber_glossary = [
+        // ── BRANCH 0: SOCIAL ENGINEERING ─────────────────────────────────────
+        {
+            id: "phishing",
+            term: "Phishing",
+            branch_idx: 0,
+            branch_name: "SOCIAL ENGINEERING",
+            keywords: ["phish", "fake login", "urgent invoice", "payroll pdf", "suspicious email", "fake portal"],
+            short_def: "Phishing is a scam where attackers send fake emails or messages pretending to be a trusted company, boss, or coworker to trick you into clicking a malicious link or typing your password.",
+            deep_how: "Attackers craft messages with artificial urgency ('Account suspended in 2 hours!', 'Overdue invoice') to bypass careful thinking. Clicking the link takes you to a cloned login page that steals your credentials or downloads malware.",
+            deep_real: "Over 80% of workplace breaches start with a single phishing email. Even one employee entering their password on a fake Microsoft or Payroll portal gives attackers an entry point into the whole office.",
+            deep_defense: "Inspect the sender's actual email domain, hover over links before clicking, never enter passwords from an email link, and verify urgent requests through an official internal channel."
+        },
+        {
+            id: "typosquatting",
+            term: "Look-Alike Domain",
+            branch_idx: 0,
+            branch_name: "SOCIAL ENGINEERING",
+            keywords: ["typosquat", "look-alike", "lookalike", "payr0ll", "skipj4ck", "misspelled domain", ".net", "fake domain"],
+            short_def: "A look-alike domain (typosquatting) is a fake website address that swaps similar letters or numbers—like replacing 'o' with '0' (payr0ll) or '.com' with '.net'—to impersonate a real company.",
+            deep_how: "Attackers register domains one character off from legitimate services (e.g. 'skipj4ck-hr.net' instead of 'skipjack.com'). At a quick glance, victims trust the URL and enter their login details.",
+            deep_real: "In automated email clients, display names can say 'Skipjack HR' while the underlying address is '@skipj4ck-portal.com'. Look-alike domains are the #1 disguise used in credential-harvesting phishing.",
+            deep_defense: "Read every character of a URL and sender address carefully. Bookmark official company login pages instead of clicking links inside emails."
+        },
+        {
+            id: "pretexting",
+            term: "Pretexting",
+            branch_idx: 0,
+            branch_name: "SOCIAL ENGINEERING",
+            keywords: ["pretext", "impersonat", "fake story", "executive", "director", "urgent wire", "gift card"],
+            short_def: "Pretexting is when an attacker invents a believable fake story or impersonates an authority figure (like an executive, HR, or auditor) to pressure an employee into breaking security rules.",
+            deep_how: "Instead of hacking software, the attacker hacks human helpfulness and fear of authority. They research staff names online and claim an 'emergency' requires bypassing normal verification steps.",
+            deep_real: "Common examples include 'CEO Fraud' (fake urgent wire-transfer or gift-card requests) or someone calling pretending to be an external auditor needing immediate file access.",
+            deep_defense: "Never approve sensitive actions, password resets, or money transfers based solely on urgency or authority. Always verify via a second, trusted channel (call-back or in-person)."
+        },
+        {
+            id: "vishing",
+            term: "Vishing (Voice Phishing)",
+            branch_idx: 0,
+            branch_name: "SOCIAL ENGINEERING",
+            keywords: ["vishing", "phone call", "caller id", "voice", "called", "spoofed number"],
+            short_def: "Vishing (Voice Phishing) is a phone-based scam where attackers spoof Caller ID and impersonate IT, banks, or managers to talk victims into reading out passwords or 2FA codes.",
+            deep_how: "Caller ID can be easily faked (spoofed) to display your company's real IT Helpdesk number. Once you answer, the scammer creates panic ('Your account is being hacked right now!') and asks for your 6-digit login code.",
+            deep_real: "Real IT staff and banks NEVER need your password or your 6-digit SMS/Authenticator code to 'fix' or 'secure' your account. Sharing that code lets the attacker log in as you immediately.",
+            deep_defense: "Hang up and dial the official internal Helpdesk extension yourself. Never read 2FA/OTP codes aloud to anyone over the phone."
+        },
+        {
+            id: "tech_support_scam",
+            term: "Tech-Support Scam",
+            branch_idx: 0,
+            branch_name: "SOCIAL ENGINEERING",
+            keywords: ["tech-support", "tech support", "helpdesk", "popup", "unsolicited", "remote support"],
+            short_def: "A tech-support scam uses fake 'VIRUS DETECTED!' popups or unsolicited IT calls to scare users into installing remote-control software that hands the computer over to attackers.",
+            deep_how: "Full-screen browser popups play loud alarms and claim your PC is infected, displaying a fake support number. Calling the number connects you to a scammer who talks you into downloading remote access tools.",
+            deep_real: "Once remote access is granted, attackers can copy sensitive files, install persistent backdoors, or demand payment for 'repairs' on a PC that was never infected in the first place.",
+            deep_defense: "Close suspicious browser popups with Task Manager / Ctrl+W—never call numbers on screen. Only accept IT support through your organization's verified ticket system."
+        },
+
+        // ── BRANCH 1: IDENTITY & ACCESS ──────────────────────────────────────
+        {
+            id: "credential_stuffing",
+            term: "Credential Stuffing",
+            branch_idx: 1,
+            branch_name: "IDENTITY & ACCESS",
+            keywords: ["credential stuffing", "leaked database", "automated login", "bot login", "breached password"],
+            short_def: "Credential stuffing is an automated attack where hackers take passwords leaked from one website breach and test them across thousands of other sites (like your work email or bank).",
+            deep_how: "Bots load millions of username/password pairs from public dark-web leaks (e.g., an old gaming forum breach) and rapidly try logging into corporate portals, banks, and cloud apps.",
+            deep_real: "Even if your company's servers were never hacked, reusing the same password from a breached hobby site lets bots walk straight into your work account on the first try.",
+            deep_defense: "Use a completely unique password for every single account (managed by a Password Manager) and enable 2FA/MFA so a stolen password alone cannot log in."
+        },
+        {
+            id: "password_reuse",
+            term: "Password Reuse",
+            branch_idx: 1,
+            branch_name: "IDENTITY & ACCESS",
+            keywords: ["reused", "same password", "password reuse", "gaming password", "shared password", "weak password"],
+            short_def: "Password reuse means using the same (or slightly modified) password across multiple websites. If one small site gets hacked, attackers instantly have the key to your work and personal accounts.",
+            deep_how: "Humans naturally reuse passwords because memorizing dozens of complex strings is hard. Attackers rely on this habit—compromise one low-security site, then unlock high-value corporate accounts.",
+            deep_real: "Changing 'Spring2025!' to 'Spring2026!' is predictable and easily cracked by automated rules. Every reused password links the security of your workplace to the weakest website you ever signed up for.",
+            deep_defense: "Never reuse work passwords on personal sites. Let a Password Manager generate random 16+ character passwords for every account."
+        },
+        {
+            id: "password_manager",
+            term: "Password Manager",
+            branch_idx: 1,
+            branch_name: "IDENTITY & ACCESS",
+            keywords: ["password manager", "vault", "unique password", "autofill"],
+            short_def: "A Password Manager is an encrypted digital vault that creates, stores, and auto-fills long, unique passwords for every website so you only have to remember one strong master password.",
+            deep_how: "It generates random passwords (like 'k9#Vm2!qP8xL4@zR') for each account and encrypts them locally with strong cryptography. Bonus: it refuses to auto-fill on look-alike phishing domains!",
+            deep_real: "Because a Password Manager matches the exact domain name before auto-filling, it protects against both password reuse AND typosquatting phishing pages.",
+            deep_defense: "Use an approved Password Manager for all work and personal logins, protected by a long master passphrase and 2FA."
+        },
+        {
+            id: "mfa_2fa",
+            term: "2FA / MFA",
+            branch_idx: 1,
+            branch_name: "IDENTITY & ACCESS",
+            keywords: ["2fa", "mfa", "two-factor", "multi-factor", "authenticator", "otp"],
+            short_def: "Two-Factor / Multi-Factor Authentication (2FA/MFA) requires a second proof of identity—like a 6-digit code from an Authenticator App or a hardware key—in addition to your password.",
+            deep_how: "Authentication relies on factors: Something You Know (password), Something You Have (phone/hardware token), and Something You Are (fingerprint/face). Combining at least two stops password-only attacks.",
+            deep_real: "Microsoft and Google security studies show that enabling MFA blocks over 99% of automated account compromise attacks, even when the attacker already knows your password.",
+            deep_defense: "Prefer Authenticator Apps or FIDO2 hardware keys over SMS text codes, and never approve login prompts you did not initiate."
+        },
+        {
+            id: "mfa_fatigue",
+            term: "MFA Push Bombing",
+            branch_idx: 1,
+            branch_name: "IDENTITY & ACCESS",
+            keywords: ["push bombing", "mfa fatigue", "approve prompt", "login prompt", "repeated prompts", "approve"],
+            short_def: "MFA Push Bombing (MFA Fatigue) is when an attacker who already has your password spams your phone with dozens of 'Approve Login?' notifications until you accidentally tap Approve just to make them stop.",
+            deep_how: "If an organization uses simple 'Approve / Deny' push notifications, attackers run a script that triggers login prompts at 2 AM or during busy work hours, hoping the tired user hits 'Yes' out of annoyance.",
+            deep_real: "Major tech breaches have occurred simply because an employee tapped 'Approve' on an unexpected MFA prompt after 20 minutes of nonstop buzzing.",
+            deep_defense: "NEVER approve an MFA prompt you didn't just trigger yourself. Tap 'Deny / Report Fraud' and change your password immediately—unexpected prompts mean someone already has your password!"
+        },
+        {
+            id: "oauth_permissions",
+            term: "OAuth & App Permissions",
+            branch_idx: 1,
+            branch_name: "IDENTITY & ACCESS",
+            keywords: ["oauth", "permissions", "sign in with", "read all files", "third-party app", "consent"],
+            short_def: "OAuth lets you sign into third-party apps using your work or Google/Microsoft account—but granting broad permissions ('Read/Write all files & emails') hands attackers silent access without needing your password.",
+            deep_how: "In an 'OAuth Consent Phishing' attack, a fake productivity plugin or browser extension asks you to click 'Allow' on a real login screen. Once approved, it receives an API token that bypasses MFA.",
+            deep_real: "Even after you change your password, an approved malicious OAuth app can keep reading your inbox and cloud drive until an admin revokes its token.",
+            deep_defense: "Always read the permission list before clicking 'Allow'. Only connect IT-approved apps and periodically revoke unused third-party app connections."
+        },
+
+        // ── BRANCH 2: MALWARE & ENDPOINTS ────────────────────────────────────
+        {
+            id: "ransomware",
+            term: "Ransomware",
+            branch_idx: 2,
+            branch_name: "MALWARE & ENDPOINTS",
+            keywords: ["ransomware", "encrypt", "locked files", "ransom", ".locked"],
+            short_def: "Ransomware is malicious software that scrambles (encrypts) all files on a computer or company network so nobody can open them, then demands payment to unlock them.",
+            deep_how: "After sneaking in via phishing, an infected USB, or a fake update, ransomware quietly spreads across shared network drives and encrypts documents with a key only the attacker holds.",
+            deep_real: "Ransomware can halt hospitals, schools, and businesses for days. Paying the ransom doesn't guarantee your files back and funds future attacks.",
+            deep_defense: "Keep offline/immutable backups (the 3-2-1 backup rule), never run unverified attachments or fake updates, and disconnect an infected PC from the network immediately."
+        },
+        {
+            id: "rat_malware",
+            term: "Remote Access Trojan (RAT)",
+            branch_idx: 2,
+            branch_name: "MALWARE & ENDPOINTS",
+            keywords: ["rat", "remote access", "backdoor", "trojan", "keylog", "remote control"],
+            short_def: "A Remote Access Trojan (RAT) is malware disguised as a harmless file or tool that secretly gives an attacker full remote control over your screen, keyboard, and files.",
+            deep_how: "Unlike legitimate IT remote tools, a RAT hides in the background, logs keystrokes, captures screenshots, and opens an outbound connection so attackers bypass firewalls.",
+            deep_real: "RATs often arrive disguised as 'Invoice_Final.exe', cracked software, or remote-support tools installed during a tech-support scam call.",
+            deep_defense: "Only install software from official IT catalogs, watch for unknown background processes, and keep endpoint antivirus/EDR active."
+        },
+        {
+            id: "usb_baiting",
+            term: "USB Baiting & HID Injection",
+            branch_idx: 2,
+            branch_name: "MALWARE & ENDPOINTS",
+            keywords: ["usb", "flash drive", "thumb drive", "hid", "rubber ducky", "lost drive"],
+            short_def: "USB Baiting leaves 'lost' flash drives in parking lots or lobbies hoping someone plugs them in. Some look like storage drives but act as a fake keyboard (HID Injection) that types hack commands in milliseconds.",
+            deep_how: "Even if AutoRun is disabled, a malicious USB (like a 'Rubber Ducky') tells Windows/Mac it is a USB keyboard and types hundreds of invisible terminal commands before you can react.",
+            deep_real: "Plugging in an unknown USB 'just to see whose it is and return it' is a classic physical-to-digital breach vector.",
+            deep_defense: "Never plug unknown or personal USB drives into a work computer. Hand found drives directly to Physical Security or IT."
+        },
+        {
+            id: "malvertising",
+            term: "Malvertising & Fake Updates",
+            branch_idx: 2,
+            branch_name: "MALWARE & ENDPOINTS",
+            keywords: ["malvertising", "fake update", "browser update", "ad link", "sponsored", "installer"],
+            short_def: "Malvertising uses paid search ads or fake 'Update Chrome/PDF Reader Now!' popups to trick users into downloading malware disguised as legitimate software installers.",
+            deep_how: "Attackers buy top search-engine ad slots for popular tools (like Zoom, Teams, or Notepad++) or inject fake update banners into compromised websites, serving trojanized '.exe' / '.msi' files.",
+            deep_real: "Real web browsers and corporate apps update automatically in the background or through your OS/IT Software Center—never via random website banners.",
+            deep_defense: "Skip 'Sponsored' ad links when downloading software, use official vendor URLs or IT Software Center, and ignore popup update prompts."
+        },
+        {
+            id: "shadow_it",
+            term: "Shadow IT",
+            branch_idx: 2,
+            branch_name: "MALWARE & ENDPOINTS",
+            keywords: ["shadow it", "unapproved", "personal cloud", "browser extension", "free converter"],
+            short_def: "Shadow IT means using unapproved apps, free online file converters, or personal cloud drives for company work—bypassing IT security checks and exposing sensitive data.",
+            deep_how: "Employees often install unvetted browser extensions or upload confidential PDFs to random 'Free PDF Merge' websites to save time, unknowingly handing company data to third-party servers.",
+            deep_real: "Malicious browser extensions can read every page you visit, capture session cookies, and steal logins without triggering traditional antivirus.",
+            deep_defense: "Use only IT-approved tools and extensions for company data. If you need a new tool, request an official security review."
+        },
+
+        // ── BRANCH 3: NETWORK & PHYSICAL ─────────────────────────────────────
+        {
+            id: "public_wifi",
+            term: "Unsecured Public Wi-Fi",
+            branch_idx: 3,
+            branch_name: "NETWORK & PHYSICAL",
+            keywords: ["public wi-fi", "public wifi", "coffee shop", "evil twin", "free_wifi", "hotspot", "open wi-fi"],
+            short_def: "Unsecured public Wi-Fi (like coffee-shop or airport networks without a password) lets nearby attackers spy on unencrypted traffic or set up fake 'Evil Twin' hotspots with matching names.",
+            deep_how: "An attacker sits in the same cafe with a laptop broadcasting 'Cafe_Guest_Free_WiFi'. Anyone who connects routes all their internet requests straight through the attacker's device.",
+            deep_real: "Working on company dashboards over open Wi-Fi without a VPN exposes session tokens and data to anyone sitting a few tables away.",
+            deep_defense: "Use your mobile hotspot or always turn ON your Corporate VPN before doing any work on public Wi-Fi."
+        },
+        {
+            id: "packet_sniffing",
+            term: "Packet Sniffing",
+            branch_idx: 3,
+            branch_name: "NETWORK & PHYSICAL",
+            keywords: ["packet sniff", "sniffing", "intercept", "unencrypted traffic", "plaintext traffic"],
+            short_def: "Packet sniffing is capturing and reading the small chunks of data ('packets') traveling over a network—like eavesdropping on a postcard sent without an envelope.",
+            deep_how: "Tools like Wireshark or rogue Wi-Fi routers record every packet passing through a shared network. If the traffic isn't encrypted (HTTP instead of HTTPS, or no VPN), passwords and messages are readable in plain text.",
+            deep_real: "On shared or open Wi-Fi, packet sniffing lets attackers hijack active login sessions (session cookies) even without knowing your password.",
+            deep_defense: "Always verify HTTPS (padlock) on websites and keep an encrypted VPN enabled on untrusted networks."
+        },
+        {
+            id: "vpn",
+            term: "VPN (Encrypted Tunnel)",
+            branch_idx: 3,
+            branch_name: "NETWORK & PHYSICAL",
+            keywords: ["vpn", "aes-256", "encrypted tunnel", "virtual private network"],
+            short_def: "A Virtual Private Network (VPN) wraps all your internet traffic inside an encrypted tunnel (often using AES-256 encryption) so hackers on public Wi-Fi cannot read or tamper with it.",
+            deep_how: "Before data leaves your laptop, the VPN client encrypts it and sends it straight to your company's secure VPN server. Anyone sniffing the local Wi-Fi only sees scrambled, unreadable noise.",
+            deep_real: "A Corporate VPN is essential whenever working remotely from cafes, hotels, or home networks to protect internal resources.",
+            deep_defense: "Turn ON your Corporate VPN before opening work apps outside the office, and verify it shows 'CONNECTED'."
+        },
+        {
+            id: "wpa_security",
+            term: "WPA2 / WPA3 Encryption",
+            branch_idx: 3,
+            branch_name: "NETWORK & PHYSICAL",
+            keywords: ["wpa2", "wpa3", "wi-fi encryption", "wifi security"],
+            short_def: "WPA2 and WPA3 are modern Wi-Fi security standards that scramble wireless signals between your device and the router so outsiders cannot eavesdrop on your connection.",
+            deep_how: "Unlike older broken protocols (WEP) or Open networks, WPA2/WPA3 require authentication and encrypt each device's wireless traffic with unique session keys.",
+            deep_real: "Connecting to an 'OPEN' Wi-Fi network without WPA2/WPA3 leaves your wireless packets exposed in the air to anyone within range.",
+            deep_defense: "Only connect to password-protected WPA2 or WPA3 Wi-Fi networks, and pair them with a VPN when away from the office."
+        },
+        {
+            id: "tailgating",
+            term: "Tailgating (Piggybacking)",
+            branch_idx: 3,
+            branch_name: "NETWORK & PHYSICAL",
+            keywords: ["tailgat", "piggyback", "badge", "hold the door", "propped door", "physical"],
+            short_def: "Tailgating is when an unauthorized person slips through a secured badge-access door right behind an employee—often by carrying coffee or boxes so someone politely holds the door.",
+            deep_how: "Physical security protects servers, desks, and unlocked PCs. Attackers exploit everyday politeness ('Mind holding the door? My badge is in my bag!') to walk past keycard readers.",
+            deep_real: "Once inside a restricted floor, an attacker can plug in rogue devices, photograph sticky-note passwords, or access unattended workstations.",
+            deep_defense: "Never hold badge-locked doors open for anyone without seeing their valid company badge. Politely ask visitors to check in at Reception."
+        },
+        {
+            id: "shoulder_surfing",
+            term: "Shoulder Surfing & Clean Desk",
+            branch_idx: 3,
+            branch_name: "NETWORK & PHYSICAL",
+            keywords: ["shoulder surf", "sticky note", "unlocked", "win+l", "screen lock", "clean desk"],
+            short_def: "Shoulder surfing is peeking over someone's shoulder (or reading sticky notes on an unlocked desk) to steal passwords, PINs, or confidential screen data.",
+            deep_how: "Leaving your workstation unlocked when grabbing coffee—or taping a password sticky note under your keyboard—turns a 5-second walk-by into a full account compromise.",
+            deep_real: "In shared offices, cafes, and elevators, onlookers or security cameras can easily capture visible passwords or sensitive client spreadsheets.",
+            deep_defense: "Lock your screen every time you stand up (Win+L on Windows, Ctrl+Cmd+Q on Mac), never write passwords on sticky notes, and use privacy screen filters in public."
+        },
+
+        // ── BRANCH 4: CRYPTOGRAPHY ───────────────────────────────────────────
+        {
+            id: "plaintext_ciphertext",
+            term: "Plaintext & Ciphertext",
+            branch_idx: 4,
+            branch_name: "CRYPTOGRAPHY",
+            keywords: ["plaintext", "ciphertext", "encrypt", "decrypt", "unreadable"],
+            short_def: "Plaintext is normal, human-readable data (like 'HELLO'). Ciphertext is the scrambled, unreadable version produced by encryption (like 'KHOOR') so unauthorized people cannot read it.",
+            deep_how: "Encryption converts Plaintext -> Ciphertext using an algorithm and a key. Decryption reverses the process (Ciphertext -> Plaintext) only for someone holding the matching key.",
+            deep_real: "Every HTTPS website, messaging app, and password vault relies on converting sensitive plaintext into ciphertext before storing or transmitting it.",
+            deep_defense: "Never store or transmit passwords or sensitive records in plaintext—always enforce strong encryption at rest and in transit."
+        },
+        {
+            id: "caesar_cipher",
+            term: "Caesar Cipher",
+            branch_idx: 4,
+            branch_name: "CRYPTOGRAPHY",
+            keywords: ["caesar", "shift", "offset", "wrap-around", "rotation"],
+            short_def: "The Caesar Cipher is a classic substitution cipher that shifts every letter forward in the alphabet by a fixed number (e.g., Shift +3 turns A into D, wrapping Z back to C).",
+            deep_how: "To decrypt a Caesar-encrypted word, shift every letter backward by the exact same offset (mod 26). Because there are only 25 possible shifts, a computer—or patient human—can brute-force all of them in seconds.",
+            deep_real: "While too weak for modern security, the Caesar Cipher teaches the foundational concepts of keys, modular wrap-around, and why small keyspaces are vulnerable to brute-force attacks.",
+            deep_defense: "Modern systems never use single-shift ciphers; they use massive 128-bit or 256-bit keys that cannot be brute-forced."
+        },
+        {
+            id: "vigenere_cipher",
+            term: "Vigenere Cipher",
+            branch_idx: 4,
+            branch_name: "CRYPTOGRAPHY",
+            keywords: ["vigenere", "keyword", "polyalphabetic", "repeating key"],
+            short_def: "The Vigenere Cipher upgrades the Caesar Cipher by using a repeating keyword (e.g. 'KEY') so each letter in the message is shifted by a different amount instead of one fixed number.",
+            deep_how: "Each letter of the keyword corresponds to a shift (A=0, B=1 ... Z=25). The keyword repeats across the message, hiding simple single-letter frequency patterns that break Caesar ciphers.",
+            deep_real: "Known for centuries as 'le chiffre indechiffrable' (the indecipherable cipher), it demonstrates how polyalphabetic keys dramatically strengthen encryption—though repeating short keys can still be analyzed.",
+            deep_defense: "Modern stream and block ciphers use non-repeating cryptographic keys and initialization vectors (IVs) to prevent pattern analysis."
+        },
+        {
+            id: "atbash_cipher",
+            term: "Atbash Cipher",
+            branch_idx: 4,
+            branch_name: "CRYPTOGRAPHY",
+            keywords: ["atbash", "mirror", "reversed alphabet", "z=a"],
+            short_def: "The Atbash Cipher is a mirror-substitution cipher that flips the alphabet completely: A swaps with Z, B swaps with Y, C swaps with X, and so on.",
+            deep_how: "Because the mapping is perfectly symmetrical (A<->Z, M<->N), encrypting and decrypting use the exact same mirror rule—no numeric key is needed.",
+            deep_real: "Atbash shows the difference between encoding (a fixed, secretless rule) and true keyed encryption: once someone recognizes the pattern, there is no secret key protecting the message.",
+            deep_defense: "True security never relies on keeping the algorithm secret ('security through obscurity')—it relies on strong, secret cryptographic keys."
+        },
+        {
+            id: "symmetric_asymmetric",
+            term: "Symmetric vs. Asymmetric",
+            branch_idx: 4,
+            branch_name: "CRYPTOGRAPHY",
+            keywords: ["symmetric", "asymmetric", "public key", "private key", "aes", "rsa", "tls"],
+            short_def: "Symmetric encryption (like AES-256) uses one shared secret key to lock and unlock data. Asymmetric encryption (like RSA) uses a pair: a Public Key to lock and a Private Key to unlock.",
+            deep_how: "Symmetric encryption is blazingly fast for encrypting files and VPN tunnels, while Asymmetric encryption solves the 'how do we safely share the key over the internet?' problem during HTTPS/TLS handshakes.",
+            deep_real: "Every time you see the padlock in your browser (HTTPS), your browser uses Asymmetric crypto to safely agree on a temporary Symmetric AES key for your session.",
+            deep_defense: "Use modern vetted standards like AES-256, ChaCha20, and TLS 1.3—never invent custom encryption algorithms."
+        }
+    ];
+}
+
+function scr_get_cyber_glossary() {
+    scr_init_cyber_glossary();
+    return global.cyber_glossary;
+}
+
+function scr_get_cyber_glossary_unlocked_count() {
+    scr_init_cyber_glossary();
+    var _n = 0;
+    for (var i = 0; i < array_length(global.cyber_glossary); i++) {
+        if (variable_struct_exists(global.codex_unlocked_terms, global.cyber_glossary[i].id)) _n++;
+    }
+    return _n;
+}
+
+function scr_unlock_cyber_term(_term_struct) {
+    scr_init_cyber_glossary();
+    if (!is_struct(_term_struct)) return;
+    var _is_new = !variable_struct_exists(global.codex_unlocked_terms, _term_struct.id);
+    if (_is_new) {
+        global.codex_unlocked_terms[$ _term_struct.id] = true;
+        global.codex_new_count++;
+    }
+    global.active_term_popup          = _term_struct;
+    global.active_term_popup_just_new = _is_new;
+}
+
+function scr_scan_clickable_terms(_text_array, _max_terms) {
+    scr_init_cyber_glossary();
+    if (is_undefined(_max_terms)) _max_terms = 5;
+    var _joined = "";
+    if (is_string(_text_array)) {
+        _joined = string_lower(_text_array);
+    } else if (is_array(_text_array)) {
+        for (var i = 0; i < array_length(_text_array); i++) {
+            _joined += " " + string_lower(string(_text_array[i]));
+        }
+    }
+    var _found = [];
+    for (var g = 0; g < array_length(global.cyber_glossary); g++) {
+        var _entry = global.cyber_glossary[g];
+        var _kws   = _entry.keywords;
+        var _hit   = false;
+        for (var k = 0; k < array_length(_kws); k++) {
+            if (string_pos(_kws[k], _joined) > 0) {
+                _hit = true;
+                break;
+            }
+        }
+        if (_hit) {
+            array_push(_found, _entry);
+            if (array_length(_found) >= _max_terms) break;
+        }
+    }
+    return _found;
+}
+
+function scr_draw_clickable_term_bar(_x, _y, _max_w, _term_list, _label) {
+    scr_init_cyber_glossary();
+    if (!is_array(_term_list) || array_length(_term_list) == 0) return false;
+    if (is_undefined(_label)) _label = "CLICK TERM TO DEFINE & ARCHIVE:";
+
+    var _mx = device_mouse_x_to_gui(0);
+    var _my = device_mouse_y_to_gui(0);
+    var _can_click = (global.active_term_popup == undefined) && (global.term_popup_block_frames <= 0);
+    var _clicked   = _can_click && mouse_check_button_pressed(mb_left);
+    var _did_click = false;
+
+    draw_set_font(fnt_dialogue);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_middle);
+
+    draw_set_color(make_color_rgb(130, 215, 255));
+    draw_text_transformed(_x, _y + 7, _label, 0.56, 0.56, 0);
+
+    var _cx = _x;
+    var _cy = _y + 17;
+    var _ph = 18;
+    var _gap = 6;
+
+    for (var i = 0; i < array_length(_term_list); i++) {
+        var _t       = _term_list[i];
+        var _unlocked = variable_struct_exists(global.codex_unlocked_terms, _t.id);
+        var _tag     = _unlocked ? ("[✓ " + _t.term + "]") : ("[? " + _t.term + "]");
+        var _pw      = string_width(_tag) * 0.58 + 12;
+
+        if (_cx + _pw > _x + _max_w && _cx > _x) {
+            _cx = _x;
+            _cy += _ph + 4;
+        }
+
+        var _hov = _can_click && (_mx >= _cx && _mx <= _cx + _pw && _my >= _cy && _my <= _cy + _ph);
+        var _bg  = _hov ? make_color_rgb(28, 72, 105) : (_unlocked ? make_color_rgb(14, 42, 34) : make_color_rgb(18, 34, 62));
+        var _bd  = _hov ? c_yellow : (_unlocked ? make_color_rgb(90, 235, 150) : make_color_rgb(90, 200, 255));
+
+        draw_set_color(_bg);
+        draw_rectangle(_cx, _cy, _cx + _pw, _cy + _ph, false);
+        draw_set_color(_bd);
+        draw_rectangle(_cx, _cy, _cx + _pw, _cy + _ph, true);
+
+        draw_set_color(_hov ? c_yellow : (_unlocked ? make_color_rgb(160, 255, 195) : make_color_rgb(190, 235, 255)));
+        draw_text_transformed(_cx + 6, _cy + _ph * 0.5, _tag, 0.58, 0.58, 0);
+
+        if (_hov && _clicked && !_did_click) {
+            scr_unlock_cyber_term(_t);
+            if (asset_get_type("snd_button_click") == asset_sound) audio_play_sound(snd_button_click, 5, false);
+            _did_click = true;
+        }
+
+        _cx += _pw + _gap;
+    }
+
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+    draw_set_color(c_white);
+    return _did_click;
+}
+
+function scr_handle_term_popup_input() {
+    scr_init_cyber_glossary();
+    if (global.term_popup_block_frames > 0) {
+        global.term_popup_block_frames--;
+    }
+    if (global.active_term_popup == undefined) return false;
+
+    if (mouse_check_button_pressed(mb_left)
+     || keyboard_check_pressed(vk_escape)
+     || keyboard_check_pressed(ord("E"))
+     || keyboard_check_pressed(vk_space)
+     || keyboard_check_pressed(vk_enter)) {
+        if (keyboard_check_pressed(vk_escape)) {
+            global.esc_block_frames = 2;
+            keyboard_clear(vk_escape);
+        }
+        keyboard_clear(ord("E"));
+        keyboard_clear(vk_space);
+        keyboard_clear(vk_enter);
+        global.active_term_popup        = undefined;
+        global.term_popup_block_frames  = 2;
+        if (asset_get_type("snd_button_click") == asset_sound) audio_play_sound(snd_button_click, 5, false);
+    }
+    return true;
+}
+
+function scr_draw_term_quick_popup() {
+    scr_init_cyber_glossary();
+    if (global.active_term_popup == undefined) return;
+
+    var _t  = global.active_term_popup;
+    var _gw = display_get_gui_width();
+    var _gh = display_get_gui_height();
+
+    draw_set_alpha(0.72);
+    draw_set_color(make_color_rgb(3, 6, 14));
+    draw_rectangle(0, 0, _gw, _gh, false);
+    draw_set_alpha(1);
+
+    var _bw = min(490, _gw - 40);
+    var _bh = 196;
+    var _bx1 = (_gw - _bw) * 0.5;
+    var _by1 = (_gh - _bh) * 0.5;
+    var _bx2 = _bx1 + _bw;
+    var _by2 = _by1 + _bh;
+
+    draw_set_color(make_color_rgb(10, 18, 34));
+    draw_rectangle(_bx1, _by1, _bx2, _by2, false);
+    draw_set_color(make_color_rgb(80, 215, 255));
+    draw_rectangle(_bx1, _by1, _bx2, _by2, true);
+    draw_rectangle(_bx1 + 2, _by1 + 2, _bx2 - 2, _by2 - 2, true);
+
+    draw_set_font(fnt_dialogue);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+
+    // Branch pill
+    draw_set_color(make_color_rgb(20, 46, 78));
+    draw_rectangle(_bx1 + 14, _by1 + 12, _bx1 + 210, _by1 + 30, false);
+    draw_set_color(make_color_rgb(100, 220, 255));
+    draw_rectangle(_bx1 + 14, _by1 + 12, _bx1 + 210, _by1 + 30, true);
+    draw_text_transformed(_bx1 + 20, _by1 + 15, "BRANCH: " + _t.branch_name, 0.58, 0.58, 0);
+
+    // Codex status pill
+    draw_set_halign(fa_right);
+    var _st_txt = global.active_term_popup_just_new ? "[+] ARCHIVED TO HOMEROOM CODEX!" : "[✓] IN HOMEROOM CODEX";
+    draw_set_color(global.active_term_popup_just_new ? make_color_rgb(255, 220, 80) : make_color_rgb(110, 245, 165));
+    draw_text_transformed(_bx2 - 14, _by1 + 15, _st_txt, 0.58, 0.58, 0);
+
+    // Term Title
+    draw_set_halign(fa_left);
+    draw_set_color(c_white);
+    draw_text_transformed(_bx1 + 14, _by1 + 38, _t.term, 1.05, 1.05, 0);
+
+    draw_set_color(make_color_rgb(50, 95, 145));
+    draw_line(_bx1 + 14, _by1 + 64, _bx2 - 14, _by1 + 64);
+
+    // Short Definition
+    draw_set_color(make_color_rgb(225, 240, 255));
+    draw_text_ext_transformed(_bx1 + 14, _by1 + 74, _t.short_def, 20, (_bw - 28) / 0.72, 0.72, 0.72, 0);
+
+    // Footer
+    draw_set_halign(fa_center);
+    draw_set_color(make_color_rgb(155, 200, 235));
+    draw_text_transformed((_bx1 + _bx2) * 0.5, _by2 - 22, "Open [C] in your HOMEROOM for the full in-depth breakdown  |  [CLICK / E / ESC] Close", 0.58, 0.58, 0);
+
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+    draw_set_color(c_white);
+}

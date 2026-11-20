@@ -1,5 +1,6 @@
 // Scroll support
 if (variable_global_exists("is_paused") && global.is_paused) exit;
+if (scr_handle_term_popup_input()) exit;
 
 if (mouse_wheel_down() || (type[page] == 0 && (keyboard_check_pressed(down_key) || keyboard_check_pressed(vk_down)))) scroll_y += stringHeight;
 if (mouse_wheel_up()   || (type[page] == 0 && (keyboard_check_pressed(up_key)   || keyboard_check_pressed(vk_up))))   scroll_y  = max(scroll_y - stringHeight, 0);

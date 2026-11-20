@@ -798,10 +798,37 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
         draw_sprite_ext(_overlay_sprite, 0, 0, 0, _gui_w / _spr_w, _gui_h / _spr_h, 0, c_white, 1.0);
     }
 
-    if (keyboard_check_pressed(ord("X"))
+    // Clickable Cyber Terms Bar below Monitor / Case Board + Quick-Definition Popup
+    var _pc_scan = [global.pc_screen_title, global.pc_screen_body, global.pc_screen_feedback];
+    if (_mode == 5 && variable_global_exists("pc_audit_suspect_idx") && global.pc_audit_suspect_idx >= 0 && global.pc_audit_suspect_idx < array_length(global.case_suspects)) {
+        var _sa = global.case_suspects[global.pc_audit_suspect_idx];
+        if (variable_struct_exists(_sa, "audit_items")) {
+            for (var _ai = 0; _ai < array_length(_sa.audit_items); _ai++) {
+                array_push(_pc_scan, _sa.audit_items[_ai].label + " " + _sa.audit_items[_ai].desc);
+            }
+        }
+    } else if (_mode == 2 && variable_global_exists("case_vectors")) {
+        for (var _vi = 0; _vi < array_length(global.case_vectors); _vi++) array_push(_pc_scan, global.case_vectors[_vi]);
+    } else if (_mode == 4 && variable_global_exists("case_fixes")) {
+        for (var _fi = 0; _fi < array_length(global.case_fixes); _fi++) array_push(_pc_scan, global.case_fixes[_fi]);
+    } else if (_mode == 3 && variable_global_exists("case_evidence")) {
+        for (var _ei = 0; _ei < array_length(global.case_evidence); _ei++) {
+            if (global.case_evidence[_ei].found) array_push(_pc_scan, global.case_evidence[_ei].text);
+        }
+    }
+    var _pc_terms = scr_scan_clickable_terms(_pc_scan, 5);
+    if (array_length(_pc_terms) > 0) {
+        var _bar_y = min(_my2 + 4, _gui_h - 42);
+        scr_draw_clickable_term_bar(_mx1 + 12, _bar_y, _mw - 24, _pc_terms, "CLICK TERM TO DEFINE & ARCHIVE TO CODEX:");
+    }
+    var _popup_blocking = (variable_global_exists("active_term_popup") && global.active_term_popup != undefined)
+                       || (variable_global_exists("term_popup_block_frames") && global.term_popup_block_frames > 0);
+    scr_draw_term_quick_popup();
+
+    if (!_popup_blocking && (keyboard_check_pressed(ord("X"))
         || keyboard_check_pressed(vk_escape)
         || (global.pc_screen_mode == 3 && keyboard_check_pressed(vk_tab))
-        || (_hover_x && mouse_check_button_pressed(mb_left)))
+        || (_hover_x && mouse_check_button_pressed(mb_left))))
     {
         if (keyboard_check_pressed(vk_escape)) {
             global.esc_block_frames = 2;

@@ -5,31 +5,51 @@ persistent = true;
 is_open        = false;
 current_tab    = 0;
 current_module = 0;
+current_branch = 0;
+current_concept = 0;
+content_scroll = 0;
+toast_timer    = 0;
+toast_msg      = "";
 
-// Tab definitions — 4 subject tabs; last two are locked until unlocked by story
-tab_names  = ["CYBERSECURITY", "CAESAR CIPHER", "ATBASH CIPHER", "VIGENERE CIPHER"];
-tab_locked = [false, false, true, true];
+scr_init_cyber_glossary();
 
-// Per-tab module arrays — start empty; NPCs populate Tab 0 during gameplay.
-// Tab 1/2/3 unlock and receive content as story progresses.
-tab_modules = [
-    [],   // Tab 0: Cybersecurity   — populated by Kyle/Greg, Lea, Clipper via add_module()
-    [],   // Tab 1: Caesar Cipher   — locked; reserved for future story content
-    [],   // Tab 2: Atbash Cipher   — locked; reserved for future story content
-    []    // Tab 3: Vigenere Cipher — locked; reserved for future story content
-];
+// 5 Cybersecurity Branch Tabs
+tab_names  = ["SOCIAL ENG.", "IDENTITY & IAM", "MALWARE & ENDPOINT", "NETWORK & PHYSICAL", "CRYPTOGRAPHY"];
+tab_locked = [false, false, false, false, false];
 
-// Legacy flat array — kept so save/load code does not break
-modules  = [];
-unlocked = true;
+// Legacy per-tab module arrays kept for Story Mode NPC compatibility
+tab_modules = [[], [], [], [], []];
+modules     = [];
+unlocked    = true;
 
-// add_module kept for NPC dialogue system compatibility
-// Adds to Tab 0 (Cybersecurity) and avoids duplicates
-function add_module(_title, _content) {
-    var _mods = tab_modules[0];
-    for (var i = 0; i < array_length(_mods); i++) {
-        if (_mods[i].title == _title) return;
+function get_branch_terms(_b_idx) {
+    scr_init_cyber_glossary();
+    var _out = [];
+    for (var i = 0; i < array_length(global.cyber_glossary); i++) {
+        if (global.cyber_glossary[i].branch_idx == _b_idx) {
+            array_push(_out, global.cyber_glossary[i]);
+        }
     }
-    array_push(tab_modules[0], { title: _title, content: _content });
-    show_debug_message("CODEX: Added '" + _title + "' to Cybersecurity tab.");
+    return _out;
+}
+
+// Story Mode NPC compatibility: archives legacy module AND unlocks matching glossary term
+function add_module(_title, _content) {
+    scr_init_cyber_glossary();
+    var _mods = tab_modules[0];
+    var _dup = false;
+    for (var i = 0; i < array_length(_mods); i++) {
+        if (_mods[i].title == _title) { _dup = true; break; }
+    }
+    if (!_dup) {
+        array_push(tab_modules[0], { title: _title, content: _content });
+    }
+    var _tl = string_lower(_title);
+    if (string_pos("caesar", _tl) > 0) {
+        global.codex_unlocked_terms[$ "caesar_cipher"] = true;
+    } else if (string_pos("crypto", _tl) > 0) {
+        global.codex_unlocked_terms[$ "symmetric_asymmetric"] = true;
+        global.codex_unlocked_terms[$ "plaintext_ciphertext"] = true;
+    }
+    show_debug_message("CODEX: Synced '" + _title + "' to Homeroom Codex.");
 }

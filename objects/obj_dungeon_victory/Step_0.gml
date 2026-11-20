@@ -2,6 +2,7 @@
 /// Advances to the next floor (1..10), or advances to the next Chapter after Floor 10 Final Exam.
 
 if (variable_global_exists("is_paused") && global.is_paused) exit;
+if (scr_handle_term_popup_input()) exit;
 
 anim_timer++;
 phase_timer++;

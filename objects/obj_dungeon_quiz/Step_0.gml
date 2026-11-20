@@ -3,6 +3,7 @@
 /// for the Key Vault "Spot the Cyber Red Flag" inspection challenge.
 
 if (variable_global_exists("is_paused") && global.is_paused) exit;
+if (scr_handle_term_popup_input()) exit;
 
 if (shake_timer > 0) shake_timer--;
 

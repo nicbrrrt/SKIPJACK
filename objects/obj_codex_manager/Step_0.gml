@@ -1,84 +1,88 @@
 // --- Step Event for obj_codex_manager ---
 
-var _is_combat_room = (room == rm_combat || room == rm_battle_scramble || room == rm_menu || room == rm_settings);
+scr_init_cyber_glossary();
+if (toast_timer > 0) toast_timer--;
 
-// ── Open / Close ─────────────────────────────────────────────────────────
+var _in_homeroom = (room == rm_homeroom);
+var _ui_busy = instance_exists(obj_textbox)
+            || instance_exists(obj_textevent)
+            || instance_exists(obj_dungeon_quiz)
+            || instance_exists(obj_dungeon_victory)
+            || (variable_global_exists("is_paused") && global.is_paused)
+            || (variable_global_exists("pc_screen_open") && global.pc_screen_open)
+            || (variable_global_exists("active_term_popup") && global.active_term_popup != undefined);
+
+// ── Open / Close (Homeroom-Only!) ────────────────────────────────────────
 if (is_open && (keyboard_check_pressed(vk_escape) || keyboard_check_pressed(ord("C")))) {
     if (keyboard_check_pressed(vk_escape)) {
         global.esc_block_frames = 2;
         keyboard_clear(vk_escape);
     }
     is_open = false;
-    // Reset button hover frames so menu doesn't stay lit after closing
     with (obj_button_master) { image_index = 0; }
     if (instance_exists(obj_jack)) {
         obj_jack.isInCutscene = false;
         obj_jack.image_speed  = 1;
     }
-} else if (!is_open && global.tutorial_complete && !_is_combat_room && keyboard_check_pressed(ord("C"))) {
-    is_open = true;
-    // Force buttons to idle frame so nothing looks hovered while codex is up
-    with (obj_button_master) { image_index = 0; }
-    if (instance_exists(obj_jack)) {
-        obj_jack.isInCutscene = true;
-        obj_jack.image_speed  = 0;
+} else if (!is_open && !_ui_busy && keyboard_check_pressed(ord("C"))) {
+    if (_in_homeroom) {
+        is_open = true;
+        global.codex_new_count = 0;
+        content_scroll = 0;
+        with (obj_button_master) { image_index = 0; }
+        if (instance_exists(obj_jack)) {
+            obj_jack.isInCutscene = true;
+            obj_jack.image_speed  = 0;
+        }
+    } else if (instance_exists(obj_dungeon_generator)) {
+        toast_timer = 150;
+        toast_msg   = "Homeroom Codex only opens in your HOMEROOM! Click [? Terms] during missions to archive them.";
     }
 }
 
-// ── Input when codex is open ─────────────────────────────────────────────
+// Demo shortcut inside Homeroom: Ctrl + U unlocks all 27 Codex entries
+if (_in_homeroom && keyboard_check(vk_control) && keyboard_check_pressed(ord("U"))) {
+    for (var _gi = 0; _gi < array_length(global.cyber_glossary); _gi++) {
+        global.codex_unlocked_terms[$ global.cyber_glossary[_gi].id] = true;
+    }
+    toast_timer = 120;
+    toast_msg   = "DEMO: All 27 Cybersecurity Codex entries unlocked!";
+    if (asset_get_type("snd_correct_ping") == asset_sound) audio_play_sound(snd_correct_ping, 8, false);
+}
+
 if (!is_open) exit;
 
-var _mod_count = array_length(tab_modules[current_tab]);
+var _branch_terms = get_branch_terms(current_branch);
+var _term_count   = array_length(_branch_terms);
+current_concept   = clamp(current_concept, 0, max(0, _term_count - 1));
 
-// ── Mouse: Tab clicking ──────────────────────────────────────────────────
-// GUI-space mouse coordinates are needed because Draw_64 renders in GUI layer
-var _mx     = device_mouse_x_to_gui(0);
-var _my     = device_mouse_y_to_gui(0);
-var _tab_x1 = 120;
-var _tab_y1 = 60;
-var _tab_h  = 28;
-var _tab_w  = 100;   // (520 - 120) / 4
-var _num    = array_length(tab_names);
+// Keyboard navigation: Left/Right or A/D switches Branch Tab; Up/Down or W/S switches Concept
+var _num_tabs = array_length(tab_names);
+if (keyboard_check_pressed(vk_right) || keyboard_check_pressed(ord("D"))) {
+    current_branch  = (current_branch + 1) mod _num_tabs;
+    current_concept = 0;
+    content_scroll  = 0;
+    if (asset_get_type("snd_page_flip") == asset_sound) audio_play_sound(snd_page_flip, 10, false);
+}
+if (keyboard_check_pressed(vk_left) || keyboard_check_pressed(ord("A"))) {
+    current_branch  = (current_branch + _num_tabs - 1) mod _num_tabs;
+    current_concept = 0;
+    content_scroll  = 0;
+    if (asset_get_type("snd_page_flip") == asset_sound) audio_play_sound(snd_page_flip, 10, false);
+}
 
-if (mouse_check_button_pressed(mb_left)) {
-    if (_my >= _tab_y1 && _my <= _tab_y1 + _tab_h) {
-        var _hit = floor((_mx - _tab_x1) / _tab_w);
-        if (_hit >= 0 && _hit < _num && !tab_locked[_hit] && _hit != current_tab) {
-            current_tab    = _hit;
-            current_module = 0;
-            if (asset_get_type("snd_page_flip") == asset_sound) {
-                audio_play_sound(snd_page_flip, 10, false);
-            }
-        }
+if (_term_count > 0) {
+    if (keyboard_check_pressed(vk_down) || keyboard_check_pressed(ord("S"))) {
+        current_concept = (current_concept + 1) mod _term_count;
+        content_scroll  = 0;
+        if (asset_get_type("snd_button_hover") == asset_sound) audio_play_sound(snd_button_hover, 6, false);
+    }
+    if (keyboard_check_pressed(vk_up) || keyboard_check_pressed(ord("W"))) {
+        current_concept = (current_concept + _term_count - 1) mod _term_count;
+        content_scroll  = 0;
+        if (asset_get_type("snd_button_hover") == asset_sound) audio_play_sound(snd_button_hover, 6, false);
     }
 }
 
-// ── Mouse: Wheel scrolls through modules in the active tab ───────────────
-if (mouse_wheel_up() && current_module > 0) {
-    current_module--;
-    if (asset_get_type("snd_page_flip") == asset_sound) {
-        audio_play_sound(snd_page_flip, 10, false);
-    }
-}
-
-if (mouse_wheel_down() && current_module < _mod_count - 1) {
-    current_module++;
-    if (asset_get_type("snd_page_flip") == asset_sound) {
-        audio_play_sound(snd_page_flip, 10, false);
-    }
-}
-
-// ── Keyboard: Arrow keys also navigate modules ───────────────────────────
-if (keyboard_check_pressed(vk_right) && current_module < _mod_count - 1) {
-    current_module++;
-    if (asset_get_type("snd_page_flip") == asset_sound) {
-        audio_play_sound(snd_page_flip, 10, false);
-    }
-}
-
-if (keyboard_check_pressed(vk_left) && current_module > 0) {
-    current_module--;
-    if (asset_get_type("snd_page_flip") == asset_sound) {
-        audio_play_sound(snd_page_flip, 10, false);
-    }
-}
+if (mouse_wheel_up())   content_scroll = max(0, content_scroll - 24);
+if (mouse_wheel_down()) content_scroll = min(220, content_scroll + 24);

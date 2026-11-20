@@ -7,7 +7,7 @@ if (variable_global_exists("is_paused") && global.is_paused) exit;
 var _gw = display_get_gui_width();
 var _gh = display_get_gui_height();
 var _cx = _gw * 0.5;
-var _cy = _gh * 0.5;
+var _cy = _gh * 0.5 - 14;
 
 // Dark background backdrop
 draw_set_alpha(screen_alpha * 0.92);
@@ -321,6 +321,19 @@ if (phase == "display" && phase_timer >= 20) {
     draw_set_color(c_aqua);
     draw_text(_cx, _y2 - 26, "Loading next sector...");
 }
+
+// Clickable Cyber Terms Bar on Debrief & Safety Check pages + Quick-Definition Popup
+if (page == 0 || page == 1) {
+    var _vic_scan = [case_lesson, case_prevention, safety_quiz_question];
+    for (var _vi = 0; _vi < array_length(safety_quiz_options); _vi++) {
+        array_push(_vic_scan, safety_quiz_options[_vi]);
+    }
+    var _vic_terms = scr_scan_clickable_terms(_vic_scan, 4);
+    if (array_length(_vic_terms) > 0) {
+        scr_draw_clickable_term_bar(_x1 + 14, _y2 + 1, _pw - 28, _vic_terms, "CLICK TERM TO DEFINE & ARCHIVE TO HOMEROOM CODEX:");
+    }
+}
+scr_draw_term_quick_popup();
 
 // Reset draw state
 draw_set_font(fnt_default);
