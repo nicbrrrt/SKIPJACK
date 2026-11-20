@@ -54,15 +54,9 @@ scr_roll_holding_key_and_equation();
 scr_init_facility_puzzles();
 scr_init_floor_salvage_tasks();
 
-// Floor 1 always teaches the Chapter's Cipher Keyword (Case 0: CAESAR / VIGENERE / ATBASH),
-// and Floors 2..10 rotate through Cases 1..9 with a chapter offset so each chapter's floor sequence feels fresh!
-if (global.chapter_floor == 1) {
-    global.floor_case_index = 0;
-} else {
-    var _ch_offset = (global.dungeon_chapter - 1) * 3;
-    global.floor_case_index = 1 + (((global.chapter_floor - 2) + _ch_offset) mod 9);
-}
-global.floor_case        = scr_get_floor_incident_case(global.floor_case_index);
+// Select floor incident scenario using 2x adaptive weighting for the player's lowest-accuracy branch
+global.floor_case_index = scr_select_adaptive_floor_case(global.dungeon_chapter, global.chapter_floor);
+global.floor_case       = scr_get_floor_incident_case(global.floor_case_index);
 global.clues_found       = 0;
 global.clues_needed      = curriculum.clues_needed;
 scr_init_case_dossier(global.floor_case, global.chapter_floor);
@@ -107,6 +101,9 @@ active_row              = 0;
 room_names              = [];
 room_popup_text         = "";
 room_popup_alpha        = 0.0;
+radar_open              = false; // Toggleable with [M]
+hud_tasks_collapsed     = false; // Collapsible Salvage Tasks card ([V] or click [-])
+hud_priority_collapsed  = false; // Collapsible Priority Assignment tag (click [-])
 
 // ===========================================================================
 // Step 1 — Initialise the logic map & fog alpha grid

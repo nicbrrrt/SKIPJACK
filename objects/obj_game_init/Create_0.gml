@@ -137,5 +137,16 @@ if (!variable_global_exists("floor_cipher_fails")) global.floor_cipher_fails = 0
 if (!variable_global_exists("floor_times_busted")) global.floor_times_busted = 0;   // Times caught by a Security Bot this floor
 if (!variable_global_exists("surge_shield_used"))  global.surge_shield_used  = false; // Copper Surge Totem shield spent this floor
 
+// --- 5-BRANCH CYBERSECURITY COMPETENCY TRACKING ---
+if (!variable_global_exists("cyber_stats") || !is_struct(global.cyber_stats)) {
+    global.cyber_stats = {
+        social_eng:   { correct: 0, total: 0 },
+        identity:     { correct: 0, total: 0 },
+        malware:      { correct: 0, total: 0 },
+        network_phys: { correct: 0, total: 0 },
+        crypto:       { correct: 0, total: 0 }
+    };
+}
+
 // Lock GUI to 640x360 (2x visual scale, matching the main menu) from the first room onward
 display_set_gui_size(640, 360);

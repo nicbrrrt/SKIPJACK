@@ -470,14 +470,17 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
             array_push(_labels, "< Back to Case Board");
         }
         var _num_items = array_length(_labels);
+        var _drawer_open = (_mode == 4 && variable_global_exists("policy_drawer_open") && global.policy_drawer_open);
 
-        if (keyboard_check_pressed(vk_up) || keyboard_check_pressed(ord("W"))) {
-            global.pc_screen_select = max(0, global.pc_screen_select - 1);
-            audio_play_sound(select1, 6, false);
-        }
-        if (keyboard_check_pressed(vk_down) || keyboard_check_pressed(ord("S"))) {
-            global.pc_screen_select = min(_num_items - 1, global.pc_screen_select + 1);
-            audio_play_sound(select1, 6, false);
+        if (!_drawer_open) {
+            if (keyboard_check_pressed(vk_up) || keyboard_check_pressed(ord("W"))) {
+                global.pc_screen_select = max(0, global.pc_screen_select - 1);
+                audio_play_sound(select1, 6, false);
+            }
+            if (keyboard_check_pressed(vk_down) || keyboard_check_pressed(ord("S"))) {
+                global.pc_screen_select = min(_num_items - 1, global.pc_screen_select + 1);
+                audio_play_sound(select1, 6, false);
+            }
         }
         global.pc_screen_select = clamp(global.pc_screen_select, 0, _num_items - 1);
 
@@ -491,13 +494,15 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
         var _clicked_item = false;
         draw_set_halign(fa_left);
         var _item_scale = (_mode == 4) ? 0.72 : 0.90;
+        var _row_step_cb = (_mode == 4) ? 23 : 25;
+        var _row_top_cb  = (_mode == 4) ? (_my1 + 72) : (_my1 + 76);
         for (var _ii = 0; _ii < _num_items; _ii++) {
-            var _iy = _my1 + 76 + (_ii * 25);
+            var _iy = _row_top_cb + (_ii * _row_step_cb);
             var _is_sel = (global.pc_screen_select == _ii);
 
             var _gmx2 = device_mouse_x_to_gui(0);
             var _gmy2 = device_mouse_y_to_gui(0);
-            var _hover_item = point_in_rectangle(_gmx2, _gmy2, _mx1 + 14, _iy - 11, _mx2 - 14, _iy + 11);
+            var _hover_item = !_drawer_open && point_in_rectangle(_gmx2, _gmy2, _mx1 + 14, _iy - 10, _mx2 - 14, _iy + 10);
             if (_hover_item && mouse_check_button_pressed(mb_left)) {
                 global.pc_screen_select = _ii;
                 _is_sel = true;
@@ -505,15 +510,47 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
             }
 
             draw_set_color(_is_sel ? make_color_rgb(230, 242, 252) : make_color_rgb(248, 249, 250));
-            draw_rectangle(_mx1 + 14, _iy - 11, _mx2 - 14, _iy + 11, false);
+            draw_rectangle(_mx1 + 14, _iy - 10, _mx2 - 14, _iy + 10, false);
             draw_set_color(_is_sel ? make_color_rgb(40, 120, 190) : _col_grey_line); // #bbbbbb
-            draw_rectangle(_mx1 + 14, _iy - 11, _mx2 - 14, _iy + 11, true);
+            draw_rectangle(_mx1 + 14, _iy - 10, _mx2 - 14, _iy + 10, true);
             draw_set_color(_is_sel ? make_color_rgb(10, 40, 80) : make_color_rgb(50, 60, 70));
             draw_text_ext_transformed(_mx1 + 20, _iy + 1, (_is_sel ? "> " : "  ") + _labels[_ii], 12, (_mw - 48) / _item_scale, _item_scale, _item_scale, 0);
             draw_text_ext_transformed(_mx1 + 20.8, _iy + 1, (_is_sel ? "> " : "  ") + _labels[_ii], 12, (_mw - 48) / _item_scale, _item_scale, _item_scale, 0);
         }
 
-        var _trigger_flag = _can_input && (_clicked_item || keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space));
+        // Step 3 Required [+ ATTACH CODEX POLICY] Slot
+        if (_mode == 4) {
+            var _pol_y1 = _my1 + 165;
+            var _pol_y2 = _my1 + 187;
+            var _gmx_p  = device_mouse_x_to_gui(0);
+            var _gmy_p  = device_mouse_y_to_gui(0);
+            var _hov_p  = !_drawer_open && point_in_rectangle(_gmx_p, _gmy_p, _mx1 + 14, _pol_y1, _mx2 - 14, _pol_y2);
+            var _cited  = variable_global_exists("case_cited_term") ? global.case_cited_term : undefined;
+            var _has_c  = is_struct(_cited);
+
+            draw_set_color(_has_c ? make_color_rgb(222, 248, 232) : (_hov_p ? make_color_rgb(230, 242, 255) : make_color_rgb(255, 246, 224)));
+            draw_rectangle(_mx1 + 14, _pol_y1, _mx2 - 14, _pol_y2, false);
+            draw_set_color(_has_c ? make_color_rgb(25, 145, 70) : (_hov_p ? make_color_rgb(35, 115, 195) : make_color_rgb(200, 140, 25)));
+            draw_rectangle(_mx1 + 14, _pol_y1, _mx2 - 14, _pol_y2, true);
+
+            draw_set_halign(fa_left);
+            draw_set_valign(fa_middle);
+            draw_set_color(_has_c ? make_color_rgb(15, 95, 45) : make_color_rgb(135, 75, 10));
+            var _pol_lbl = _has_c
+                ? ("[CITED CODEX POLICY ✓]  " + _cited.term + "  (" + _cited.branch_name + ")   —   [P / Click] Change")
+                : "[+ ATTACH CODEX POLICY]  (Required)  —  [P / Click] Cite Matching Codex Concept";
+            draw_text_transformed(_mx1 + 22, (_pol_y1 + _pol_y2) * 0.5, _pol_lbl, 0.68, 0.68, 0);
+
+            if (!_drawer_open && ((_hov_p && mouse_check_button_pressed(mb_left)) || keyboard_check_pressed(ord("P")))) {
+                global.policy_drawer_open   = true;
+                global.policy_drawer_sel    = 0;
+                global.policy_drawer_scroll = 0;
+                global.pc_input_cooldown    = 8;
+                audio_play_sound(snd_button_click, 6, false);
+            }
+        }
+
+        var _trigger_flag = !_drawer_open && _can_input && (_clicked_item || keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space));
         if (_trigger_flag) {
             global.pc_input_cooldown = 10;
             if (global.pc_screen_select == _num_items - 1) {
@@ -538,7 +575,10 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
                     global.scrap_count = max(0, global.scrap_count - 2);
                     _acc_sus.accused_wrong = true;
                     scr_case_recompute();
-                    global.pc_screen_feedback     = "WRONG SUSPECT! " + _acc_sus.name + " had a verified alibi. (-2 SCRAP) Review your evidence!";
+                    global.pc_screen_feedback = scr_apply_wrongful_audit_penalty(
+                        _acc_sus,
+                        "Falsely accused " + _acc_sus.name + " who had a verified alibi! (-2 SCRAP)"
+                    );
                     global.pc_screen_feedback_col = make_color_rgb(210, 50, 45);
                 }
             } else if (_mode == 2) {
@@ -551,6 +591,7 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
                     global.pc_screen_feedback     = "SLIP-UP CONFIRMED! Final step: choose the safety rule that prevents this breach!";
                     global.pc_screen_feedback_col = make_color_rgb(20, 140, 40);
                 } else {
+                    global.case_step2_first_try = false;
                     audio_play_sound(wrong1, 8, false);
                     global.case_wrong_accusations++;
                     global.pc_screen_feedback     = "INCORRECT VECTOR! Check the [LVL 3: CRITICAL] forensic trace from the culprit's desk.";
@@ -558,7 +599,22 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
                 }
             } else if (_mode == 4) {
                 var _corr_fix = variable_global_exists("case_fix_correct") ? global.case_fix_correct : 0;
-                if (global.pc_screen_select == _corr_fix) {
+                var _cidx_now = variable_global_exists("floor_case_index") ? global.floor_case_index : 0;
+                var _cited_t  = variable_global_exists("case_cited_term")  ? global.case_cited_term  : undefined;
+                var _cite_chk = scr_validate_case_policy_citation(_cited_t, _cidx_now);
+
+                if (!_cite_chk.ok) {
+                    audio_play_sound(wrong1, 8, false);
+                    global.pc_screen_feedback     = _cite_chk.msg;
+                    global.pc_screen_feedback_col = make_color_rgb(200, 100, 15);
+                } else if (global.pc_screen_select == _corr_fix) {
+                    if (!variable_global_exists("floor_stat_board_logged") || !global.floor_stat_board_logged) {
+                        global.floor_stat_board_logged = true;
+                        var _s2_ok = (!variable_global_exists("case_step2_first_try") || global.case_step2_first_try);
+                        var _s3_ok = (!variable_global_exists("case_step3_first_try") || global.case_step3_first_try);
+                        var _b_key = variable_global_exists("floor_branch_key") ? global.floor_branch_key : "social_eng";
+                        scr_record_cyber_stat(_b_key, (_s2_ok && _s3_ok));
+                    }
                     global.incident_solved        = true;
                     global.scrap_count           += 3;
                     global.floor_scrap_collected += 3;
@@ -575,6 +631,7 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
                     global.pc_screen_feedback_col = make_color_rgb(20, 140, 40);
                     global.pc_screen_badge        = "OVERRIDE AUTHORIZED";
                 } else {
+                    global.case_step3_first_try = false;
                     audio_play_sound(wrong1, 8, false);
                     global.pc_screen_feedback     = "UNSAFE PRACTICE! That wouldn't prevent this breach—choose the habit that directly fixes the slip-up!";
                     global.pc_screen_feedback_col = make_color_rgb(210, 50, 45);
@@ -582,19 +639,30 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
             }
         }
 
+        // Persistent [KYLE] Contextual Briefing Pill (always visible above footer)
+        var _kyle_tip = "KYLE: Match your Case Board clues & Level 3 Desk Proof to pick Patient Zero!";
+        if (_mode == 2) _kyle_tip = "KYLE: Right suspect! Now pick the slip-up they made, then prescribe the Fix + Codex Policy!";
+        if (_mode == 4) _kyle_tip = "KYLE: Select the preventive habit AND click [+ ATTACH CODEX POLICY] [P] to cite the Codex rule!";
+
+        draw_set_color(make_color_rgb(14, 34, 56));
+        draw_rectangle(_mx1 + 14, _my2 - 74, _mx2 - 14, _my2 - 58, false);
+        draw_set_color(c_aqua);
+        draw_rectangle(_mx1 + 14, _my2 - 74, _mx2 - 14, _my2 - 58, true);
+        draw_set_color(make_color_rgb(165, 235, 255));
+        draw_text_transformed(_mcx, _my2 - 66, _kyle_tip, 0.62, 0.62, 0);
+
         // Feedback / Educational debrief line
         draw_set_halign(fa_center);
         draw_set_valign(fa_middle);
         var _default_fb = "Select a suspect to accuse, or return to the Case Board.";
-        if (_mode == 2) _default_fb = "Select the accidental slip-up described in the culprit's Level 3 Critical Forensics.";
-        if (_mode == 4) _default_fb = "Select the cybersecurity safety habit that stops this slip-up from happening again.";
+        if (_mode == 2) _default_fb = "Select the accidental slip-up from the culprit's Level 3 Critical Forensics.";
+        if (_mode == 4) _default_fb = "Select the safety habit and attach a matching Codex Policy.";
         var _fb_txt = (variable_global_exists("pc_screen_feedback") && global.pc_screen_feedback != "")
             ? global.pc_screen_feedback
             : _default_fb;
         var _fb_col = (variable_global_exists("pc_screen_feedback_col") && global.pc_screen_feedback != "") ? global.pc_screen_feedback_col : make_color_rgb(170, 115, 0);
         draw_set_color(_fb_col);
-        draw_text_ext_transformed(_mcx, _my2 - 58, _fb_txt, 14, (_mw - 30) / 0.85, 0.85, 0.85, 0);
-        draw_text_ext_transformed(_mcx + 0.8, _my2 - 58, _fb_txt, 14, (_mw - 30) / 0.85, 0.85, 0.85, 0);
+        draw_text_ext_transformed(_mcx, _my2 - 48, _fb_txt, 12, (_mw - 30) / 0.72, 0.72, 0.72, 0);
 
         // Action prompt pill
         draw_set_color(c_white);
@@ -602,8 +670,104 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
         draw_set_color(_col_grey_line); // #bbbbbb
         draw_rectangle(_mcx - 180, _my2 - 38, _mcx + 180, _my2 - 20, true);
         draw_set_color(make_color_rgb(30, 40, 50));
-        draw_text_transformed(_mcx, _my2 - 29, "[W/S or CLICK] Select   [E / ENTER] Confirm", 0.88, 0.88, 0);
-        draw_text_transformed(_mcx + 0.8, _my2 - 29, "[W/S or CLICK] Select   [E / ENTER] Confirm", 0.88, 0.88, 0);
+        draw_text_transformed(_mcx, _my2 - 29, (_mode == 4) ? "[W/S] Select Fix   [P / Click] Attach Policy   [E / ENTER] Submit" : "[W/S or CLICK] Select   [E / ENTER] Confirm", 0.84, 0.84, 0);
+        draw_text_transformed(_mcx + 0.8, _my2 - 29, (_mode == 4) ? "[W/S] Select Fix   [P / Click] Attach Policy   [E / ENTER] Submit" : "[W/S or CLICK] Select   [E / ENTER] Confirm", 0.84, 0.84, 0);
+
+        // Compact Policy Citation Drawer Overlay (Step 3)
+        if (_mode == 4 && _drawer_open) {
+            var _p_terms = scr_get_policy_drawer_terms();
+            var _pt_cnt  = array_length(_p_terms);
+            var _vis_max = 6;
+            global.policy_drawer_sel = clamp(global.policy_drawer_sel, 0, max(0, _pt_cnt - 1));
+
+            if (keyboard_check_pressed(vk_up) || keyboard_check_pressed(ord("W")) || mouse_wheel_up()) {
+                global.policy_drawer_sel = max(0, global.policy_drawer_sel - 1);
+                audio_play_sound(select1, 6, false);
+            }
+            if (keyboard_check_pressed(vk_down) || keyboard_check_pressed(ord("S")) || mouse_wheel_down()) {
+                global.policy_drawer_sel = min(max(0, _pt_cnt - 1), global.policy_drawer_sel + 1);
+                audio_play_sound(select1, 6, false);
+            }
+            if (global.policy_drawer_sel < global.policy_drawer_scroll) global.policy_drawer_scroll = global.policy_drawer_sel;
+            if (global.policy_drawer_sel >= global.policy_drawer_scroll + _vis_max) global.policy_drawer_scroll = global.policy_drawer_sel - _vis_max + 1;
+
+            var _dw  = min(440, _mw - 40);
+            var _dh  = 196;
+            var _dx1 = _mcx - _dw * 0.5;
+            var _dy1 = _mcy - _dh * 0.5;
+            var _dx2 = _dx1 + _dw;
+            var _dy2 = _dy1 + _dh;
+
+            draw_set_alpha(0.65);
+            draw_set_color(c_black);
+            draw_rectangle(_mx1, _my1, _mx2, _my2, false);
+            draw_set_alpha(1.0);
+
+            draw_set_color(make_color_rgb(12, 22, 38));
+            draw_rectangle(_dx1, _dy1, _dx2, _dy2, false);
+            draw_set_color(make_color_rgb(80, 215, 255));
+            draw_rectangle(_dx1, _dy1, _dx2, _dy2, true);
+
+            draw_set_halign(fa_center);
+            draw_set_valign(fa_middle);
+            draw_set_color(make_color_rgb(130, 225, 255));
+            draw_text_transformed(_mcx, _dy1 + 14, "ATTACH CODEX POLICY CITATION (" + string(_pt_cnt) + " AVAILABLE)", 0.72, 0.72, 0);
+
+            var _d_clicked = false;
+            var _gmx_d = device_mouse_x_to_gui(0);
+            var _gmy_d = device_mouse_y_to_gui(0);
+            for (var _di = 0; _di < min(_vis_max, _pt_cnt - global.policy_drawer_scroll); _di++) {
+                var _idx  = global.policy_drawer_scroll + _di;
+                var _dt   = _p_terms[_idx];
+                var _ry1  = _dy1 + 28 + _di * 24;
+                var _ry2  = _ry1 + 21;
+                var _dsel = (_idx == global.policy_drawer_sel);
+                var _dhov = point_in_rectangle(_gmx_d, _gmy_d, _dx1 + 10, _ry1, _dx2 - 10, _ry2);
+                if (_dhov && mouse_check_button_pressed(mb_left)) {
+                    global.policy_drawer_sel = _idx;
+                    _dsel      = true;
+                    _d_clicked = true;
+                }
+
+                draw_set_color(_dsel ? make_color_rgb(24, 68, 102) : (_dhov ? make_color_rgb(18, 42, 68) : make_color_rgb(16, 28, 46)));
+                draw_rectangle(_dx1 + 10, _ry1, _dx2 - 10, _ry2, false);
+                draw_set_color(_dsel ? c_aqua : make_color_rgb(55, 110, 150));
+                draw_rectangle(_dx1 + 10, _ry1, _dx2 - 10, _ry2, true);
+
+                var _is_sc = scr_is_term_scanned_on_floor(_dt.id);
+                var _src_tag = _is_sc ? "[SCANNED ★]" : (variable_struct_exists(global.codex_unlocked_terms, _dt.id) ? "[ARCHIVED ✓]" : "[CODEX]");
+                draw_set_halign(fa_left);
+                draw_set_color(_dsel ? c_white : make_color_rgb(195, 225, 245));
+                draw_text_transformed(_dx1 + 16, (_ry1 + _ry2) * 0.5, _dt.term + "  [" + _dt.branch_name + "]", 0.58, 0.58, 0);
+                draw_set_halign(fa_right);
+                draw_set_color(_is_sc ? make_color_rgb(255, 215, 75) : make_color_rgb(120, 230, 165));
+                draw_text_transformed(_dx2 - 16, (_ry1 + _ry2) * 0.5, _src_tag, 0.52, 0.52, 0);
+            }
+
+            draw_set_halign(fa_center);
+            draw_set_color(make_color_rgb(155, 200, 235));
+            draw_text_transformed(_mcx, _dy2 - 12, "[W/S / Wheel] Browse   |   [E / ENTER / Click] Attach   |   [P / ESC] Cancel", 0.54, 0.54, 0);
+
+            if (_can_input && (_d_clicked || keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space))) {
+                if (_pt_cnt > 0) {
+                    global.case_cited_term    = _p_terms[global.policy_drawer_sel];
+                    global.policy_drawer_open = false;
+                    global.pc_input_cooldown  = 10;
+                    keyboard_clear(ord("E"));
+                    keyboard_clear(vk_enter);
+                    keyboard_clear(vk_space);
+                    audio_play_sound(snd_correct_ping, 8, false);
+                }
+            } else if (_can_input && (keyboard_check_pressed(ord("P")) || keyboard_check_pressed(vk_escape))) {
+                if (keyboard_check_pressed(vk_escape)) {
+                    global.esc_block_frames = 2;
+                    keyboard_clear(vk_escape);
+                }
+                global.policy_drawer_open = false;
+                global.pc_input_cooldown  = 10;
+                audio_play_sound(snd_button_click, 6, false);
+            }
+        }
 
     } else if (_mode == 5) {
         // =====================================================
@@ -692,8 +856,11 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
             var _t_prop = variable_global_exists("pc_screen_target") ? global.pc_screen_target : noone;
 
             if (_pick < array_length(_a_items)) {
-                var _p_item = _a_items[_pick];
-                if (_p_item.is_breach) {
+                var _p_item   = _a_items[_pick];
+                var _is_risky = variable_struct_exists(_p_item, "is_risky") ? _p_item.is_risky : _p_item.is_breach;
+                var _fb_str   = variable_struct_exists(_p_item, "audit_feedback") ? _p_item.audit_feedback : _p_item.desc;
+
+                if (_is_risky) {
                     // Player correctly spotted the risky slip-up on the Culprit's desktop!
                     _sp_obj.audit_done = true;
                     var _ev_logged = false;
@@ -708,12 +875,18 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
                     global.pc_screen_radar = "EVIDENCE " + string(global.evidence_found) + "/" + string(global.evidence_needed) + "   [TAB] ACCUSE ON BOARD";
                     global.pc_screen_badge = "LVL 3: CRITICAL";
                 } else {
-                    // Player clicked a safe/normal item -> explain why it's safe!
+                    // Player flagged a safe item or Benign Red Herring!
                     audio_play_sound(wrong1, 8, false);
-                    global.pc_screen_feedback = _sp_obj.is_culprit
-                        ? ("SAFE WORK ITEM: '" + _p_item.label + "' is normal work (" + _p_item.desc + "). Inspect the other items on this PC!")
-                        : (_p_item.desc + " If all 3 items on this PC are safe, select [VERIFY CLEAN] below!");
-                    global.pc_screen_feedback_col = make_color_rgb(185, 85, 15);
+                    if (_sp_obj.is_culprit) {
+                        global.pc_screen_feedback     = _fb_str;
+                        global.pc_screen_feedback_col = make_color_rgb(185, 85, 15);
+                    } else {
+                        global.pc_screen_feedback = scr_apply_wrongful_audit_penalty(
+                            _sp_obj,
+                            _fb_str + " If all 3 items are safe, select [VERIFY CLEAN]!"
+                        );
+                        global.pc_screen_feedback_col = make_color_rgb(205, 45, 45);
+                    }
                 }
             } else {
                 // Player selected [4] VERIFY WORKSTATION CLEAN
@@ -727,30 +900,40 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
                     audio_play_sound(snd_correct_ping, 10, false);
                     global.pc_screen_mode  = 0;
                     global.pc_screen_title = "WORKSTATION CLEAN: DESK " + _sp_obj.nameplate;
-                    global.pc_screen_body  = "[LVL 3: CRITICAL ALIBI LOGGED!]\n" + _sp_obj.name + " followed every cybersecurity safety rule (VPN ON, unique Password Manager login + 2FA, and locked screen).\n\n->" + _sp_obj.name + " is CLEARED on your [TAB] Case Board!";
+                    global.pc_screen_body  = "[LVL 3: CRITICAL ALIBI LOGGED!]\n" + _sp_obj.name + " followed every cybersecurity safety rule (including properly handled security alerts/controls).\n\n->" + _sp_obj.name + " is CLEARED on your [TAB] Case Board!";
                     global.pc_screen_radar = "EVIDENCE " + string(global.evidence_found) + "/" + string(global.evidence_needed) + "   [TAB] CASE BOARD";
                     global.pc_screen_badge = "CLEARED (LVL 3)";
                 } else {
                     // Wrong! This is the culprit's desk—one of the 3 items above is a breach!
                     audio_play_sound(wrong1, 8, false);
-                    global.pc_screen_feedback     = "WAIT — Look closer at Items 1, 2, and 3! One of the items on this computer is a risky cybersecurity slip-up!";
+                    global.pc_screen_feedback = scr_apply_wrongful_audit_penalty(
+                        _sp_obj,
+                        "Audit Rejected — You marked a compromised workstation as clean! One of Items 1–3 is an active breach!"
+                    );
                     global.pc_screen_feedback_col = make_color_rgb(205, 45, 45);
                 }
             }
         }
 
-        // Bottom Feedback / Inspection Note
+        // Persistent [KYLE] Contextual Briefing Pill in Mode 5 (Workstation Audit)
         draw_set_halign(fa_center);
         draw_set_valign(fa_middle);
+        draw_set_color(make_color_rgb(14, 34, 56));
+        draw_rectangle(_mx1 + 14, _my2 - 66, _mx2 - 14, _my2 - 50, false);
+        draw_set_color(c_aqua);
+        draw_rectangle(_mx1 + 14, _my2 - 66, _mx2 - 14, _my2 - 50, true);
+        draw_set_color(make_color_rgb(165, 235, 255));
+        draw_text_transformed(_mcx, _my2 - 58, "KYLE: Audit all 3 items—flag the 1 risky slip-up, or choose [VERIFY CLEAN] if all 3 are safe!", 0.62, 0.62, 0);
+
+        // Bottom Feedback / Inspection Note
         var _audit_fb = (variable_global_exists("pc_screen_feedback") && global.pc_screen_feedback != "")
             ? global.pc_screen_feedback
-            : "Tip: Use [W/S], [1-4], or Click to flag the risky item—or select [VERIFY CLEAN] if all 3 are safe!";
+            : "Use [W/S], [1-4], or Click to inspect.";
         var _audit_fcol = (variable_global_exists("pc_screen_feedback_col") && global.pc_screen_feedback != "")
             ? global.pc_screen_feedback_col
             : make_color_rgb(20, 95, 145);
         draw_set_color(_audit_fcol);
-        draw_text_ext_transformed(_mcx, _my2 - 42, _audit_fb, 13, (_mw - 32) / 0.72, 0.72, 0.72, 0);
-        draw_text_ext_transformed(_mcx + 0.7, _my2 - 42, _audit_fb, 13, (_mw - 32) / 0.72, 0.72, 0.72, 0);
+        draw_text_ext_transformed(_mcx, _my2 - 34, _audit_fb, 12, (_mw - 32) / 0.68, 0.68, 0.68, 0);
 
     } else {
         // Centered Main Clue Box
@@ -927,7 +1110,7 @@ if (variable_global_exists("case_evidence")) {
 var _ready_acc  = (!_pz_solved && _ev_cur >= _gate_ev && _crit_cnt >= 1);
 var _all_ev     = (_ev_req > 0 && _ev_cur >= _ev_req);
 
-// Track & trigger Milestone Completion Toast Banners
+// Track & queue Milestone Completion Toast Banners (never drops overlapping milestones!)
 if (!variable_instance_exists(id, "ms_init")) {
     ms_init           = true;
     ms_hint_done      = false;
@@ -941,55 +1124,78 @@ if (!variable_instance_exists(id, "ms_init")) {
     quest_toast_title = "";
     quest_toast_sub   = "";
     quest_toast_col   = c_lime;
+    quest_toast_queue = [];
 }
 if (!ms_hint_done && _clues_cur >= 1 && !_has_key) {
-    ms_hint_done      = true;
-    quest_toast_timer = 190;
-    quest_toast_title = "FORENSIC SCANNER UPLOADED!";
-    quest_toast_sub   = "Next Quest: Spot the Red Flag at the Gold Key Vault & grab the Cipher Key!";
-    quest_toast_col   = make_color_rgb(255, 215, 65);
+    ms_hint_done = true;
+    array_push(quest_toast_queue, {
+        title: "FORENSIC SCANNER UPLOADED!",
+        sub:   "Next Quest: Spot the Red Flag at the Gold Key Vault & grab the Cipher Key!",
+        col:   make_color_rgb(255, 215, 65),
+        dur:   180
+    });
 }
 if (!ms_key_done && _has_key) {
-    ms_key_done       = true;
-    quest_toast_timer = 190;
-    quest_toast_title = "CIPHER KEY ACQUIRED — TERMINALS UNLOCKED!";
-    quest_toast_sub   = "Next Quest: Inspect Suspect Desks & Coworkers to solve the breach!";
-    quest_toast_col   = c_aqua;
+    ms_key_done = true;
+    array_push(quest_toast_queue, {
+        title: "CIPHER KEY ACQUIRED — TERMINALS UNLOCKED!",
+        sub:   "Next Quest: Inspect Suspect Desks & Coworkers to solve the breach!",
+        col:   c_aqua,
+        dur:   190
+    });
+}
+if (!ms_ready_acc_done && _has_key && _ready_acc && !_pz_solved) {
+    ms_ready_acc_done = true;
+    array_push(quest_toast_queue, {
+        title: "CRITICAL PROOF FOUND — READY TO ACCUSE!",
+        sub:   "Press [TAB] to accuse a suspect now, or keep searching for all clues!",
+        col:   make_color_rgb(135, 255, 165),
+        dur:   180
+    });
 }
 if (!ms_all_ev_done && _has_key && _all_ev && !_pz_solved) {
-    ms_all_ev_done    = true;
-    ms_ready_acc_done = true;
-    quest_toast_timer = 210;
-    quest_toast_title = "ALL EVIDENCE FOUND (" + string(_ev_cur) + "/" + string(_ev_req) + ")!";
-    quest_toast_sub   = "Open [TAB] Case Board to accuse the culprit, then Override the Lockdown!";
-    quest_toast_col   = c_lime;
-} else if (!ms_ready_acc_done && _has_key && _ready_acc && !_pz_solved) {
-    ms_ready_acc_done = true;
-    quest_toast_timer = 190;
-    quest_toast_title = "CRITICAL PROOF FOUND — READY TO ACCUSE!";
-    quest_toast_sub   = "Press [TAB] to accuse a suspect now, or keep searching for all clues!";
-    quest_toast_col   = make_color_rgb(135, 255, 165);
+    ms_all_ev_done = true;
+    array_push(quest_toast_queue, {
+        title: "ALL EVIDENCE ACQUIRED (" + string(_ev_cur) + "/" + string(_ev_req) + ")!",
+        sub:   "Open [TAB] Case Board to accuse Patient Zero & resolve the case!",
+        col:   c_lime,
+        dur:   200
+    });
 }
 if (!ms_case_done && _pz_solved) {
-    ms_case_done      = true;
-    quest_toast_timer = 210;
-    quest_toast_title = "CASE SOLVED — LOCKDOWN OVERRIDE UNLOCKED!";
-    quest_toast_sub   = "Next Quest: Head to the Security Control Room & hit the Override Console!";
-    quest_toast_col   = c_lime;
+    ms_case_done = true;
+    array_push(quest_toast_queue, {
+        title: "CASE SOLVED — LOCKDOWN OVERRIDE UNLOCKED!",
+        sub:   "Next Quest: Head to the Security Control Room & hit the Override Console!",
+        col:   c_lime,
+        dur:   200
+    });
 }
 if (!ms_ov_done && _ov_done) {
-    ms_ov_done        = true;
-    quest_toast_timer = 190;
-    quest_toast_title = "LOCKDOWN OVERRIDDEN — BREAKER ROOM OPEN!";
-    quest_toast_sub   = "Next Quest: Fix the 3 fuses in the Electrical Breaker Room!";
-    quest_toast_col   = make_color_rgb(255, 210, 60);
+    ms_ov_done = true;
+    array_push(quest_toast_queue, {
+        title: "LOCKDOWN OVERRIDDEN — BREAKER ROOM OPEN!",
+        sub:   "Next Quest: Fix the 3 fuses in the Electrical Breaker Room!",
+        col:   make_color_rgb(255, 210, 60),
+        dur:   190
+    });
 }
 if (!ms_pwr_done && _pwr_done) {
-    ms_pwr_done       = true;
-    quest_toast_timer = 210;
-    quest_toast_title = "FLOOR POWER RESTORED!";
-    quest_toast_sub   = "Final Quest: Unlock & board the Extraction Elevator to complete the floor!";
-    quest_toast_col   = c_lime;
+    ms_pwr_done = true;
+    array_push(quest_toast_queue, {
+        title: "FLOOR POWER RESTORED — ELEVATOR UNLOCKED!",
+        sub:   "Final Quest: Board the Extraction Elevator to complete the floor!",
+        col:   c_lime,
+        dur:   210
+    });
+}
+if (quest_toast_timer <= 0 && array_length(quest_toast_queue) > 0) {
+    var _next_q = quest_toast_queue[0];
+    array_delete(quest_toast_queue, 0, 1);
+    quest_toast_title = _next_q.title;
+    quest_toast_sub   = _next_q.sub;
+    quest_toast_col   = _next_q.col;
+    quest_toast_timer = _next_q.dur;
 }
 
 // Line 2: Chapter Cipher Key status
@@ -1105,7 +1311,7 @@ if (quest_toast_timer > 0) {
     draw_set_halign(fa_center);
     draw_set_valign(fa_middle);
     draw_set_color(quest_toast_col);
-    draw_text_transformed(_qcx, _qy1 + 13, "[✓] " + quest_toast_title, 0.74, 0.74, 0);
+    draw_text_transformed(_qcx, _qy1 + 13, "[+] " + quest_toast_title, 0.74, 0.74, 0);
     draw_set_color(c_white);
     draw_text_transformed(_qcx, _qy1 + 29, quest_toast_sub, 0.64, 0.64, 0);
     draw_set_halign(fa_left);
@@ -1122,7 +1328,7 @@ if (banner_timer > 0) {
     var _bx1 = 278;
     var _bx2 = _gui_w - 10;
     var _by1 = 8;
-    var _by2 = 52;
+    var _by2 = 62;
     var _bcx = (_bx1 + _bx2) * 0.5;
 
     draw_set_alpha(_b_alpha * 0.90);
@@ -1136,9 +1342,36 @@ if (banner_timer > 0) {
     draw_set_color(_phase_col);
     draw_text_transformed(_bcx, _by1 + 13, "FLOOR " + string(_flr_num) + " / 10   " + _curr.phase_badge, 0.86, 0.86, 0);
     draw_set_color(c_white);
-    draw_text_transformed(_bcx, _by1 + 31, _curr.objective_title, 0.78, 0.78, 0);
+    draw_text_transformed(_bcx, _by1 + 30, _curr.objective_title, 0.78, 0.78, 0);
+    if (variable_global_exists("floor_priority_tag") && global.floor_priority_tag != "") {
+        draw_set_color(make_color_rgb(255, 215, 75));
+        draw_text_transformed(_bcx, _by1 + 46, global.floor_priority_tag, 0.60, 0.60, 0);
+    }
     draw_set_halign(fa_left);
     draw_set_alpha(1.0);
+} else if (variable_global_exists("floor_priority_tag") && global.floor_priority_tag != "") {
+    draw_set_font(fnt_dialogue);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_middle);
+    var _p_colp = (variable_instance_exists(id, "hud_priority_collapsed") && hud_priority_collapsed);
+    var _pt_txt = _p_colp ? "[+] PRIORITY" : ("[-] " + global.floor_priority_tag);
+    var _pt_w   = string_width(_pt_txt) * 0.52 + 12;
+    var _gmx_pt = device_mouse_x_to_gui(0);
+    var _gmy_pt = device_mouse_y_to_gui(0);
+    var _hov_pt = point_in_rectangle(_gmx_pt, _gmy_pt, 292, 8, 292 + _pt_w, 24);
+    if (_hov_pt && mouse_check_button_pressed(mb_left)) {
+        hud_priority_collapsed = !_p_colp;
+        audio_play_sound(snd_button_click, 6, false);
+    }
+    draw_set_alpha(0.82);
+    draw_set_color(_hov_pt ? make_color_rgb(24, 34, 54) : make_color_rgb(10, 16, 28));
+    draw_rectangle(292, 8, 292 + _pt_w, 24, false);
+    draw_set_alpha(0.92);
+    draw_set_color(make_color_rgb(255, 205, 70));
+    draw_rectangle(292, 8, 292 + _pt_w, 24, true);
+    draw_text_transformed(298, 16, _pt_txt, 0.52, 0.52, 0);
+    draw_set_alpha(1.0);
+    draw_set_valign(fa_top);
 }
 
 // =========================================================
@@ -1171,28 +1404,68 @@ if (variable_instance_exists(id, "room_popup_alpha") && room_popup_alpha > 0 && 
 }
 
 // =========================================================
-// FLOOR BLUEPRINT RADAR (MINIMAP) — Below Top-Left HUD
+// FLOOR BLUEPRINT RADAR (MINIMAP — Toggleable with [M]) + PULSING RED PROXIMITY VIGNETTE
 // =========================================================
+var _bot_near_dist = 9999;
+var _max_det       = 0.0;
+var _j_x = instance_exists(obj_jack) ? obj_jack.x : 0;
+var _j_y = instance_exists(obj_jack) ? (obj_jack.y - 6) : 0;
+var _ov_lifted = (variable_global_exists("lockdown_overridden") && global.lockdown_overridden);
+var _jam_on    = (variable_global_exists("drone_jammed_timer") && global.drone_jammed_timer > 0);
+
+with (obj_dungeon_prop) {
+    if (prop_type == TILE_PROP_DRONE && !is_scrapped) {
+        if (!_ov_lifted && !_jam_on && instance_exists(obj_jack)) {
+            var _bd = point_distance(_j_x, _j_y, x + 8, y + 8);
+            if (_bd < _bot_near_dist) _bot_near_dist = _bd;
+            if (variable_instance_exists(id, "detect_meter") && detect_meter > _max_det) {
+                _max_det = detect_meter;
+            }
+        }
+    }
+}
+
+// Pulsing Red Screen-Edge Vignette when an active Security Bot is nearby (closer = more intense!)
+if (_bot_near_dist <= 180 && instance_exists(obj_jack)) {
+    var _prox   = clamp(1.0 - (_bot_near_dist / 180.0), 0.10, 1.0);
+    var _spd_ms = lerp(220, 75, _prox);
+    var _vpulse = 0.55 + 0.45 * sin(current_time / _spd_ms);
+    var _valpha = clamp((0.12 + _prox * 0.34 + _max_det * 0.25) * _vpulse, 0, 0.72);
+    var _thick  = round(10 + _prox * 18);
+
+    draw_set_alpha(_valpha);
+    draw_set_color(make_color_rgb(255, 25, 35));
+    draw_rectangle(0, 0, _gui_w, _thick, false);
+    draw_rectangle(0, _gui_h - _thick, _gui_w, _gui_h, false);
+    draw_rectangle(0, _thick, _thick, _gui_h - _thick, false);
+    draw_rectangle(_gui_w - _thick, _thick, _gui_w, _gui_h - _thick, false);
+    draw_set_alpha(1.0);
+}
+
+var _map_x     = 8;
+var _map_y     = 106;
+var _radar_on  = (variable_instance_exists(id, "radar_open") && radar_open);
+var _next_hud_y = _map_y;
+
 if (variable_instance_exists(id, "room_discovered")) {
-    var _map_x     = 8;
-    var _map_y     = 100;
-    var _cell_sz   = 7;
-    var _cell_step = 9;
-    var _map_w     = LOGIC_GRID_W * _cell_step + 12;
-    var _map_h     = LOGIC_GRID_H * _cell_step + 22;
+    if (_radar_on) {
+        var _cell_sz   = 7;
+        var _cell_step = 9;
+        var _map_w     = LOGIC_GRID_W * _cell_step + 12;
+        var _map_h     = LOGIC_GRID_H * _cell_step + 22;
 
-    draw_set_alpha(0.76);
-    draw_set_color(make_color_rgb(8, 13, 22));
-    draw_rectangle(_map_x, _map_y, _map_x + _map_w, _map_y + _map_h, false);
-    draw_set_alpha(0.90);
-    draw_set_color(make_color_rgb(45, 110, 145));
-    draw_rectangle(_map_x, _map_y, _map_x + _map_w, _map_y + _map_h, true);
+        draw_set_alpha(0.76);
+        draw_set_color(make_color_rgb(8, 13, 22));
+        draw_rectangle(_map_x, _map_y, _map_x + _map_w, _map_y + _map_h, false);
+        draw_set_alpha(0.90);
+        draw_set_color(make_color_rgb(45, 110, 145));
+        draw_rectangle(_map_x, _map_y, _map_x + _map_w, _map_y + _map_h, true);
 
-    draw_set_color(make_color_rgb(120, 210, 245));
-    draw_text_transformed(_map_x + 6, _map_y + 9, "BLUEPRINT RADAR", 0.78, 0.78, 0);
+        draw_set_color(make_color_rgb(120, 210, 245));
+        draw_text_transformed(_map_x + 6, _map_y + 9, "BLUEPRINT RADAR [M]", 0.72, 0.72, 0);
 
-    var _grid_ox = _map_x + 7;
-    var _grid_oy = _map_y + 17;
+        var _grid_ox = _map_x + 7;
+        var _grid_oy = _map_y + 17;
 
     // 1. Draw Doorway & Merged-Room Links between discovered rooms
     if (variable_instance_exists(id, "door_links")) {
@@ -1284,13 +1557,63 @@ if (variable_instance_exists(id, "room_discovered")) {
         }
     }
 
-    // 3. Compact Floor Salvage Tasks Card below Blueprint Radar
-    var _tk_y1   = _map_y + _map_h + 6;
-    var _tk_y2   = _tk_y1 + 48;
+    // 2b. Live Patrol Bot Blips + Facing Ticks on Blueprint Radar
+    var _chunk_px_b = CHUNK_SIZE * TILE_SIZE;
+    with (obj_dungeon_prop) {
+        if (prop_type == TILE_PROP_DRONE && !is_scrapped) {
+            var _bc = clamp(floor((x + 8) / _chunk_px_b), 0, LOGIC_GRID_W - 1);
+            var _br = clamp(floor((y + 8) / _chunk_px_b), 0, LOGIC_GRID_H - 1);
+            var _bpx = _grid_ox + _bc * _cell_step + _cell_sz * 0.5;
+            var _bpy = _grid_oy + _br * _cell_step + _cell_sz * 0.5;
+            var _bdir = point_direction(0, 0, patrol_vx, patrol_vy);
+
+            var _bcol = _ov_lifted ? c_gray : (_jam_on ? c_aqua : make_color_rgb(255, 65, 75));
+            var _bpulse = 0.65 + 0.35 * sin(current_time / 130);
+            draw_set_alpha(_bpulse);
+            draw_set_color(_bcol);
+            draw_circle(_bpx, _bpy, 2.5, false);
+            draw_line(_bpx, _bpy, _bpx + lengthdir_x(5, _bdir), _bpy + lengthdir_y(5, _bdir));
+        }
+    }
+    draw_set_alpha(1.0);
+    _next_hud_y = _map_y + _map_h + 6;
+    } else {
+        // Compact [M] RADAR Toggle Pill when Blueprint Radar is closed
+        var _gmx_m = device_mouse_x_to_gui(0);
+        var _gmy_m = device_mouse_y_to_gui(0);
+        var _hov_m = point_in_rectangle(_gmx_m, _gmy_m, _map_x, _map_y, _map_x + 86, _map_y + 18);
+        if (_hov_m && mouse_check_button_pressed(mb_left)) {
+            radar_open = true;
+            audio_play_sound(snd_button_click, 6, false);
+        }
+        draw_set_alpha(0.80);
+        draw_set_color(_hov_m ? make_color_rgb(20, 42, 68) : make_color_rgb(8, 13, 22));
+        draw_rectangle(_map_x, _map_y, _map_x + 86, _map_y + 18, false);
+        draw_set_alpha(0.90);
+        draw_set_color(make_color_rgb(65, 165, 215));
+        draw_rectangle(_map_x, _map_y, _map_x + 86, _map_y + 18, true);
+        draw_set_color(make_color_rgb(130, 220, 255));
+        draw_text_transformed(_map_x + 6, _map_y + 9, "[M] RADAR", 0.62, 0.62, 0);
+        _next_hud_y = _map_y + 24;
+    }
+
+    // 3. Collapsible Floor Salvage Tasks Card below Blueprint Radar / [M] Pill
+    var _tk_colp = (variable_instance_exists(id, "hud_tasks_collapsed") && hud_tasks_collapsed);
+    var _tk_y1   = _next_hud_y;
+    var _tk_h    = _tk_colp ? 18 : 48;
+    var _tk_y2   = _tk_y1 + _tk_h;
     var _tk_w    = 196;
     var _t1_done = (_hr_cur >= 4 && _hr_cur <= 6);
     var _t2_done = ((variable_global_exists("task_bots_scrapped") && global.task_bots_scrapped > 0)
                  || (variable_global_exists("task_servers_scrapped") && global.task_servers_scrapped > 0));
+
+    var _gmx_tk = device_mouse_x_to_gui(0);
+    var _gmy_tk = device_mouse_y_to_gui(0);
+    var _hov_tk = point_in_rectangle(_gmx_tk, _gmy_tk, _map_x, _tk_y1, _map_x + _tk_w, _tk_y1 + 18);
+    if (_hov_tk && mouse_check_button_pressed(mb_left)) {
+        hud_tasks_collapsed = !_tk_colp;
+        audio_play_sound(snd_button_click, 6, false);
+    }
 
     draw_set_alpha(0.78);
     draw_set_color(make_color_rgb(8, 14, 22));
@@ -1300,17 +1623,19 @@ if (variable_instance_exists(id, "room_discovered")) {
     draw_rectangle(_map_x, _tk_y1, _map_x + _tk_w, _tk_y2, true);
 
     draw_set_color(make_color_rgb(255, 210, 65));
-    draw_text_transformed(_map_x + 6, _tk_y1 + 9, "SALVAGE TASKS [RMB=WRENCH]", 0.68, 0.68, 0);
+    draw_text_transformed(_map_x + 6, _tk_y1 + 9, (_tk_colp ? "[+] " : "[-] ") + "SALVAGE TASKS [V]", 0.64, 0.64, 0);
 
-    var _t1_label = (_t1_done ? "[x] " : "[ ] ") + "Corporate Recovery: Compliant (4-6 Pcs)";
-    if (!_t1_done && _hr_cur > 6) {
-        _t1_label = "[!] Over-Salvaged: " + string(_hr_cur) + " Pcs (Exceeded!)";
+    if (!_tk_colp) {
+        var _t1_label = (_t1_done ? "[x] " : "[ ] ") + "Corporate Recovery: Compliant (4-6 Pcs)";
+        if (!_t1_done && _hr_cur > 6) {
+            _t1_label = "[!] Over-Salvaged: " + string(_hr_cur) + " Pcs (Exceeded!)";
+        }
+        draw_set_color(_t1_done ? c_lime : (_hr_cur > 6 ? make_color_rgb(255, 100, 100) : make_color_rgb(190, 215, 235)));
+        draw_text_transformed(_map_x + 6, _tk_y1 + 24, _t1_label, 0.64, 0.64, 0);
+
+        draw_set_color(_t2_done ? c_lime : make_color_rgb(190, 215, 235));
+        draw_text_transformed(_map_x + 6, _tk_y1 + 38, (_t2_done ? "[x] " : "[ ] ") + "Tactical Salvage: Scrap Bot or Server", 0.64, 0.64, 0);
     }
-    draw_set_color(_t1_done ? c_lime : (_hr_cur > 6 ? make_color_rgb(255, 100, 100) : make_color_rgb(190, 215, 235)));
-    draw_text_transformed(_map_x + 6, _tk_y1 + 24, _t1_label, 0.64, 0.64, 0);
-
-    draw_set_color(_t2_done ? c_lime : make_color_rgb(190, 215, 235));
-    draw_text_transformed(_map_x + 6, _tk_y1 + 38, (_t2_done ? "[x] " : "[ ] ") + "Tactical Salvage: Scrap Bot or Server", 0.64, 0.64, 0);
 }
 draw_set_alpha(1.0);
 
@@ -1338,6 +1663,9 @@ if (instance_exists(obj_jack)) {
                 } else if (is_breaker_door) {
                     _prompt = "[E] Breaker Room Sealed by Lockdown (Hit Override Button First!)";
                     _pcol   = c_aqua;
+                } else if (is_elevator_door && !_pwr_done) {
+                    _prompt = "[E] Elevator Offline — Restore Power at Breaker Room First!";
+                    _pcol   = c_orange;
                 } else {
                     _prompt = _has_key
                         ? ("[E] Decode " + _ch_short + " Lock")
@@ -1544,3 +1872,9 @@ draw_set_color(c_white);
 draw_set_halign(fa_left);
 draw_set_valign(fa_top);
 draw_set_alpha(1.0);
+
+// Visual Mechanic Tutorial Overlay (queued after any active dialogue!)
+if (variable_global_exists("visual_tut_kind") && global.visual_tut_kind != ""
+    && !instance_exists(obj_textbox) && !instance_exists(obj_textevent)) {
+    scr_draw_visual_mechanic_tutorial(global.visual_tut_kind, _gui_w, _gui_h);
+}

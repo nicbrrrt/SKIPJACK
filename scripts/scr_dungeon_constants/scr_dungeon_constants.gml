@@ -2022,6 +2022,30 @@ function scr_draw_power_breaker_ui(_gui_w, _gui_h) {
         ? "[LEFT/RIGHT] Select   |   [UP/DOWN/SPACE] Flip Switch   |   [ENTER] Restore Power   |   [ESC] Back"
         : "[SPACE / ENTER] Repair Breaker (-2 Scrap)   |   [ESC] Back to Floor", 0.76, 0.76, 0);
 
+    // One-time visual tutorial when opening the Power Breaker UI
+    scr_ensure_tutorial_flags();
+    if (!global.tut_seen_breaker) {
+        global.tut_seen_breaker = true;
+        global.visual_tut_kind  = "breaker";
+    }
+    if (global.visual_tut_kind == "breaker") {
+        scr_draw_visual_mechanic_tutorial("breaker", _gui_w, _gui_h);
+        if (keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space)
+            || keyboard_check_pressed(vk_escape) || mouse_check_button_pressed(mb_left))
+        {
+            if (keyboard_check_pressed(vk_escape)) {
+                global.esc_block_frames = 2;
+                keyboard_clear(vk_escape);
+            }
+            keyboard_clear(ord("E"));
+            keyboard_clear(vk_enter);
+            keyboard_clear(vk_space);
+            global.visual_tut_kind = "";
+            audio_play_sound(snd_button_click, 8, false);
+        }
+        return;
+    }
+
     // --- 6. INPUT HANDLING ---
     if (global.breaker_win_t > 0) {
         global.breaker_win_t--;
@@ -2263,6 +2287,8 @@ function scr_open_scrap_sever_ui(_prop_inst) {
     global.scrap_fail_t        = 0;
     global.scrap_timer_max     = scr_get_cipher_timer_frames("sever");
     global.scrap_timer         = global.scrap_timer_max;
+    global.scrap_input_cooldown = 4;
+    keyboard_clear(ord("R"));
 }
 
 
@@ -2610,13 +2636,17 @@ function scr_draw_scrap_sever_ui(_gui_w, _gui_h) {
         audio_play_sound(choose(select1, select2, select3), 10, false);
     }
 
+    if (variable_global_exists("scrap_input_cooldown") && global.scrap_input_cooldown > 0) {
+        global.scrap_input_cooldown--;
+    }
+
     // DEMO SHORTCUT: Press Ctrl + P to auto-fill both Wrench Scrap slots (Caesar, Vigenere & Atbash)
     if (keyboard_check(vk_control) && keyboard_check_pressed(ord("P"))) {
         global.scrap_input[0] = string_char_at(global.scrap_target, 1);
         global.scrap_input[1] = string_char_at(global.scrap_target, 2);
         global.scrap_msg      = "";
         audio_play_sound(snd_correct_ping, 8, false);
-    } else if (!keyboard_check(vk_control)) {
+    } else if (!keyboard_check(vk_control) && (!variable_global_exists("scrap_input_cooldown") || global.scrap_input_cooldown <= 0)) {
         for (var _k = ord("A"); _k <= ord("Z"); _k++) {
             if (keyboard_check_pressed(_k)) {
                 global.scrap_input[_slot_idx] = chr(_k);
@@ -2875,12 +2905,28 @@ function scr_init_case_dossier(_case, _floor) {
     var _t_str   = ((_hr < 10) ? "0" : "") + string(_hr) + ":20";
     var _tb_str  = ((_hr - 1 < 10) ? "0" : "") + string(_hr - 1) + ":45";
 
+    global.wrongful_audits = 0;
+    var _rh_pool   = scr_get_benign_red_herring_pool();
+    var _rh_offset = irandom(array_length(_rh_pool) - 1);
+
     for (var _sa = 0; _sa < array_length(_sus); _sa++) {
-        _sus[_sa].audit_done = false;
+        _sus[_sa].audit_done            = false;
+        _sus[_sa].wrongful_fine_applied = false;
         if (_sus[_sa].is_culprit && variable_struct_exists(_case, "desktop_items")) {
             var _c_items = [];
             for (var _ci2 = 0; _ci2 < array_length(_case.desktop_items); _ci2++) {
-                array_push(_c_items, _case.desktop_items[_ci2]);
+                var _src_it = _case.desktop_items[_ci2];
+                var _risky  = (_src_it.is_breach == true);
+                array_push(_c_items, {
+                    label:          _src_it.label,
+                    is_breach:      _risky,
+                    is_risky:       _risky,
+                    is_red_herring: false,
+                    desc:           _src_it.desc,
+                    audit_feedback: _risky
+                        ? ("BREACH CONFIRMED: " + _src_it.desc)
+                        : ("SAFE WORK ITEM: '" + _src_it.label + "' is normal work (" + _src_it.desc + "). Inspect the other items on this PC!")
+                });
             }
             for (var _sh1 = array_length(_c_items) - 1; _sh1 > 0; _sh1--) {
                 var _sh2  = irandom(_sh1);
@@ -2890,23 +2936,40 @@ function scr_init_case_dossier(_case, _floor) {
             }
             _sus[_sa].audit_items = _c_items;
         } else {
-            _sus[_sa].audit_items = [
+            var _rh_item = _rh_pool[(_sa + _rh_offset) mod array_length(_rh_pool)];
+            var _inn_items = [
                 {
-                    label:     "Network: Corporate VPN Tunnel = CONNECTED & Firewall = ON",
-                    is_breach: false,
-                    desc:      "SAFE HABIT: Encrypted VPN tunnel and inbound Firewall are both active on " + _sus[_sa].name + "'s workstation."
+                    label:          "Network: Corporate VPN Tunnel = CONNECTED & Firewall = ON",
+                    is_breach:      false,
+                    is_risky:       false,
+                    is_red_herring: false,
+                    desc:           "SAFE HABIT: Encrypted VPN tunnel and inbound Firewall are both active on " + _sus[_sa].name + "'s workstation.",
+                    audit_feedback: "Audit Rejected: An active Corporate VPN tunnel and enabled Firewall are standard compliant security controls!"
                 },
                 {
-                    label:     "Login: Encrypted Password Manager (Unique 16-Char Key + 2FA ON)",
-                    is_breach: false,
-                    desc:      "SAFE HABIT: " + _sus[_sa].name + " uses a unique password stored in an encrypted Password Manager with 2FA enabled."
+                    label:          "Login: Encrypted Password Manager (Unique 16-Char Key + 2FA ON) & Locked at " + _tb_str,
+                    is_breach:      false,
+                    is_risky:       false,
+                    is_red_herring: false,
+                    desc:           "SAFE HABIT: " + _sus[_sa].name + " uses a unique password in an encrypted Password Manager with 2FA and locked their PC at " + _tb_str + ".",
+                    audit_feedback: "Audit Rejected: Using a Password Manager with 2FA and locking the screen before leaving is compliant cyber hygiene!"
                 },
                 {
-                    label:     "Session: Screen Auto-Locked at " + _tb_str + " (0 Unverified Downloads/USBs)",
-                    is_breach: false,
-                    desc:      "SAFE HABIT: Workstation was locked at " + _tb_str + " before the " + _t_str + " breach, with no suspicious links or USBs opened."
+                    label:          _rh_item.label,
+                    is_breach:      false,
+                    is_risky:       false,
+                    is_red_herring: true,
+                    desc:           _rh_item.desc,
+                    audit_feedback: _rh_item.audit_feedback
                 }
             ];
+            for (var _ish1 = array_length(_inn_items) - 1; _ish1 > 0; _ish1--) {
+                var _ish2  = irandom(_ish1);
+                var _istmp = _inn_items[_ish1];
+                _inn_items[_ish1] = _inn_items[_ish2];
+                _inn_items[_ish2] = _istmp;
+            }
+            _sus[_sa].audit_items = _inn_items;
         }
     }
 
@@ -3054,6 +3117,12 @@ function scr_init_case_dossier(_case, _floor) {
     global.case_culprit_confirmed = false;
     global.case_vector_confirmed  = false;
     global.pc_screen_mode         = 0;
+    global.floor_scanned_terms    = [];
+    global.case_cited_term        = undefined;
+    global.policy_drawer_open     = false;
+    global.policy_drawer_sel      = 0;
+    global.policy_drawer_scroll   = 0;
+    scr_auto_collect_floor_terms([_case.scenario, _case.hint, _case.takeaway]);
     scr_case_recompute();
 }
 
@@ -3422,6 +3491,7 @@ function scr_unlock_cyber_term(_term_struct) {
     }
     global.active_term_popup          = _term_struct;
     global.active_term_popup_just_new = _is_new;
+    scr_add_floor_scanned_term(_term_struct);
 }
 
 function scr_scan_clickable_terms(_text_array, _max_terms) {
@@ -3600,6 +3670,575 @@ function scr_draw_term_quick_popup() {
     draw_set_halign(fa_center);
     draw_set_color(make_color_rgb(155, 200, 235));
     draw_text_transformed((_bx1 + _bx2) * 0.5, _by2 - 22, "Open [C] in your HOMEROOM for the full in-depth breakdown  |  [CLICK / E / ESC] Close", 0.58, 0.58, 0);
+
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+    draw_set_color(c_white);
+}
+
+// =============================================================================
+// 5-BRANCH CYBERSECURITY COMPETENCY TRACKING & MASTERY BARS
+// =============================================================================
+function scr_ensure_cyber_stats() {
+    if (!variable_global_exists("cyber_stats") || !is_struct(global.cyber_stats)) {
+        global.cyber_stats = {
+            social_eng:   { correct: 0, total: 0 },
+            identity:     { correct: 0, total: 0 },
+            malware:      { correct: 0, total: 0 },
+            network_phys: { correct: 0, total: 0 },
+            crypto:       { correct: 0, total: 0 }
+        };
+        return;
+    }
+    var _keys = ["social_eng", "identity", "malware", "network_phys", "crypto"];
+    for (var i = 0; i < array_length(_keys); i++) {
+        var _k = _keys[i];
+        if (!variable_struct_exists(global.cyber_stats, _k) || !is_struct(global.cyber_stats[$ _k])) {
+            global.cyber_stats[$ _k] = { correct: 0, total: 0 };
+        }
+    }
+}
+
+/// @function scr_record_cyber_stat(branch_key, is_correct)
+/// @description Increments total by 1 and correct by 1 if is_correct is true for the given branch_key.
+function scr_record_cyber_stat(_branch_key, _is_correct) {
+    scr_ensure_cyber_stats();
+    if (!variable_struct_exists(global.cyber_stats, _branch_key)) {
+        _branch_key = "social_eng";
+    }
+    var _entry = global.cyber_stats[$ _branch_key];
+    _entry.total += 1;
+    if (_is_correct) {
+        _entry.correct += 1;
+    }
+    global.cyber_stats[$ _branch_key] = _entry;
+
+    if (variable_global_exists("floor_branch_key") && global.floor_branch_key == _branch_key) {
+        global.floor_branch_mastery_pct = scr_get_branch_mastery_pct(_branch_key);
+        global.floor_priority_tag = "PRIORITY ASSIGNMENT: " + global.floor_branch_name
+            + " (Mastery: " + string(global.floor_branch_mastery_pct) + "%)";
+    }
+}
+
+function scr_get_branch_mastery_pct(_branch_key) {
+    scr_ensure_cyber_stats();
+    if (!variable_struct_exists(global.cyber_stats, _branch_key)) return 0;
+    var _st = global.cyber_stats[$ _branch_key];
+    return clamp(round((_st.correct / max(1, _st.total)) * 100), 0, 100);
+}
+
+function scr_get_branch_display_name(_branch_key) {
+    switch (_branch_key) {
+        case "social_eng":   return "SOCIAL ENGINEERING";
+        case "identity":     return "IDENTITY & ACCESS";
+        case "malware":      return "MALWARE & ENDPOINTS";
+        case "network_phys": return "NETWORK & PHYSICAL";
+        case "crypto":       return "CRYPTOGRAPHY";
+    }
+    return "CYBERSECURITY";
+}
+
+function scr_get_case_branch_key(_case_id) {
+    switch (_case_id) {
+        case 0:  return "crypto";
+        case 1:  return "social_eng";
+        case 2:  return "malware";
+        case 3:  return "network_phys";
+        case 4:  return "identity";
+        case 5:  return "malware";
+        case 6:  return "network_phys";
+        case 7:  return "social_eng";
+        case 8:  return "malware";
+        case 9:  return "identity";
+        default: return "social_eng";
+    }
+}
+
+/// @function scr_draw_cyber_mastery_bars(x1, y1, w, h, show_header)
+/// @description Draws 5 compact horizontal progress bars showing 0%–100% branch mastery.
+function scr_draw_cyber_mastery_bars(_x1, _y1, _w, _h, _show_header) {
+    scr_ensure_cyber_stats();
+    var _keys   = ["social_eng", "identity", "malware", "network_phys", "crypto"];
+    var _labels = ["SOCIAL ENG.", "IDENTITY & IAM", "MALWARE", "NETWORK & PHYS", "CRYPTOGRAPHY"];
+    var _cols   = [
+        make_color_rgb(255, 175, 65),
+        make_color_rgb(95, 215, 255),
+        make_color_rgb(255, 105, 135),
+        make_color_rgb(120, 240, 165),
+        make_color_rgb(195, 145, 255)
+    ];
+
+    draw_set_font(fnt_dialogue);
+    draw_set_color(make_color_rgb(8, 15, 26));
+    draw_rectangle(_x1, _y1, _x1 + _w, _y1 + _h, false);
+    draw_set_color(make_color_rgb(55, 120, 165));
+    draw_rectangle(_x1, _y1, _x1 + _w, _y1 + _h, true);
+
+    var _bar_top = _y1 + 4;
+    if (_show_header) {
+        draw_set_halign(fa_left);
+        draw_set_valign(fa_top);
+        draw_set_color(make_color_rgb(160, 225, 255));
+        draw_text_transformed(_x1 + 8, _y1 + 3, "CYBERSECURITY COMPETENCY MASTERY (5 BRANCHES)", 0.52, 0.52, 0);
+        _bar_top = _y1 + 15;
+    }
+
+    var _n      = array_length(_keys);
+    var _gap    = 6;
+    var _cell_w = (_w - 12 - (_gap * (_n - 1))) / _n;
+    var _bar_h  = max(6, (_y1 + _h) - _bar_top - 13);
+
+    for (var i = 0; i < _n; i++) {
+        var _k   = _keys[i];
+        var _pct = scr_get_branch_mastery_pct(_k);
+        var _st  = global.cyber_stats[$ _k];
+        var _cx1 = _x1 + 6 + i * (_cell_w + _gap);
+        var _cx2 = _cx1 + _cell_w;
+
+        draw_set_halign(fa_left);
+        draw_set_valign(fa_top);
+        draw_set_color(make_color_rgb(210, 225, 240));
+        draw_text_transformed(_cx1, _bar_top, _labels[i], 0.46, 0.46, 0);
+
+        draw_set_halign(fa_right);
+        draw_set_color((_st.total > 0) ? _cols[i] : make_color_rgb(130, 145, 165));
+        draw_text_transformed(_cx2, _bar_top, string(_pct) + "%", 0.48, 0.48, 0);
+
+        var _by1 = _bar_top + 10;
+        var _by2 = _by1 + _bar_h;
+        draw_set_color(make_color_rgb(20, 30, 46));
+        draw_rectangle(_cx1, _by1, _cx2, _by2, false);
+
+        if (_pct > 0) {
+            var _fill_w = max(2, (_cell_w - 2) * (_pct / 100));
+            draw_set_color(_cols[i]);
+            draw_rectangle(_cx1 + 1, _by1 + 1, _cx1 + 1 + _fill_w, _by2 - 1, false);
+        }
+
+        draw_set_color(make_color_rgb(65, 105, 140));
+        draw_rectangle(_cx1, _by1, _cx2, _by2, true);
+    }
+
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+    draw_set_color(c_white);
+}
+
+// =============================================================================
+// BENIGN ANOMALIES ("RED HERRINGS") & WRONGFUL AUDIT PENALTY HELPERS
+// =============================================================================
+function scr_get_benign_red_herring_pool() {
+    return [
+        {
+            label:          "File: 'bonus_structure_2026.pdf.exe' in C:\\EDR_Quarantine\\Blocked\\",
+            is_breach:      false,
+            is_risky:       false,
+            is_red_herring: true,
+            desc:           "SAFE (QUARANTINED): Double-extension malware was automatically blocked inside C:\\EDR_Quarantine\\Blocked\\ and reported to IT.",
+            audit_feedback: "Audit Rejected: That '.pdf.exe' file was never executed—it is safely isolated inside C:\\EDR_Quarantine\\Blocked\\!"
+        },
+        {
+            label:          "Browser: Login Page open at 'https://sso.company-internal.com' (Valid TLS Lock)",
+            is_breach:      false,
+            is_risky:       false,
+            is_red_herring: true,
+            desc:           "SAFE (OFFICIAL SSO): The domain 'sso.company-internal.com' is the verified internal Single Sign-On portal with a valid TLS certificate.",
+            audit_feedback: "Audit Rejected: 'https://sso.company-internal.com' with a valid TLS lock is the legitimate corporate SSO portal, not a phishing site!"
+        },
+        {
+            label:          "Desktop Sticky Note: 'Password Reminder -> Stored in Bitwarden Vault'",
+            is_breach:      false,
+            is_risky:       false,
+            is_red_herring: true,
+            desc:           "SAFE (PASSWORD MANAGER): The sticky note contains zero credentials—it only reminds the employee to use their encrypted Bitwarden Vault.",
+            audit_feedback: "Audit Rejected: That sticky note doesn't expose a password—it directs the user to their encrypted Bitwarden Password Manager!"
+        },
+        {
+            label:          "USB Port: Flash Drive Mounted — 'IT-Approved Encrypted Backup (BitLocker)'",
+            is_breach:      false,
+            is_risky:       false,
+            is_red_herring: true,
+            desc:           "SAFE (AUTHORIZED HARDWARE): Hardware-encrypted BitLocker drive issued and signed by Corporate IT Asset Management.",
+            audit_feedback: "Audit Rejected: That USB drive is an IT-Approved, BitLocker-encrypted backup drive—not an untrusted parking-lot drop!"
+        },
+        {
+            label:          "Email: '[EXTERNAL] Urgent Wire Request' -> Replied: 'Verifying via Official Directory First'",
+            is_breach:      false,
+            is_risky:       false,
+            is_red_herring: true,
+            desc:           "SAFE (OUT-OF-BAND VERIFICATION): The employee spotted the external pretexting email and refused to open the attachment without calling the official directory.",
+            audit_feedback: "Audit Rejected: The employee followed proper anti-phishing procedure by verifying via the official phone directory before opening anything!"
+        },
+        {
+            label:          "Phone Log: 5 Missed MFA Push Prompts -> Status: 'DENIED & REPORTED TO SOC'",
+            is_breach:      false,
+            is_risky:       false,
+            is_red_herring: true,
+            desc:           "SAFE (MFA FATIGUE BLOCKED): When spammed with unexpected login prompts, the employee tapped 'Deny' and alerted the Security Operations Center.",
+            audit_feedback: "Audit Rejected: Those MFA Push Bombing prompts were DENIED and reported to the SOC—the employee stopped the attack!"
+        },
+        {
+            label:          "Wi-Fi: Connected to 'CoffeeShop_Free_WiFi' -> Corporate VPN: 'AES-256 TUNNEL ACTIVE'",
+            is_breach:      false,
+            is_risky:       false,
+            is_red_herring: true,
+            desc:           "SAFE (ENCRYPTED VPN TUNNEL): Although using guest Wi-Fi, an AES-256 Corporate VPN tunnel was active the entire session, preventing packet sniffing.",
+            audit_feedback: "Audit Rejected: The employee had their AES-256 Corporate VPN Tunnel ON before sending any traffic over guest Wi-Fi!"
+        },
+        {
+            label:          "Software: 'Chrome_Security_Patch.msi' -> Source: 'Verified Corporate IT Software Center'",
+            is_breach:      false,
+            is_risky:       false,
+            is_red_herring: true,
+            desc:           "SAFE (OFFICIAL PATCH): Update was deployed and digitally signed by the internal Corporate IT Software Center, not a web popup.",
+            audit_feedback: "Audit Rejected: That patch was installed from the verified Corporate IT Software Center, not a malvertising browser popup!"
+        }
+    ];
+}
+
+function scr_apply_wrongful_audit_penalty(_suspect_struct, _reason_msg) {
+    if (!variable_global_exists("wrongful_audits")) {
+        global.wrongful_audits = 0;
+    }
+    var _already_fined = (is_struct(_suspect_struct)
+        && variable_struct_exists(_suspect_struct, "wrongful_fine_applied")
+        && _suspect_struct.wrongful_fine_applied);
+
+    if (!_already_fined) {
+        if (is_struct(_suspect_struct)) {
+            _suspect_struct.wrongful_fine_applied = true;
+        }
+        global.wrongful_audits += 1;
+        return "HR COMPLIANCE WARNING (-$75 Wrongful Audit Fine): " + _reason_msg;
+    }
+    return "HR COMPLIANCE WARNING (Fine Already Logged on This Desk): " + _reason_msg;
+}
+
+// =============================================================================
+// CITE YOUR SOURCE: FLOOR SCANNED TERMS & POLICY CITATION VALIDATION
+// =============================================================================
+function scr_add_floor_scanned_term(_term_struct) {
+    if (!is_struct(_term_struct)) return;
+    if (!variable_global_exists("floor_scanned_terms") || !is_array(global.floor_scanned_terms)) {
+        global.floor_scanned_terms = [];
+    }
+    for (var i = 0; i < array_length(global.floor_scanned_terms); i++) {
+        if (global.floor_scanned_terms[i].id == _term_struct.id) return;
+    }
+    array_push(global.floor_scanned_terms, _term_struct);
+}
+
+function scr_is_term_scanned_on_floor(_term_id) {
+    if (!variable_global_exists("floor_scanned_terms") || !is_array(global.floor_scanned_terms)) return false;
+    for (var i = 0; i < array_length(global.floor_scanned_terms); i++) {
+        if (global.floor_scanned_terms[i].id == _term_id) return true;
+    }
+    return false;
+}
+
+function scr_auto_collect_floor_terms(_text_array) {
+    var _matched = scr_scan_clickable_terms(_text_array, 6);
+    for (var i = 0; i < array_length(_matched); i++) {
+        scr_add_floor_scanned_term(_matched[i]);
+    }
+}
+
+function scr_get_policy_drawer_terms() {
+    scr_init_cyber_glossary();
+    var _out  = [];
+    var _seen = {};
+
+    // 1. Terms clicked/scanned during this floor
+    if (variable_global_exists("floor_scanned_terms") && is_array(global.floor_scanned_terms)) {
+        for (var i = 0; i < array_length(global.floor_scanned_terms); i++) {
+            var _ft = global.floor_scanned_terms[i];
+            if (!variable_struct_exists(_seen, _ft.id)) {
+                _seen[$ _ft.id] = true;
+                array_push(_out, _ft);
+            }
+        }
+    }
+
+    // 2. Terms already unlocked in the player's Homeroom Codex
+    for (var g = 0; g < array_length(global.cyber_glossary); g++) {
+        var _gt = global.cyber_glossary[g];
+        if (variable_struct_exists(global.codex_unlocked_terms, _gt.id) && !variable_struct_exists(_seen, _gt.id)) {
+            _seen[$ _gt.id] = true;
+            array_push(_out, _gt);
+        }
+    }
+
+    // 3. Ensure at least 5 cross-branch options exist (prevents 1-option giveaways on a fresh save)
+    var _fallback_ids = ["phishing", "password_reuse", "ransomware", "vpn", "tailgating", "caesar_cipher"];
+    for (var f = 0; f < array_length(_fallback_ids); f++) {
+        if (array_length(_out) >= 6) break;
+        var _fid = _fallback_ids[f];
+        if (!variable_struct_exists(_seen, _fid)) {
+            for (var g2 = 0; g2 < array_length(global.cyber_glossary); g2++) {
+                if (global.cyber_glossary[g2].id == _fid) {
+                    _seen[$ _fid] = true;
+                    array_push(_out, global.cyber_glossary[g2]);
+                    break;
+                }
+            }
+        }
+    }
+    return _out;
+}
+
+function scr_get_case_valid_policy_ids(_case_id) {
+    switch (_case_id) {
+        case 0:  return ["caesar_cipher", "vigenere_cipher", "atbash_cipher", "plaintext_ciphertext", "symmetric_asymmetric", "vpn", "password_manager"];
+        case 1:  return ["phishing", "typosquatting", "oauth_permissions", "password_manager"];
+        case 2:  return ["rat_malware", "malvertising", "shadow_it", "tech_support_scam"];
+        case 3:  return ["vpn", "wpa_security", "public_wifi", "packet_sniffing"];
+        case 4:  return ["credential_stuffing", "password_reuse", "mfa_2fa", "password_manager"];
+        case 5:  return ["malvertising", "rat_malware", "shadow_it", "tech_support_scam"];
+        case 6:  return ["usb_baiting", "tailgating", "shoulder_surfing"];
+        case 7:  return ["pretexting", "vishing", "phishing", "typosquatting"];
+        case 8:  return ["ransomware", "password_reuse", "credential_stuffing", "phishing"];
+        case 9:  return ["mfa_2fa", "mfa_fatigue", "oauth_permissions", "rat_malware"];
+        default: return ["phishing"];
+    }
+}
+
+function scr_validate_case_policy_citation(_term_struct, _case_id) {
+    if (!is_struct(_term_struct)) {
+        return {
+            ok:  false,
+            msg: "POLICY CITATION REQUIRED: Click [+ ATTACH CODEX POLICY] (or press [P]) to cite a Codex concept before submitting!"
+        };
+    }
+    var _valid_ids   = scr_get_case_valid_policy_ids(_case_id);
+    var _floor_bkey  = variable_global_exists("floor_branch_key") ? global.floor_branch_key : scr_get_case_branch_key(_case_id);
+    var _floor_bname = scr_get_branch_display_name(_floor_bkey);
+
+    for (var i = 0; i < array_length(_valid_ids); i++) {
+        if (_term_struct.id == _valid_ids[i]) {
+            return {
+                ok:  true,
+                msg: "POLICY VERIFIED: '" + _term_struct.term + "' (" + _term_struct.branch_name + ") matches this incident!"
+            };
+        }
+    }
+    if (_term_struct.branch_name == _floor_bname) {
+        return {
+            ok:  false,
+            msg: "CLOSE! '" + _term_struct.term + "' is in " + _floor_bname + ", but look for the specific concept that directly matches this floor's breach!"
+        };
+    }
+    return {
+        ok:  false,
+        msg: "POLICY MISMATCH: '" + _term_struct.term + "' is " + _term_struct.branch_name + ", whereas this breach involves " + _floor_bname + ". Attach the matching policy!"
+    };
+}
+
+// =============================================================================
+// VISUAL / ANIMATED MECHANIC TUTORIALS (LOW TEXT CLUTTER, HIGH VISUAL CLARITY)
+// =============================================================================
+function scr_ensure_tutorial_flags() {
+    if (!variable_global_exists("tut_seen_terms"))     global.tut_seen_terms     = false;
+    if (!variable_global_exists("tut_seen_bot"))       global.tut_seen_bot       = false;
+    if (!variable_global_exists("tut_seen_scrap"))     global.tut_seen_scrap     = false;
+    if (!variable_global_exists("tut_seen_brig"))      global.tut_seen_brig      = false;
+    if (!variable_global_exists("tut_seen_breaker"))   global.tut_seen_breaker   = false;
+    if (!variable_global_exists("homeroom_tour_done")) global.homeroom_tour_done = false;
+    if (!variable_global_exists("visual_tut_kind"))    global.visual_tut_kind    = "";
+}
+
+function scr_draw_visual_mechanic_tutorial(_kind, _gui_w, _gui_h) {
+    if (_kind == "") return;
+
+    var _t   = (current_time / 1000.0);
+    var _cy  = _gui_h * 0.5;
+    var _cx  = _gui_w * 0.5;
+    var _pw  = 460;
+    var _ph  = 212;
+    var _x1  = _cx - _pw * 0.5;
+    var _y1  = _cy - _ph * 0.5;
+    var _x2  = _cx + _pw * 0.5;
+    var _y2  = _cy + _ph * 0.5;
+
+    draw_set_alpha(0.76);
+    draw_set_color(c_black);
+    draw_rectangle(0, 0, _gui_w, _gui_h, false);
+    draw_set_alpha(0.97);
+    draw_set_color(make_color_rgb(12, 18, 32));
+    draw_rectangle(_x1, _y1, _x2, _y2, false);
+    draw_set_alpha(1.0);
+    draw_set_color(c_aqua);
+    draw_rectangle(_x1, _y1, _x2, _y2, true);
+    draw_rectangle(_x1 + 2, _y1 + 2, _x2 - 2, _y2 - 2, true);
+
+    draw_set_font(fnt_dialogue);
+    draw_set_halign(fa_center);
+    draw_set_valign(fa_middle);
+
+    var _title = "MECHANIC VISUAL GUIDE";
+    var _sub   = "";
+    var _ay    = _y1 + 102;
+
+    if (_kind == "clickable_terms") {
+        _title = "VISUAL GUIDE: CLICKABLE CYBER TERMS";
+        _sub   = "Click glowing [? Term] badges -> Read Quick Popup -> Study full entry in Homeroom [C]";
+
+        var _step = floor(_t * 0.9) mod 3;
+        // 1. Glowing [? Phishing] pill
+        draw_set_color(_step == 0 ? make_color_rgb(28, 75, 110) : make_color_rgb(18, 34, 62));
+        draw_rectangle(_cx - 195, _ay - 16, _cx - 85, _ay + 16, false);
+        draw_set_color(_step == 0 ? c_yellow : c_aqua);
+        draw_rectangle(_cx - 195, _ay - 16, _cx - 85, _ay + 16, true);
+        draw_text_transformed(_cx - 140, _ay, "[? Phishing]", 0.66, 0.66, 0);
+
+        // Animated pointer arrow
+        if (_step == 0) {
+            var _bob = sin(_t * 8) * 3;
+            draw_set_color(c_yellow);
+            draw_triangle(_cx - 140, _ay + 20 + _bob, _cx - 146, _ay + 28 + _bob, _cx - 134, _ay + 28 + _bob, false);
+        }
+
+        draw_set_color(c_white);
+        draw_text_transformed(_cx - 66, _ay, "->", 0.85, 0.85, 0);
+
+        // 2. Quick Popup
+        draw_set_color(_step == 1 ? make_color_rgb(20, 56, 86) : make_color_rgb(14, 24, 42));
+        draw_rectangle(_cx - 48, _ay - 24, _cx + 58, _ay + 24, false);
+        draw_set_color(_step == 1 ? c_yellow : c_aqua);
+        draw_rectangle(_cx - 48, _ay - 24, _cx + 58, _ay + 24, true);
+        draw_text_transformed(_cx + 5, _ay - 8, "QUICK POPUP", 0.56, 0.56, 0);
+        draw_set_color(c_lime);
+        draw_text_transformed(_cx + 5, _ay + 8, "[+] Archived!", 0.54, 0.54, 0);
+
+        draw_set_color(c_white);
+        draw_text_transformed(_cx + 76, _ay, "->", 0.85, 0.85, 0);
+
+        // 3. Homeroom Codex
+        draw_set_color(_step == 2 ? make_color_rgb(22, 65, 52) : make_color_rgb(14, 28, 38));
+        draw_rectangle(_cx + 94, _ay - 22, _cx + 204, _ay + 22, false);
+        draw_set_color(_step == 2 ? c_lime : c_aqua);
+        draw_rectangle(_cx + 94, _ay - 22, _cx + 204, _ay + 22, true);
+        draw_text_transformed(_cx + 149, _ay - 7, "[C] CODEX", 0.62, 0.62, 0);
+        draw_set_color(c_white);
+        draw_text_transformed(_cx + 149, _ay + 9, "Deep Dive (Homeroom)", 0.48, 0.48, 0);
+
+    } else if (_kind == "security_bot") {
+        _title = "VISUAL GUIDE: SECURITY BOTS & STEALTH";
+        _sub   = "Red screen pulse = Bot near!  You have 5s in its beam—hide in [E] Lockers or behind walls!";
+
+        var _sw = sin(_t * 2.4);
+        var _bx = _cx - 80 + _sw * 35;
+        // Bot & sweeping cone
+        draw_set_alpha(0.35);
+        draw_set_color(c_red);
+        draw_triangle(_bx, _ay, _bx + 68, _ay - 24, _bx + 68, _ay + 24, false);
+        draw_set_alpha(1.0);
+        draw_set_color(c_red);
+        draw_circle(_bx, _ay, 8, false);
+        draw_set_color(c_white);
+        draw_text_transformed(_bx, _ay - 16, "BOT", 0.52, 0.52, 0);
+
+        // 5s Detection Bar
+        var _fill = frac(_t * 0.35);
+        draw_set_color(c_black);
+        draw_rectangle(_cx - 30, _ay + 28, _cx + 30, _ay + 34, false);
+        draw_set_color((_fill > 0.7) ? c_red : c_yellow);
+        draw_rectangle(_cx - 30, _ay + 28, _cx - 30 + 60 * _fill, _ay + 34, false);
+        draw_set_color(c_white);
+        draw_text_transformed(_cx, _ay + 43, "5.0s Detection Grace", 0.52, 0.52, 0);
+
+        // Blue Locker safe zone on right
+        draw_set_color(make_color_rgb(20, 60, 110));
+        draw_rectangle(_cx + 120, _ay - 26, _cx + 168, _ay + 26, false);
+        draw_set_color(c_aqua);
+        draw_rectangle(_cx + 120, _ay - 26, _cx + 168, _ay + 26, true);
+        draw_text_transformed(_cx + 144, _ay - 6, "LOCKER", 0.58, 0.58, 0);
+        draw_set_color(c_lime);
+        draw_text_transformed(_cx + 144, _ay + 10, "[E] HIDE", 0.54, 0.54, 0);
+
+    } else if (_kind == "scrapping") {
+        _title = "VISUAL GUIDE: WRENCH SCRAPPING (GREEN ZONE)";
+        _sub   = "Right-Click [RMB] or [R] on PCs -> Need 2 Scrap for Breaker, finish in 4-6 GREEN ZONE!";
+
+        var _sc_n = 1 + (floor(_t * 1.4) mod 6);
+        var _in_g = (_sc_n >= 4 && _sc_n <= 6);
+
+        // Terminal -> Wrench icon
+        draw_set_color(make_color_rgb(26, 40, 60));
+        draw_rectangle(_cx - 175, _ay - 22, _cx - 95, _ay + 22, false);
+        draw_set_color(c_aqua);
+        draw_rectangle(_cx - 175, _ay - 22, _cx - 95, _ay + 22, true);
+        draw_text_transformed(_cx - 135, _ay - 7, "TERMINAL", 0.58, 0.58, 0);
+        draw_set_color(c_yellow);
+        draw_text_transformed(_cx - 135, _ay + 9, "[RMB / R]", 0.56, 0.56, 0);
+
+        draw_set_color(c_white);
+        draw_text_transformed(_cx - 72, _ay, "->", 0.85, 0.85, 0);
+
+        // Animated 0..8 Compliance Bar with 4-6 Green Zone
+        var _bx1 = _cx - 45;
+        var _bw  = 220;
+        for (var _seg = 0; _seg < 8; _seg++) {
+            var _sx1 = _bx1 + _seg * (_bw / 8);
+            var _sx2 = _sx1 + (_bw / 8) - 2;
+            var _is_g = (_seg >= 3 && _seg <= 5);
+            var _lit  = (_seg < _sc_n);
+            draw_set_color(_lit ? (_is_g ? c_lime : c_orange) : make_color_rgb(24, 30, 42));
+            draw_rectangle(_sx1, _ay - 12, _sx2, _ay + 12, false);
+            draw_set_color(_is_g ? c_lime : make_color_rgb(70, 90, 115));
+            draw_rectangle(_sx1, _ay - 12, _sx2, _ay + 12, true);
+        }
+        draw_set_color(_in_g ? c_lime : c_white);
+        draw_text_transformed(_bx1 + _bw * 0.5, _ay + 26, "SCRAPPED: " + string(_sc_n) + " / 4-6 GREEN ZONE", 0.60, 0.60, 0);
+
+    } else if (_kind == "brig") {
+        _title = "HOLDING CELL (BRIG) — HOW TO ESCAPE";
+        _sub   = "1. Read the Math Terminal [E] inside this cell   2. Solve for X   3. Decode the Brig Door [E]!";
+
+        draw_set_color(make_color_rgb(24, 42, 64));
+        draw_rectangle(_cx - 160, _ay - 22, _cx - 40, _ay + 22, false);
+        draw_set_color(c_aqua);
+        draw_rectangle(_cx - 160, _ay - 22, _cx - 40, _ay + 22, true);
+        draw_text_transformed(_cx - 100, _ay - 7, "MATH PC [E]", 0.62, 0.62, 0);
+        draw_set_color(c_white);
+        draw_text_transformed(_cx - 100, _ay + 9, "X = (3*3) - 6", 0.54, 0.54, 0);
+
+        draw_set_color(c_white);
+        draw_text_transformed(_cx, _ay, "->", 0.85, 0.85, 0);
+
+        draw_set_color(make_color_rgb(56, 32, 18));
+        draw_rectangle(_cx + 40, _ay - 22, _cx + 160, _ay + 22, false);
+        draw_set_color(make_color_rgb(255, 165, 55));
+        draw_rectangle(_cx + 40, _ay - 22, _cx + 160, _ay + 22, true);
+        draw_text_transformed(_cx + 100, _ay - 7, "BRIG DOOR [E]", 0.62, 0.62, 0);
+        draw_set_color(c_lime);
+        draw_text_transformed(_cx + 100, _ay + 9, "Shift by X!", 0.56, 0.56, 0);
+
+    } else if (_kind == "breaker") {
+        _title = "VISUAL GUIDE: POWER BREAKER (3 FUSES)";
+        _sub   = "1. Spend 2 Scrap to repair relay   2. Flip ON the 2 VALID cipher pairs   3. Leave FAULTY pair OFF!";
+
+        var _f_lbls = ["FUSE 1: VALID", "FUSE 2: FAULTY", "FUSE 3: VALID"];
+        var _f_on   = [true, false, true];
+        var _f_x    = [_cx - 125, _cx, _cx + 125];
+        for (var _fi = 0; _fi < 3; _fi++) {
+            var _fx = _f_x[_fi];
+            var _ok = _f_on[_fi];
+            draw_set_color(_ok ? make_color_rgb(16, 46, 32) : make_color_rgb(48, 22, 24));
+            draw_rectangle(_fx - 52, _ay - 24, _fx + 52, _ay + 24, false);
+            draw_set_color(_ok ? c_lime : make_color_rgb(255, 110, 80));
+            draw_rectangle(_fx - 52, _ay - 24, _fx + 52, _ay + 24, true);
+            draw_text_transformed(_fx, _ay - 8, _f_lbls[_fi], 0.54, 0.54, 0);
+            draw_text_transformed(_fx, _ay + 9, _ok ? "SWITCH: ON" : "SWITCH: OFF", 0.58, 0.58, 0);
+        }
+    }
+
+    draw_set_color(c_yellow);
+    draw_text_transformed(_cx, _y1 + 22, _title, 0.86, 0.86, 0);
+    draw_set_color(make_color_rgb(205, 225, 245));
+    draw_text_ext_transformed(_cx, _y1 + 44, _sub, 14, (_pw - 36) / 0.66, 0.66, 0.66, 0);
+
+    draw_set_color(c_lime);
+    draw_text_transformed(_cx, _y2 - 18, "[E / ENTER / CLICK] Got It!", 0.72, 0.72, 0);
 
     draw_set_halign(fa_left);
     draw_set_valign(fa_top);

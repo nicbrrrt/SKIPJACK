@@ -74,7 +74,13 @@ switch (phase) {
                     }
 
                     if (_sq_submit) {
-                        if (safety_quiz_sel == safety_quiz_correct_idx) {
+                        var _sq_ok = (safety_quiz_sel == safety_quiz_correct_idx);
+                        if (!variable_global_exists("floor_stat_elev_logged") || !global.floor_stat_elev_logged) {
+                            global.floor_stat_elev_logged = true;
+                            var _b_key = variable_global_exists("floor_branch_key") ? global.floor_branch_key : "social_eng";
+                            scr_record_cyber_stat(_b_key, (_sq_ok && safety_quiz_first_try));
+                        }
+                        if (_sq_ok) {
                             safety_quiz_solved = true;
                             phase_timer        = 12; // brief guard before advancing to paystub
                             if (safety_quiz_first_try) {
@@ -122,8 +128,9 @@ switch (phase) {
                 }
             }
 
-            // Return to Chapter Select Screen: Escape
-            if (keyboard_check_pressed(vk_escape)) {
+            // Return to Chapter Select Screen: Escape (disabled when Intern Duty is flagged!)
+            var _intern_req = (variable_global_exists("intern_duty_flagged") && global.intern_duty_flagged);
+            if (!_intern_req && keyboard_check_pressed(vk_escape)) {
                 global.esc_block_frames = 2;
                 keyboard_clear(vk_escape);
                 next_action = "chapter_select";

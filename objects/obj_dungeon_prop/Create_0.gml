@@ -40,9 +40,11 @@ patrol_vx   = 0.95;
 patrol_vy   = 0;
 wp_index    = 1;
 wp_dir      = 1;
-hover_t     = random(100);
-zap_cd      = 0;
-init_done   = false;
+hover_t         = random(100);
+zap_cd          = 0;
+detect_meter    = 0.0; // 0.0 -> 1.0 suspicion fill (~0.55s reaction window before capture)
+detect_ping_cd  = 0;
+init_done       = false;
 
 // Wrench Scrapping, Anti-Tamper Circuit Fry & Bot Apprehension state
 is_scrapped      = false; // True once severed & wrenched for Scrap

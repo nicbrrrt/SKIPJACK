@@ -56,6 +56,50 @@ if (global.phone_ui_open) {
     }
 }
 
+// First-Visit 3-Step Homeroom Visual Spotlight Tour (Codex, Wall Telephone, Statues)
+if (variable_instance_exists(id, "homeroom_tour_step") && homeroom_tour_step >= 0 && !(instance_exists(obj_codex_manager) && obj_codex_manager.is_open)) {
+    var _ht_titles = [
+        "HOMEROOM GUIDE (1/3): [C] CYBERSECURITY CODEX",
+        "HOMEROOM GUIDE (2/3): WALL TELEPHONE (ORDER STATUES)",
+        "HOMEROOM GUIDE (3/3): 3-PEDESTAL STATUE TABLE"
+    ];
+    var _ht_bodies = [
+        "Click [C] CYBER CODEX in the top-right to read in-depth definitions of every [? Term] you collected and view your 5-Branch Mastery Bars!",
+        "Walk to the Wall Telephone on the north wall [E] to spend your Paycheck ($) on Statues from Burt!",
+        "Place delivered Statues on the 3 Pedestals [E] to unlock passive floor buffs (narrower bot cones, longer timers, and surge shields)!"
+    ];
+    var _ht_hx1 = [_gw - 214, _gw * 0.5 + 36, _gw * 0.5 - 32];
+    var _ht_hy1 = [10, 82, 118];
+    var _ht_hx2 = [_gw - 10, _gw * 0.5 + 106, _gw * 0.5 + 56];
+    var _ht_hy2 = [44, 134, 178];
+
+    var _st = homeroom_tour_step;
+    draw_set_alpha(0.60);
+    draw_set_color(c_black);
+    draw_rectangle(0, 0, _gw, _gh, false);
+    draw_set_alpha(1.0);
+    draw_set_color(c_yellow);
+    draw_rectangle(_ht_hx1[_st], _ht_hy1[_st], _ht_hx2[_st], _ht_hy2[_st], true);
+    draw_rectangle(_ht_hx1[_st] + 2, _ht_hy1[_st] + 2, _ht_hx2[_st] - 2, _ht_hy2[_st] - 2, true);
+
+    var _cx = _gw * 0.5;
+    var _cy = _gh - 66;
+    draw_set_color(make_color_rgb(12, 20, 36));
+    draw_rectangle(_cx - 240, _cy - 34, _cx + 240, _cy + 34, false);
+    draw_set_color(c_aqua);
+    draw_rectangle(_cx - 240, _cy - 34, _cx + 240, _cy + 34, true);
+
+    draw_set_font(fnt_dialogue);
+    draw_set_halign(fa_center);
+    draw_set_valign(fa_middle);
+    draw_set_color(c_yellow);
+    draw_text_transformed(_cx, _cy - 20, _ht_titles[_st], 0.72, 0.72, 0);
+    draw_set_color(c_white);
+    draw_text_ext_transformed(_cx, _cy + 2, _ht_bodies[_st], 13, 456 / 0.62, 0.62, 0.62, 0);
+    draw_set_color(c_lime);
+    draw_text_transformed(_cx, _cy + 24, (_st < 2) ? "[E / CLICK] Next >" : "[E / CLICK] Finish Tour", 0.64, 0.64, 0);
+}
+
 draw_set_font(fnt_default);
 draw_set_halign(fa_left);
 draw_set_valign(fa_top);

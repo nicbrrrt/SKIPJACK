@@ -1,4 +1,4 @@
-// --- Step Event for obj_button_intern_duty ---
+﻿// --- Step Event for obj_button_intern_duty ---
 // Keyboard shortcut: Press 'I' to launch Intern Babysitting Duty mode directly
 
 if (!variable_global_exists("hr_scrap_count") || global.hr_scrap_count <= 0) {
@@ -14,7 +14,6 @@ if (position_meeting(mouse_x, mouse_y, id) && mouse_check_button_pressed(mb_righ
 }
 
 if (keyboard_check_pressed(ord("I"))) {
-    if (instance_exists(obj_review_screen)) exit;
     if (instance_exists(obj_codex_manager) && obj_codex_manager.is_open) exit;
 
     if (audio_is_playing(snd_button_hover)) audio_stop_sound(snd_button_hover);

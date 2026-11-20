@@ -220,26 +220,30 @@ draw_set_valign(fa_middle);
     draw_set_color(make_color_rgb(190, 205, 220));
     draw_text_transformed(_x2 - 64, _y1 + 124, "RANK", 0.74, 0.74, 0);
 
-    // Itemized lines (including Cyber Safety Check Bonus!)
+    // Itemized lines (including Wrongful Audit Fine & Cyber Safety Check Bonus!)
+    var _w_cnt      = variable_struct_exists(paycheck, "wrongful_audits") ? paycheck.wrongful_audits : 0;
+    var _w_fine_amt = variable_struct_exists(paycheck, "audit_fine")      ? paycheck.audit_fine      : 0;
+
     var _lines_lbl = [
         "Base IT Hazard Pay",
         "Cipher Speed & Accuracy  (" + string(paycheck.fails) + " failed codes / timeouts, -$25 each)",
         "Salvage Task Bonus  (" + string((task1_done ? 1 : 0) + (task2_done ? 1 : 0)) + "/2 tasks)",
         "Clean Security Record  (busted " + string(paycheck.busted) + "x)",
         "Corporate Recovery Audit (" + string(hr_scrapped) + " Pcs) " + (is_compliant ? "[COMPLIANT]" : "[INTERN DUTY]"),
+        "Wrongful Audit Fine  (" + string(_w_cnt) + "x wrongful audits, -$75 each)",
         "Cyber Safety Check Bonus  " + ((safety_quiz_bonus > 0) ? "[1ST-TRY MASTERY!]" : "[COMPLETED]")
     ];
-    var _lines_amt = [paycheck.hazard, paycheck.speed, paycheck.salvage, paycheck.clean, paycheck.fine, safety_quiz_bonus];
+    var _lines_amt = [paycheck.hazard, paycheck.speed, paycheck.salvage, paycheck.clean, paycheck.fine, _w_fine_amt, safety_quiz_bonus];
 
-    for (var _li = 0; _li < 6; _li++) {
-        var _ly = _y1 + 86 + _li * 15;
+    for (var _li = 0; _li < 7; _li++) {
+        var _ly = _y1 + 84 + _li * 13;
         draw_set_halign(fa_left);
-        draw_set_color((_li == 5 && safety_quiz_bonus > 0) ? c_lime : make_color_rgb(205, 220, 235));
-        draw_text_transformed(_x1 + 28, _ly, _lines_lbl[_li], 0.70, 0.70, 0);
+        draw_set_color((_li == 6 && safety_quiz_bonus > 0) ? c_lime : ((_li == 5 && _w_fine_amt < 0) ? make_color_rgb(255, 110, 100) : make_color_rgb(205, 220, 235)));
+        draw_text_transformed(_x1 + 28, _ly, _lines_lbl[_li], 0.66, 0.66, 0);
         draw_set_halign(fa_right);
         var _amt = _lines_amt[_li];
         draw_set_color((_amt < 0) ? make_color_rgb(255, 110, 100) : ((_amt == 0) ? make_color_rgb(150, 160, 175) : c_lime));
-        draw_text_transformed(_x2 - 130, _ly, ((_amt < 0) ? "-$" : "+$") + string(abs(_amt)), 0.76, 0.76, 0);
+        draw_text_transformed(_x2 - 130, _ly, ((_amt < 0) ? "-$" : "+$") + string(abs(_amt)), 0.72, 0.72, 0);
     }
 
     draw_set_color(make_color_rgb(95, 120, 110));
@@ -254,12 +258,12 @@ draw_set_valign(fa_middle);
     draw_set_color(make_color_rgb(190, 205, 220));
     draw_text_transformed(_x2 - 64, _y1 + 194, "BANK: $" + string(global.player_cash), 0.76, 0.76, 0);
 
-    // Deliveries / Workshop box
+    // Deliveries / Workshop box (compact so 5-Branch Skill Mastery Bars fit cleanly below)
     var _has_delivery = (array_length(delivered_statues) > 0);
     draw_set_color(_has_delivery ? make_color_rgb(40, 32, 14) : make_color_rgb(22, 24, 38));
-    draw_rectangle(_x1 + 16, _y1 + 218, _x2 - 16, _y1 + 272, false);
+    draw_rectangle(_x1 + 16, _y1 + 216, _x2 - 16, _y1 + 250, false);
     draw_set_color(_has_delivery ? make_color_rgb(255, 205, 70) : make_color_rgb(95, 110, 150));
-    draw_rectangle(_x1 + 16, _y1 + 218, _x2 - 16, _y1 + 272, true);
+    draw_rectangle(_x1 + 16, _y1 + 216, _x2 - 16, _y1 + 250, true);
 
     draw_set_halign(fa_left);
     if (_has_delivery) {
@@ -268,24 +272,22 @@ draw_set_valign(fa_middle);
             _dnames += ((_di > 0) ? ", " : "") + delivered_statues[_di];
         }
         draw_set_color(make_color_rgb(255, 215, 90));
-        draw_text_transformed(_x1 + 28, _y1 + 232, "STATUE DELIVERED TO YOUR HOMEROOM!", 0.88, 0.88, 0);
-        draw_set_color(c_white);
-        draw_text_transformed(_x1 + 28, _y1 + 248, _dnames, 0.80, 0.80, 0);
+        draw_text_transformed(_x1 + 28, _y1 + 225, "STATUE DELIVERED: " + _dnames, 0.78, 0.78, 0);
         draw_set_color(make_color_rgb(190, 205, 220));
-        draw_text_transformed(_x1 + 28, _y1 + 262, "Place it on a pedestal at the Display Table to activate its effect.", 0.68, 0.68, 0);
+        draw_text_transformed(_x1 + 28, _y1 + 239, "Place it on a pedestal at your Homeroom Display Table.", 0.64, 0.64, 0);
     } else {
         var _n_pending = 0;
         for (var _pi = 0; _pi < STATUE_COUNT; _pi++) {
             if (global.statues_pending[_pi]) _n_pending++;
         }
         draw_set_color(make_color_rgb(150, 190, 235));
-        draw_text_transformed(_x1 + 28, _y1 + 232, "POUCH:  " + string(global.scrap_count) + " Scrap   " + string(global.rare_cores) + " Rare Cores", 0.84, 0.84, 0);
+        draw_text_transformed(_x1 + 28, _y1 + 225, "POUCH:  " + string(global.scrap_count) + " Scrap   " + string(global.rare_cores) + " Rare Cores   |   Pending Orders: " + string(_n_pending), 0.74, 0.74, 0);
         draw_set_color(make_color_rgb(190, 205, 220));
-        draw_text_transformed(_x1 + 28, _y1 + 249,
-            (_n_pending > 0) ? "Mechanic orders still in fabrication: " + string(_n_pending) : "No statue orders yet.",
-            0.72, 0.72, 0);
-        draw_text_transformed(_x1 + 28, _y1 + 262, "Call Burt on the Wall Telephone in your Homeroom to commission a statue.", 0.68, 0.68, 0);
+        draw_text_transformed(_x1 + 28, _y1 + 239, "Call Burt on your Homeroom Wall Telephone to commission a statue.", 0.64, 0.64, 0);
     }
+
+    // 5-Branch Cybersecurity Competency Mastery Progress Bars
+    scr_draw_cyber_mastery_bars(_x1 + 16, _y1 + 253, _pw - 32, 34, true);
     draw_set_halign(fa_center);
 }
 
@@ -315,8 +317,9 @@ if (phase == "display" && phase_timer >= 20) {
         }
         draw_text_transformed(_cx, _y2 - 36, _btn_txt, 0.90, 0.90, 0);
     }
-    draw_set_color(make_color_rgb(165, 180, 200));
-    draw_text_transformed(_cx, _y2 - 16, "[ ESC ] Return to Chapter Select", 0.82, 0.82, 0);
+    var _has_intern2 = (variable_global_exists("intern_duty_flagged") && global.intern_duty_flagged);
+    draw_set_color(_has_intern2 ? make_color_rgb(255, 165, 95) : make_color_rgb(165, 180, 200));
+    draw_text_transformed(_cx, _y2 - 16, _has_intern2 ? "HR COMPLIANCE VIOLATION — INTERN DUTY MANDATORY" : "[ ESC ] Return to Chapter Select", 0.82, 0.82, 0);
 } else if (phase == "fade_out") {
     draw_set_color(c_aqua);
     draw_text(_cx, _y2 - 26, "Loading next sector...");

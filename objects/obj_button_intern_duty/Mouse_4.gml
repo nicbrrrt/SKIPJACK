@@ -1,6 +1,5 @@
-// --- Mouse Left Pressed Event for obj_button_intern_duty ---
+﻿// --- Mouse Left Pressed Event for obj_button_intern_duty ---
 
-if (instance_exists(obj_review_screen)) exit;
 if (instance_exists(obj_codex_manager) && obj_codex_manager.is_open) exit;
 
 if (audio_is_playing(snd_button_hover)) audio_stop_sound(snd_button_hover);

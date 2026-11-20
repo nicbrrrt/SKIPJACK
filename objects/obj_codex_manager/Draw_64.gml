@@ -45,7 +45,7 @@ if (!is_open) {
         }
 
         if (_hov && mouse_check_button_pressed(mb_left)) {
-            is_open = true;
+            is_open        = true;
             global.codex_new_count = 0;
             content_scroll = 0;
             if (instance_exists(obj_jack)) {
@@ -102,17 +102,20 @@ draw_set_font(fnt_dialogue);
 draw_set_halign(fa_left);
 draw_set_valign(fa_middle);
 draw_set_color(make_color_rgb(100, 225, 255));
-draw_text_transformed(_fx1 + 14, _fy1 + 16, "HOMEROOM CYBERSECURITY CODEX  //  CATEGORIZED FIELD MANUAL", 0.80, 0.80, 0);
+draw_text_transformed(_fx1 + 14, _fy1 + 14, "HOMEROOM CYBERSECURITY CODEX  //  CATEGORIZED FIELD MANUAL", 0.74, 0.74, 0);
 
 draw_set_halign(fa_right);
 var _tot_u = scr_get_cyber_glossary_unlocked_count();
 var _tot_a = array_length(global.cyber_glossary);
 draw_set_color(make_color_rgb(255, 215, 75));
-draw_text_transformed(_fx2 - 14, _fy1 + 16, "ARCHIVED: " + string(_tot_u) + " / " + string(_tot_a) + " CONCEPTS", 0.72, 0.72, 0);
+draw_text_transformed(_fx2 - 14, _fy1 + 14, "ARCHIVED: " + string(_tot_u) + " / " + string(_tot_a) + " CONCEPTS", 0.68, 0.68, 0);
+
+// ── 2b. 5-Branch Skill Mastery Progress Bars ─────────────────────────────
+scr_draw_cyber_mastery_bars(_fx1 + 8, _fy1 + 26, _fw - 16, 26, false);
 
 // ── 3. Five Cybersecurity Branch Tabs ────────────────────────────────────
-var _tab_y1 = _fy1 + 32;
-var _tab_h  = 28;
+var _tab_y1 = _fy1 + 56;
+var _tab_h  = 26;
 var _num    = array_length(tab_names);
 var _tab_w  = _fw / _num;
 
@@ -135,9 +138,9 @@ for (var i = 0; i < _num; i++) {
 
     draw_set_halign(fa_center);
     draw_set_color(_act_t ? c_white : make_color_rgb(165, 200, 225));
-    draw_text_transformed((_tx1 + _tx2) * 0.5, _tab_y1 + 9, tab_names[i], 0.56, 0.56, 0);
+    draw_text_transformed((_tx1 + _tx2) * 0.5, _tab_y1 + 8, tab_names[i], 0.54, 0.54, 0);
     draw_set_color((_b_u == array_length(_b_terms)) ? c_lime : make_color_rgb(130, 185, 215));
-    draw_text_transformed((_tx1 + _tx2) * 0.5, _tab_y1 + 21, string(_b_u) + "/" + string(array_length(_b_terms)), 0.52, 0.52, 0);
+    draw_text_transformed((_tx1 + _tx2) * 0.5, _tab_y1 + 20, string(_b_u) + "/" + string(array_length(_b_terms)), 0.50, 0.50, 0);
 
     if (_hov_t && mouse_check_button_pressed(mb_left) && i != current_branch) {
         current_branch  = i;
@@ -147,9 +150,9 @@ for (var i = 0; i < _num; i++) {
     }
 }
 
-// ── 4. Two-Column Body (Left Concept List + Right Deep-Dive Pane) ────────
+// ── 4. Two-Column Body (Adaptive Left Sidebar + Scissor-Clipped Right Pane)
 var _body_y1 = _tab_y1 + _tab_h + 6;
-var _body_y2 = _fy2 - 26;
+var _body_y2 = _fy2 - 24;
 var _side_w  = clamp(_fw * 0.31, 150, 230);
 var _side_x1 = _fx1 + 8;
 var _side_x2 = _side_x1 + _side_w;
@@ -167,12 +170,15 @@ var _terms = get_branch_terms(current_branch);
 var _t_len = array_length(_terms);
 current_concept = clamp(current_concept, 0, max(0, _t_len - 1));
 
+var _avail_side_h = (_body_y2 - _body_y1) - 8;
+var _row_step     = min(30, floor(_avail_side_h / max(1, _t_len)));
+var _row_h        = max(18, _row_step - 3);
+
 for (var _ci = 0; _ci < _t_len; _ci++) {
     var _item = _terms[_ci];
     var _is_u = variable_struct_exists(global.codex_unlocked_terms, _item.id);
-    var _cy1  = _body_y1 + 8 + _ci * 32;
-    var _cy2  = _cy1 + 27;
-    if (_cy2 > _body_y2 - 4) break;
+    var _cy1  = _body_y1 + 5 + _ci * _row_step;
+    var _cy2  = _cy1 + _row_h;
 
     var _hov_c = (_mx >= _side_x1 + 4 && _mx <= _side_x2 - 4 && _my >= _cy1 && _my <= _cy2);
     var _sel_c = (_ci == current_concept);
@@ -183,9 +189,10 @@ for (var _ci = 0; _ci < _t_len; _ci++) {
     draw_rectangle(_side_x1 + 4, _cy1, _side_x2 - 4, _cy2, true);
 
     draw_set_halign(fa_left);
+    draw_set_valign(fa_middle);
     draw_set_color(_is_u ? (_sel_c ? c_white : make_color_rgb(175, 235, 255)) : make_color_rgb(115, 125, 140));
-    var _lbl = _is_u ? ("[✓] " + _item.term) : "[?] Undiscovered";
-    draw_text_transformed(_side_x1 + 10, (_cy1 + _cy2) * 0.5, _lbl, 0.58, 0.58, 0);
+    var _lbl = _is_u ? ("[+] " + _item.term) : "[?] Undiscovered";
+    draw_text_transformed(_side_x1 + 10, (_cy1 + _cy2) * 0.5, _lbl, 0.54, 0.54, 0);
 
     if (_hov_c && mouse_check_button_pressed(mb_left)) {
         current_concept = _ci;
@@ -201,11 +208,8 @@ draw_set_color(make_color_rgb(60, 145, 195));
 draw_rectangle(_pane_x1, _body_y1, _pane_x2, _body_y2, true);
 
 if (_t_len > 0) {
-    var _sel = _terms[current_concept];
+    var _sel   = _terms[current_concept];
     var _sel_u = variable_struct_exists(global.codex_unlocked_terms, _sel.id);
-
-    draw_set_halign(fa_left);
-    draw_set_valign(fa_top);
 
     if (!_sel_u) {
         draw_set_halign(fa_center);
@@ -217,35 +221,56 @@ if (_t_len > 0) {
             "Click glowing [? Term] badges in Intern Duty dialogue, Suspect Desk Audits, Key Vault logs, or the Case Board to unlock this in-depth guide!",
             18, (_pane_w - 48) / 0.68, 0.68, 0.68, 0);
     } else {
-        var _px = _pane_x1 + 14;
-        var _pw_txt = (_pane_w - 28) / 0.66;
-        var _py = _body_y1 + 12 - content_scroll;
+        var _px     = _pane_x1 + 12;
+        var _t_sc   = 0.58;
+        var _l_sep  = 16;
+        var _pw_txt = (_pane_w - 24) / _t_sc;
 
-        if (_py >= _body_y1 - 8) {
-            draw_set_color(c_aqua);
-            draw_text_transformed(_px, _py, _sel.branch_name + "  >  " + _sel.term, 0.92, 0.92, 0);
-        }
-        _py += 26;
-
+        // Pre-compute total height for exact scroll clamping
         var _sections = [
-            { hdr: "1. QUICK DEFINITION", col: make_color_rgb(255, 215, 75), body: _sel.short_def },
-            { hdr: "2. HOW IT WORKS IN DEPTH", col: make_color_rgb(110, 225, 255), body: _sel.deep_how },
-            { hdr: "3. REAL-WORLD IMPACT", col: make_color_rgb(255, 145, 125), body: _sel.deep_real },
-            { hdr: "4. DEFENSE & PREVENTION STANDARD", col: c_lime, body: _sel.deep_defense }
+            { hdr: "1. QUICK DEFINITION",              col: make_color_rgb(255, 215, 75),  body: _sel.short_def },
+            { hdr: "2. HOW IT WORKS IN DEPTH",         col: make_color_rgb(110, 225, 255), body: _sel.deep_how },
+            { hdr: "3. REAL-WORLD IMPACT",             col: make_color_rgb(255, 145, 125), body: _sel.deep_real },
+            { hdr: "4. DEFENSE & PREVENTION STANDARD", col: c_lime,                        body: _sel.deep_defense }
         ];
-
+        var _total_h = 26;
         for (var _si = 0; _si < array_length(_sections); _si++) {
-            var _sec = _sections[_si];
-            if (_py >= _body_y1 && _py <= _body_y2 - 16) {
+            _total_h += 13 + string_height_ext(_sections[_si].body, _l_sep, _pw_txt) * _t_sc + 7;
+        }
+        var _pane_inner_h = (_body_y2 - _body_y1) - 10;
+        max_scroll_h   = max(0, _total_h - _pane_inner_h);
+        content_scroll = clamp(content_scroll, 0, max_scroll_h);
+
+        draw_set_halign(fa_left);
+        draw_set_valign(fa_top);
+
+        var _py = _body_y1 + 8 - content_scroll;
+        if (_py >= _body_y1 + 2 && _py <= _body_y2 - 18) {
+            draw_set_color(c_aqua);
+            draw_text_transformed(_px, _py, _sel.branch_name + "  >  " + _sel.term, 0.80, 0.80, 0);
+        }
+        _py += 22;
+
+        for (var _sj = 0; _sj < array_length(_sections); _sj++) {
+            var _sec   = _sections[_sj];
+            var _sec_h = string_height_ext(_sec.body, _l_sep, _pw_txt) * _t_sc;
+            if (_py >= _body_y1 + 2 && _py <= _body_y2 - 16) {
                 draw_set_color(_sec.col);
-                draw_text_transformed(_px, _py, _sec.hdr, 0.66, 0.66, 0);
+                draw_text_transformed(_px, _py, _sec.hdr, 0.60, 0.60, 0);
             }
-            _py += 15;
-            if (_py >= _body_y1 - 24 && _py <= _body_y2 - 16) {
+            _py += 12;
+            if (_py >= _body_y1 + 2 && _py + _sec_h <= _body_y2 - 4) {
                 draw_set_color(make_color_rgb(225, 240, 252));
-                draw_text_ext_transformed(_px, _py, _sec.body, 18, _pw_txt, 0.66, 0.66, 0);
+                draw_text_ext_transformed(_px, _py, _sec.body, _l_sep, _pw_txt, _t_sc, _t_sc, 0);
             }
-            _py += string_height_ext(_sec.body, 18, _pw_txt) * 0.66 + 10;
+            _py += _sec_h + 7;
+        }
+
+        if (max_scroll_h > 0) {
+            draw_set_halign(fa_right);
+            draw_set_valign(fa_bottom);
+            draw_set_color(make_color_rgb(130, 195, 235));
+            draw_text_transformed(_pane_x2 - 8, _body_y2 - 4, "[Wheel] Scroll", 0.52, 0.52, 0);
         }
     }
 }
@@ -254,7 +279,7 @@ if (_t_len > 0) {
 draw_set_halign(fa_center);
 draw_set_valign(fa_middle);
 draw_set_color(make_color_rgb(150, 200, 235));
-draw_text_transformed((_fx1 + _fx2) * 0.5, _fy2 - 13, "[A/D] Switch Branch   |   [W/S or Click] Select Concept   |   [Wheel] Scroll   |   [C / ESC] Close", 0.60, 0.60, 0);
+draw_text_transformed((_fx1 + _fx2) * 0.5, _fy2 - 12, "[A/D] Switch Branch   |   [W/S or Click] Select Concept   |   [Wheel] Scroll   |   [C / ESC] Close", 0.58, 0.58, 0);
 
 draw_set_halign(fa_left);
 draw_set_valign(fa_top);

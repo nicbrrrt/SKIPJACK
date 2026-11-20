@@ -430,11 +430,13 @@ else if (prop_type == TILE_PROP_DRONE) {
             draw_circle(_cx, _cy, 10, false);
 
             // Outer Raycast Flashlight Fan (clips against walls & spills into open doorway alcoves!)
+            var _det = variable_instance_exists(id, "detect_meter") ? detect_meter : 0.0;
+            var _arc_pts = [];
             draw_primitive_begin(pr_trianglefan);
-            var _fan_c1 = _is_jammed ? make_color_rgb(100, 160, 220) : make_color_rgb(255, 235, 165);
-            var _fan_a1 = _is_jammed ? 0.20 : 0.42;
-            var _fan_c2 = _is_jammed ? make_color_rgb(50, 80, 120)  : make_color_rgb(255, 65, 55);
-            var _fan_a2 = _is_jammed ? 0.06 : 0.14;
+            var _fan_c1 = _is_jammed ? make_color_rgb(100, 160, 220) : ((_det > 0.05) ? make_color_rgb(255, 110, 95) : make_color_rgb(255, 235, 165));
+            var _fan_a1 = _is_jammed ? 0.22 : (0.48 + _det * 0.18);
+            var _fan_c2 = _is_jammed ? make_color_rgb(50, 80, 120)  : ((_det > 0.05) ? make_color_rgb(255, 35, 35) : make_color_rgb(255, 75, 55));
+            var _fan_a2 = _is_jammed ? 0.08 : (0.24 + _det * 0.16);
             draw_vertex_color(_cx, _cy, _fan_c1, _fan_a1);
 
             for (var _ri = 0; _ri <= _num_rays; _ri++) {
@@ -452,9 +454,40 @@ else if (prop_type == TILE_PROP_DRONE) {
 
                 var _rx = _cx + _vx * _hit_d;
                 var _ry = _cy + _vy * _hit_d;
+                array_push(_arc_pts, [_rx, _ry]);
                 draw_vertex_color(_rx, _ry, _fan_c2, _fan_a2);
             }
             draw_primitive_end();
+
+            // Crisp laser perimeter outline so the exact danger boundary is unmistakable
+            var _edge_col = _is_jammed ? make_color_rgb(90, 195, 240) : ((_det > 0.05) ? make_color_rgb(255, 65, 65) : make_color_rgb(255, 165, 75));
+            draw_set_alpha(_is_jammed ? 0.35 : 0.72);
+            draw_set_color(_edge_col);
+            var _n_arc = array_length(_arc_pts);
+            if (_n_arc >= 2) {
+                draw_line(_cx, _cy, _arc_pts[0][0], _arc_pts[0][1]);
+                draw_line(_cx, _cy, _arc_pts[_n_arc - 1][0], _arc_pts[_n_arc - 1][1]);
+                for (var _ai = 0; _ai < _n_arc - 1; _ai++) {
+                    draw_line(_arc_pts[_ai][0], _arc_pts[_ai][1], _arc_pts[_ai + 1][0], _arc_pts[_ai + 1][1]);
+                }
+            }
+            draw_set_alpha(1.0);
+
+            // Floating Detection / Suspicion Bar when spotting Jack (~0.55s reaction window)
+            if (_det > 0.02 && !_is_jammed) {
+                var _bw  = 24;
+                var _bx1 = _cx - _bw * 0.5;
+                var _by1 = y - 14;
+                draw_set_color(c_black);
+                draw_rectangle(_bx1 - 1, _by1 - 1, _bx1 + _bw + 1, _by1 + 4, false);
+                draw_set_color((_det >= 0.65) ? c_red : c_yellow);
+                draw_rectangle(_bx1, _by1, _bx1 + _bw * _det, _by1 + 3, false);
+                draw_set_font(fnt_dialogue);
+                draw_set_halign(fa_center);
+                draw_set_valign(fa_bottom);
+                draw_set_color((_det >= 0.65) ? c_red : c_yellow);
+                draw_text_transformed(_cx, _by1 - 1, "!", 0.85, 0.85, 0);
+            }
 
             // Floating [JAMMED] indicator if frequency jammed
             if (_is_jammed) {

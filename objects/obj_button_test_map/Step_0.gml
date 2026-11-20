@@ -1,8 +1,7 @@
-// --- Step Event for obj_button_test_map ---
+﻿// --- Step Event for obj_button_test_map ---
 // Keyboard shortcut: Press 'T' to launch dungeon_test directly
 
 if (keyboard_check_pressed(ord("T"))) {
-    if (instance_exists(obj_review_screen)) exit;
     if (instance_exists(obj_codex_manager) && obj_codex_manager.is_open) exit;
 
     if (audio_is_playing(snd_button_hover)) audio_stop_sound(snd_button_hover);

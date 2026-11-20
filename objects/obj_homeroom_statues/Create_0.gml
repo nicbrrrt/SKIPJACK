@@ -19,6 +19,8 @@ exit_y        = 384;
 near_phone = false;
 near_table = false;
 near_exit  = false;
+scr_ensure_tutorial_flags();
+homeroom_tour_step = (!global.homeroom_tour_done) ? 0 : -1;
 
 if (!instance_exists(obj_music_controller)) {
     instance_create_depth(0, 0, 0, obj_music_controller);

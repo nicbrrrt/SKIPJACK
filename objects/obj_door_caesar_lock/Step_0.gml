@@ -24,6 +24,23 @@ if (locked && is_breaker_door && variable_global_exists("lockdown_overridden") &
     }
 }
 
+// Automatically unlock the Extraction Elevator door once Floor Power is restored!
+if (locked && is_elevator_door && variable_global_exists("power_restored") && global.power_restored) {
+    var _bui_still_open = (variable_global_exists("breaker_ui_open") && global.breaker_ui_open);
+    if (!_bui_still_open) {
+        unseal_anim_t++;
+        if (unseal_anim_t >= 20) {
+            locked       = false;
+            unseal_flash = 90;
+            x            = -10000;
+            y            = -10000;
+            var _snd2 = audio_play_sound(snd_button_click, 8, false);
+            audio_sound_pitch(_snd2, 1.35);
+            exit;
+        }
+    }
+}
+
 if (!variable_instance_exists(id, "text_cooldown")) text_cooldown = 0;
 if (instance_exists(obj_textevent)
     || (variable_global_exists("override_ui_open") && global.override_ui_open)
@@ -52,6 +69,17 @@ if (locked && instance_exists(obj_jack)) {
                     create_textevent([
                         "SEALED BY LOCKDOWN! The Power Breaker Room is locked down.",
                         "I need to unlock the Security Control Room and hit the Red Lockdown Override Button to unseal this door!"
+                    ], [obj_jack.id, obj_jack.id]);
+                    exit;
+                }
+
+                // 1b. Extraction Elevator Door (Locked until Floor Power is restored in the Breaker Room!)
+                if (is_elevator_door && !_powered) {
+                    audio_play_sound(wrong1, 10, false);
+                    global.e_dialogue_intro_shown = true;
+                    create_textevent([
+                        "EXTRACTION ELEVATOR OFFLINE — POWER REQUIRED!",
+                        "I must override the Lockdown and restore Floor Power in the Breaker Room before the Extraction Elevator door can be unlocked!"
                     ], [obj_jack.id, obj_jack.id]);
                     exit;
                 }

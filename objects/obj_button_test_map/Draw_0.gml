@@ -1,6 +1,5 @@
-// --- Draw Event for obj_button_test_map ---
+﻿// --- Draw Event for obj_button_test_map ---
 
-if (instance_exists(obj_review_screen)) exit;
 
 draw_self();
 

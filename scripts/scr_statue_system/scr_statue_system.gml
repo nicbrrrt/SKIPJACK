@@ -93,6 +93,11 @@ function scr_get_cipher_timer_frames(_kind) {
     var _sec  = 20;
     if (_kind == "door") {
         _sec = (!is_undefined(_curr) && _curr.guided_ui) ? 40 : 28;
+    } else if (_kind == "sever") {
+        // Floor 10 Chapter Final Exam tightens the Lockdown Override Trace Timer to 14s
+        if (!is_undefined(_curr) && variable_struct_exists(_curr, "is_final_exam") && _curr.is_final_exam) {
+            _sec = 14;
+        }
     }
     if (scr_has_active_statue(1)) _sec += 12;
     return _sec * game_get_speed(gamespeed_fps);
@@ -236,15 +241,17 @@ function scr_deliver_pending_statues() {
 /// @returns {Struct} hazard, speed, salvage, clean, fine, total, grade
 // ---------------------------------------------------------------------------
 function scr_calc_floor_paycheck(_task1, _task2, _hr_violation) {
-    var _fails  = variable_global_exists("floor_cipher_fails") ? global.floor_cipher_fails : 0;
-    var _busted = variable_global_exists("floor_times_busted") ? global.floor_times_busted : 0;
+    var _fails    = variable_global_exists("floor_cipher_fails") ? global.floor_cipher_fails : 0;
+    var _busted   = variable_global_exists("floor_times_busted") ? global.floor_times_busted : 0;
+    var _wrongful = variable_global_exists("wrongful_audits")    ? global.wrongful_audits    : 0;
 
-    var _hazard  = 150;
-    var _speed   = max(0, 100 - 25 * _fails);
-    var _salvage = (_task1 ? 100 : 0) + (_task2 ? 100 : 0);
-    var _clean   = (_busted == 0) ? 100 : 0;
-    var _fine    = _hr_violation ? -100 : 0;
-    var _total   = max(0, _hazard + _speed + _salvage + _clean + _fine);
+    var _hazard     = 150;
+    var _speed      = max(0, 100 - 25 * _fails);
+    var _salvage    = (_task1 ? 100 : 0) + (_task2 ? 100 : 0);
+    var _clean      = (_busted == 0) ? 100 : 0;
+    var _fine       = _hr_violation ? -100 : 0;
+    var _audit_fine = -75 * _wrongful;
+    var _total      = max(0, _hazard + _speed + _salvage + _clean + _fine + _audit_fine);
 
     var _grade = "C";
     if (_total >= 250) _grade = "B";
@@ -252,15 +259,17 @@ function scr_calc_floor_paycheck(_task1, _task2, _hr_violation) {
     if (_total >= 500) _grade = "S";
 
     return {
-        hazard:  _hazard,
-        speed:   _speed,
-        salvage: _salvage,
-        clean:   _clean,
-        fine:    _fine,
-        fails:   _fails,
-        busted:  _busted,
-        total:   _total,
-        grade:   _grade
+        hazard:          _hazard,
+        speed:           _speed,
+        salvage:         _salvage,
+        clean:           _clean,
+        fine:            _fine,
+        audit_fine:      _audit_fine,
+        wrongful_audits: _wrongful,
+        fails:           _fails,
+        busted:          _busted,
+        total:           _total,
+        grade:           _grade
     };
 }
 

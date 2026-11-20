@@ -531,6 +531,15 @@ else {
 		cc += 1;
 		cx += 1;
 	}
+	// Auto-scroll with the active typing line so long dialogue stays in view;
+	// once finished typing, player can freely scroll back up/down.
+	if (charCount < str_len) {
+		var _tb_vis_h  = boxHeight - (y_buffer * 2);
+		var _auto_sc   = max(0, ((cy + 1) * stringHeight) - _tb_vis_h);
+		if (_auto_sc > scroll_y) {
+			scroll_y = _auto_sc;
+		}
+	}
 	#endregion
 }
 #endregion

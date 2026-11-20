@@ -8,6 +8,13 @@ if (keyboard_check_pressed(vk_f11)) {
     global.tutorial_complete = false;
     global.e_dialogue_intro_shown = false;
     global.saved_codex_modules = [];
+    global.cyber_stats = {
+        social_eng:   { correct: 0, total: 0 },
+        identity:     { correct: 0, total: 0 },
+        malware:      { correct: 0, total: 0 },
+        network_phys: { correct: 0, total: 0 },
+        crypto:       { correct: 0, total: 0 }
+    };
     if (instance_exists(obj_codex_manager)) {
         obj_codex_manager.modules = [];
         obj_codex_manager.unlocked = false;

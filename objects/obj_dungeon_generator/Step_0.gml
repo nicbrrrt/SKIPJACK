@@ -6,6 +6,25 @@
 if (variable_instance_exists(id, "is_intern_mode") && is_intern_mode) exit;
 if (!gen_complete) exit;
 if (scr_handle_term_popup_input()) exit;
+scr_ensure_tutorial_flags();
+
+// Dismiss active Visual Mechanic Tutorial Modal (queued after any active dialogue!)
+if (global.visual_tut_kind != "" && !instance_exists(obj_textbox) && !instance_exists(obj_textevent)) {
+    if (keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space)
+        || keyboard_check_pressed(vk_escape) || mouse_check_button_pressed(mb_left))
+    {
+        if (keyboard_check_pressed(vk_escape)) {
+            global.esc_block_frames = 2;
+            keyboard_clear(vk_escape);
+        }
+        keyboard_clear(ord("E"));
+        keyboard_clear(vk_enter);
+        keyboard_clear(vk_space);
+        global.visual_tut_kind = "";
+        audio_play_sound(snd_button_click, 8, false);
+    }
+    exit;
+}
 
 // Ensure Jack is snapped into ROOM_START even if inst_DT_JACK was created after obj_dungeon_generator
 if (variable_instance_exists(id, "jack_spawn_snapped") && !jack_spawn_snapped && instance_exists(obj_jack)) {
@@ -65,6 +84,18 @@ var _any_ui_busy = instance_exists(obj_textbox)
     || instance_exists(obj_cipher)
     || instance_exists(obj_dungeon_quiz)
     || instance_exists(obj_dungeon_victory);
+
+if (!_any_ui_busy && !(variable_global_exists("is_paused") && global.is_paused)) {
+    if (keyboard_check_pressed(ord("M"))) {
+        radar_open = !radar_open;
+        audio_play_sound(snd_button_click, 6, false);
+    }
+    if (keyboard_check_pressed(ord("V"))) {
+        hud_tasks_collapsed    = !hud_tasks_collapsed;
+        hud_priority_collapsed = hud_tasks_collapsed;
+        audio_play_sound(snd_button_click, 6, false);
+    }
+}
 
 var _pan_active = (variable_global_exists("cam_pan_phase") && global.cam_pan_phase != "off");
 
@@ -178,23 +209,27 @@ if (!intro_pending && instance_exists(obj_jack) && !_any_ui_busy && !_pan_active
         );
         _pan_active = true;
     }
-    // Milestone B (Tutorial Floors 1-3): Cipher Key Collected -> Teach Phase 2 Investigation & Wrench Scrapping!
+    // Milestone B (Tutorial Floors 1-3): Cipher Key Collected -> Pan to Coworker NPC + Suspect Desk & Teach Case Board!
     else if (curriculum.guided_ui && !cutscene_key_shown && global.has_dungeon_cipher_key && !global.lockdown_overridden) {
         cutscene_key_shown = true;
-        var _jack_cx = obj_jack.x;
-        var _jack_cy = obj_jack.y - 12;
-        var _ch_mb   = variable_global_exists("dungeon_chapter") ? global.dungeon_chapter : CHAPTER_CAESAR;
-        var _mb_rule = "your Caesar Shift Key";
-        if (_ch_mb == CHAPTER_VIGENERE) _mb_rule = "your repeating Vigenere Keyword ('" + global.dungeon_vigenere_key + "', where A=0, B=+1, C=+2...)";
-        if (_ch_mb == CHAPTER_ATBASH)   _mb_rule = "the Atbash Mirror Bar (swapping A <-> Z, B <-> Y)";
+        var _npc_tx = obj_jack.x, _npc_ty = obj_jack.y - 12;
+        var _dsk_tx = obj_jack.x, _dsk_ty = obj_jack.y - 12;
+        with (obj_dungeon_prop) {
+            if (prop_type == TILE_PROP_NPC && _npc_tx == obj_jack.x) {
+                _npc_tx = x + 8; _npc_ty = y + 8;
+            }
+            if (prop_type == TILE_PROP_PC && suspect_idx >= 0 && _dsk_tx == obj_jack.x) {
+                _dsk_tx = x + 8; _dsk_ty = y + 8;
+            }
+        }
         scr_trigger_dungeon_camera_cutscene(
             [
-                "Awesome—calibrating " + _mb_rule + " unlocked every office computer and lets you decode the Pink Encrypted Doors! Now PHASE 2 (THE INVESTIGATION) begins: talk to coworkers [E] ('Say Hello' -> 'Ask about...') for Level 1 & 2 clues, and inspect Suspect Desks (with nameplates) [E] for Level 3 Critical Proof!",
-                "At the same time, Right-Click [RMB] (or press [R]) on terminals to Wrench Scrap! You need 2 Scrap to repair the Power Breaker later, and you MUST finish with 4 to 6 scrapped assets (the GREEN ZONE on your bottom Compliance Bar) or HR will send you to Intern Babysitting Duty!"
+                "KYLE: Nice! Phase 2 begins—talk to Coworkers [E] for leads & alibis, and audit Suspect Desks [E] for Level 3 Critical Proof!",
+                "KYLE: As you gather clues, press [TAB] to open your Case Board, review evidence, and accuse Patient Zero! (Remember: Wrench Scrap [RMB/R] to keep the bottom bar in the 4-6 GREEN ZONE!)"
             ],
             [
-                { tx: _jack_cx, ty: _jack_cy, label: "PHASE 2: INVESTIGATE COWORKERS & DESKS", sublabel: "Talk to NPCs [E] & Check Suspect Desks for Lvl 3 Proof!", col: make_color_rgb(255, 80, 95) },
-                { tx: _jack_cx, ty: _jack_cy, label: "WRENCH SCRAP [RMB] -> GREEN ZONE (4-6)", sublabel: "Right-Click [RMB] Terminals -> Keep Bottom Bar in GREEN!", col: c_lime }
+                { tx: _npc_tx, ty: _npc_ty, label: "PHASE 2: INTERVIEW COWORKERS [E]", sublabel: "Talk to coworkers for Level 1 & 2 leads and alibis!", col: make_color_rgb(255, 200, 55) },
+                { tx: _dsk_tx, ty: _dsk_ty, label: "AUDIT SUSPECT DESKS [E] & [TAB] CASE BOARD", sublabel: "Spot the 1 risky slip-up or [VERIFY CLEAN], then accuse on [TAB]!", col: c_lime }
             ]
         );
         _pan_active = true;
@@ -235,18 +270,32 @@ if (!intro_pending && instance_exists(obj_jack) && !_any_ui_busy && !_pan_active
             // Player already found the Elevator Room earlier while exploring encrypted doors -> lift lockdown & pan to it!
             global.lockdown_lifted = true;
             scr_trigger_dungeon_camera_cutscene(
-                ["Floor power is 100% restored! Make sure your bottom Recovery Compliance Bar is in the GREEN ZONE (4 to 6 scrapped assets), then board the Extraction Elevator to review the floor's Cybersecurity Lesson and pass the 1-question Cyber Safety Check for a +$50 Bonus!"],
-                [{ tx: _elv_tx, ty: _elv_ty, label: "POWER RESTORED! -> EXTRACTION ELEVATOR ONLINE", sublabel: "Check Green Zone (4-6 Scrap) & Pass Elevator Safety Check (+$50)!", col: c_lime }]
+                ["Floor power is 100% restored and the Extraction Elevator door just UNLOCKED! Make sure your bottom Recovery Compliance Bar is in the GREEN ZONE (4 to 6 scrapped assets), then board the Elevator for your Cyber Safety Check (+$50 Bonus)!"],
+                [{ tx: _elv_tx, ty: _elv_ty, label: "POWER RESTORED! -> ELEVATOR UNLOCKED", sublabel: "Check Green Zone (4-6 Scrap) & Board the Elevator!", col: c_lime }]
             );
         } else {
             var _p_tx = obj_jack.x;
             var _p_ty = obj_jack.y - 12;
             scr_trigger_dungeon_camera_cutscene(
-                ["Floor power is 100% restored! Make sure your bottom Recovery Compliance Bar is in the GREEN ZONE (4 to 6 scrapped assets), then unlock the remaining Pink Encrypted Doors to board the Extraction Elevator and pass the Cyber Safety Check for a +$50 Bonus!"],
-                [{ tx: _p_tx, ty: _p_ty, label: "POWER RESTORED! -> FIND EXTRACTION ELEVATOR", sublabel: "Check Green Zone (4-6 Scrap) & Pass Elevator Safety Check (+$50)!", col: c_lime }]
+                ["Floor power is 100% restored and the Extraction Elevator door just UNLOCKED! Make sure your bottom Recovery Compliance Bar is in the GREEN ZONE (4 to 6 scrapped assets), then head to the Elevator and pass the Cyber Safety Check (+$50 Bonus)!"],
+                [{ tx: _p_tx, ty: _p_ty, label: "POWER RESTORED! -> ELEVATOR UNLOCKED", sublabel: "Check Green Zone (4-6 Scrap) & Board the Elevator!", col: c_lime }]
             );
         }
         _pan_active = true;
+    }
+
+    // One-Time Visual Mechanic Demos (Clickable Terms, Security Bots, Scrapping)
+    if (!_pan_active && !_any_ui_busy && global.visual_tut_kind == "") {
+        if (!global.tut_seen_terms && global.chapter_floor == 1 && !intro_pending) {
+            global.tut_seen_terms  = true;
+            global.visual_tut_kind = "clickable_terms";
+        } else if (!global.tut_seen_bot && curriculum.spawn_drone && !intro_pending) {
+            global.tut_seen_bot    = true;
+            global.visual_tut_kind = "security_bot";
+        } else if (!global.tut_seen_scrap && cutscene_key_shown && global.has_dungeon_cipher_key) {
+            global.tut_seen_scrap  = true;
+            global.visual_tut_kind = "scrapping";
+        }
     }
 }
 

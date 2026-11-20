@@ -84,7 +84,13 @@ for (var _i = 0; _i < 3; _i++) {
 }
 
 if (_submit) {
-    if (selected_option == correct_option_idx) {
+    var _is_corr = (selected_option == correct_option_idx);
+    if (!variable_global_exists("floor_stat_vault_logged") || !global.floor_stat_vault_logged) {
+        global.floor_stat_vault_logged = true;
+        var _b_key = variable_global_exists("floor_branch_key") ? global.floor_branch_key : "social_eng";
+        scr_record_cyber_stat(_b_key, _is_corr);
+    }
+    if (_is_corr) {
         status_msg    = "RED FLAG IDENTIFIED (" + target_word + ")!  " + explain_win;
         status_col    = c_lime;
         success_timer = 110;

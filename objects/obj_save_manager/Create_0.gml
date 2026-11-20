@@ -12,6 +12,28 @@ function _field_or(_struct, _name, _default) {
     return variable_struct_exists(_struct, _name) ? variable_struct_get(_struct, _name) : _default;
 }
 
+// Helper: safely normalize global.cyber_stats (handles missing struct or older save files)
+function _normalize_cyber_stats(_raw) {
+    var _def = {
+        social_eng:   { correct: 0, total: 0 },
+        identity:     { correct: 0, total: 0 },
+        malware:      { correct: 0, total: 0 },
+        network_phys: { correct: 0, total: 0 },
+        crypto:       { correct: 0, total: 0 }
+    };
+    if (!is_struct(_raw)) return _def;
+    var _keys = ["social_eng", "identity", "malware", "network_phys", "crypto"];
+    for (var i = 0; i < array_length(_keys); i++) {
+        var _k = _keys[i];
+        if (variable_struct_exists(_raw, _k) && is_struct(_raw[$ _k])) {
+            var _src = _raw[$ _k];
+            _def[$ _k].correct = variable_struct_exists(_src, "correct") ? max(0, real(_src.correct)) : 0;
+            _def[$ _k].total   = variable_struct_exists(_src, "total")   ? max(0, real(_src.total))   : 0;
+        }
+    }
+    return _def;
+}
+
 // --- THE SAVE FUNCTION ---
 function save_game() {
     if (!instance_exists(obj_jack)) return;
@@ -66,8 +88,9 @@ function save_game() {
         is_jrpg:              _global_or("is_jrpg",           false),
         puzzle_word_list:     _global_or("puzzle_word_list",  []),
 
-        // Codex content
-        codex_modules:        _codex_snapshot
+        // Codex content & 5-Branch Cybersecurity Competency Stats
+        codex_modules:        _codex_snapshot,
+        cyber_stats:          _normalize_cyber_stats(_global_or("cyber_stats", undefined))
     };
 
     var _json = json_stringify(_save_data);
@@ -129,6 +152,7 @@ function load_game() {
     // sync from it whenever it (re)spawns; also push directly into the
     // live instance if one already exists.
     global.saved_codex_modules = _field_or(_data, "codex_modules", []);
+    global.cyber_stats         = _normalize_cyber_stats(_field_or(_data, "cyber_stats", undefined));
     if (instance_exists(obj_codex_manager)) {
         obj_codex_manager.modules  = global.saved_codex_modules;
         obj_codex_manager.unlocked = (array_length(global.saved_codex_modules) > 0);

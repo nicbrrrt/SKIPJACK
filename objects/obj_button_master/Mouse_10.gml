@@ -1,7 +1,6 @@
-// --- Mouse Enter Event ---
+﻿// --- Mouse Enter Event ---
 
 // Ignore hover while any review overlay is on screen
-if (instance_exists(obj_review_screen)) exit;
 if (instance_exists(obj_codex_manager) && obj_codex_manager.is_open) exit;
 
 if (!audio_is_playing(snd_button_hover)) {

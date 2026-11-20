@@ -207,15 +207,33 @@ if (prop_type == TILE_PROP_DRONE) {
             var _vis_range = _watcher ? 66 : 92;
             var _vis_half  = _watcher ? 22 : 32;
 
+            if (detect_ping_cd > 0) detect_ping_cd--;
+            var _spotted_now = false;
             if (!_trigger_bot_capture && !_is_jammed && zap_cd <= 0 && _dist_to_jack <= _vis_range && obj_jack.bump_timer <= 0) {
-                // Caught if inside the 64-degree (±32°) front flashlight beam (or bumping into its front arc)
+                // Caught in cone if inside the 64-degree (±32°) front flashlight beam (or bumping front arc)
                 // AND there is no wall blocking line-of-sight!
                 if (_ang_diff <= _vis_half || (_dist_to_jack < 10 && _ang_diff <= 45)) {
                     var _wall_hit = collision_line(_cx, _cy, _jx, _jy, obj_dungeon_wall, false, true);
                     if (_wall_hit == noone) {
-                        _trigger_bot_capture = true;
+                        _spotted_now = true;
                     }
                 }
+            }
+
+            if (_spotted_now) {
+                if (detect_meter <= 0.02 && detect_ping_cd <= 0) {
+                    detect_ping_cd = 30;
+                    audio_play_sound(snd_button_hover, 8, false);
+                }
+                var _fps = max(1, game_get_speed(gamespeed_fps));
+                var _fill_rate = 1.0 / (2.5 * _fps); // 2.5 seconds inside vision cone before capture
+                detect_meter = min(1.0, detect_meter + _fill_rate);
+                if (detect_meter >= 1.0) {
+                    detect_meter = 0.0;
+                    _trigger_bot_capture = true;
+                }
+            } else {
+                detect_meter = max(0.0, detect_meter - 0.012); // Slow cooldown when out of sight
             }
 
             if (_trigger_bot_capture) {
@@ -249,6 +267,11 @@ if (prop_type == TILE_PROP_DRONE) {
                     obj_dungeon_generator.active_col = global.holding_room_col;
                     obj_dungeon_generator.active_row = global.holding_room_row;
                     obj_dungeon_generator.room_discovered[global.holding_room_col][global.holding_room_row] = 2;
+                    scr_ensure_tutorial_flags();
+                    if (!global.tut_seen_brig) {
+                        global.tut_seen_brig   = true;
+                        global.visual_tut_kind = "brig";
+                    }
                 }
 
                 // 4. Rotate the Chapter Cipher Key to a new value & reset Key possession
@@ -553,6 +576,10 @@ if (player_near && keyboard_check_pressed(ord("E"))) {
             if (variable_struct_exists(_case, "vault_challenge")) {
                 _plog = _case.vault_challenge.scanner_note + "\n\nTHREAT CATEGORY:  " + _case.word + " (" + _case.title + ")";
             }
+            if (variable_global_exists("dungeon_chapter") && global.dungeon_chapter == CHAPTER_VIGENERE
+                && variable_global_exists("dungeon_vigenere_key")) {
+                _plog += "\n[PHASE 1 CRYPTO INTEL] Intercepted Vigenere Keyword: '" + global.dungeon_vigenere_key + "'";
+            }
             global.pc_screen_title = "SECURITY SECTOR TERMINAL";
             global.pc_screen_body  = _plog + "\n\n[FORENSIC SCANNER UPLOADED TO KEY VAULT]";
             global.pc_screen_radar = _radar_hint;
@@ -676,6 +703,11 @@ if (player_near && keyboard_check_pressed(ord("E"))) {
                 _greet    = _p1_greets[npc_id mod 3];
                 _ask_opt  = "Ask about the Key Vault hint...";
                 _npc_ans  = _p1_ans[npc_id mod 3];
+                if (variable_global_exists("dungeon_chapter") && global.dungeon_chapter == CHAPTER_VIGENERE
+                    && variable_global_exists("chapter_floor") && global.chapter_floor >= 7
+                    && variable_global_exists("dungeon_vigenere_key")) {
+                    _npc_ans += " (P.S. Before my terminal locked, I saw the Vigenere Keyword: '" + global.dungeon_vigenere_key + "'!)";
+                }
                 _jack_ack = "Thanks—I'll track down the Security Sector PC and get the Key Vault open first.";
             }
         }

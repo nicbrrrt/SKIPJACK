@@ -15,6 +15,66 @@
 /// ---------------------------------------------------------------------------
 
 
+/// @function scr_select_adaptive_floor_case(chapter, floor_num)
+/// @description Selects the floor incident scenario using 2x adaptive weighting
+///              for the cybersecurity branch with the lowest player accuracy.
+function scr_select_adaptive_floor_case(_chapter, _floor_num) {
+    scr_ensure_cyber_stats();
+
+    var _branches = ["social_eng", "identity", "malware", "network_phys", "crypto"];
+    var _min_acc  = 999.0;
+    var _lowest   = [];
+
+    for (var i = 0; i < array_length(_branches); i++) {
+        var _bk  = _branches[i];
+        var _st  = global.cyber_stats[$ _bk];
+        var _acc = _st.correct / max(1, _st.total);
+        if (_acc < _min_acc - 0.0001) {
+            _min_acc = _acc;
+            _lowest  = [_bk];
+        } else if (abs(_acc - _min_acc) <= 0.0001) {
+            array_push(_lowest, _bk);
+        }
+    }
+
+    var _weakest_branch = _lowest[irandom(array_length(_lowest) - 1)];
+
+    var _chosen_case_idx = 0;
+    if (_floor_num == 1) {
+        _chosen_case_idx = 0;
+    } else {
+        var _pool = [];
+        for (var _cid = 0; _cid <= 9; _cid++) {
+            var _c_branch = scr_get_case_branch_key(_cid);
+            var _weight   = (_c_branch == _weakest_branch) ? 2 : 1;
+            for (var _w = 0; _w < _weight; _w++) {
+                array_push(_pool, _cid);
+            }
+        }
+        _chosen_case_idx = _pool[irandom(array_length(_pool) - 1)];
+    }
+
+    var _active_branch = scr_get_case_branch_key(_chosen_case_idx);
+    var _active_name   = scr_get_branch_display_name(_active_branch);
+    var _mastery_pct   = scr_get_branch_mastery_pct(_active_branch);
+
+    global.weakest_branch_key       = _weakest_branch;
+    global.floor_case_index         = _chosen_case_idx;
+    global.floor_branch_key         = _active_branch;
+    global.floor_branch_name        = _active_name;
+    global.floor_branch_mastery_pct = _mastery_pct;
+    global.floor_priority_tag       = "PRIORITY ASSIGNMENT: " + _active_name + " (Mastery: " + string(_mastery_pct) + "%)";
+
+    // Reset per-floor one-shot competency recording flags
+    global.floor_stat_vault_logged  = false;
+    global.floor_stat_board_logged  = false;
+    global.floor_stat_elev_logged   = false;
+    global.case_step2_first_try     = true;
+    global.case_step3_first_try     = true;
+
+    return _chosen_case_idx;
+}
+
 // ---------------------------------------------------------------------------
 /// @function scr_get_border_door_type(c1, r1, c2, r2, door_links)
 /// @description Looks up whether (c1,r1) and (c2,r2) share an explicit connection

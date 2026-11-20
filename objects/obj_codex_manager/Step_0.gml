@@ -26,7 +26,7 @@ if (is_open && (keyboard_check_pressed(vk_escape) || keyboard_check_pressed(ord(
     }
 } else if (!is_open && !_ui_busy && keyboard_check_pressed(ord("C"))) {
     if (_in_homeroom) {
-        is_open = true;
+        is_open        = true;
         global.codex_new_count = 0;
         content_scroll = 0;
         with (obj_button_master) { image_index = 0; }
@@ -85,4 +85,4 @@ if (_term_count > 0) {
 }
 
 if (mouse_wheel_up())   content_scroll = max(0, content_scroll - 24);
-if (mouse_wheel_down()) content_scroll = min(220, content_scroll + 24);
+if (mouse_wheel_down()) content_scroll = min(max_scroll_h, content_scroll + 24);

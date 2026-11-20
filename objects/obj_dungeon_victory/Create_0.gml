@@ -43,7 +43,7 @@ if (bonus_scrap > 0) global.scrap_count += bonus_scrap;
 // Corporate Paycheck (Performance Tracker) + 1-workday statue deliveries from the Homeroom Mechanic
 scr_statue_ensure_globals();
 paycheck           = scr_calc_floor_paycheck(task1_done, task2_done, hr_violation);
-global.player_cash += paycheck.total;
+global.player_cash = max(0, global.player_cash + paycheck.total);
 delivered_statues  = scr_deliver_pending_statues();
 page               = 0; // 0 = Incident Debrief, 1 = Paystub & Deliveries
 

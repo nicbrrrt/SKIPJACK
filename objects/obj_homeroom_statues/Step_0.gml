@@ -6,6 +6,22 @@ near_table = false;
 near_exit  = false;
 
 if (variable_global_exists("is_paused") && global.is_paused) exit;
+if (variable_instance_exists(id, "homeroom_tour_step") && homeroom_tour_step >= 0) {
+    if (keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space) || mouse_check_button_pressed(mb_left)) {
+        homeroom_tour_step++;
+        audio_play_sound(snd_button_click, 8, false);
+        if (homeroom_tour_step >= 3) {
+            homeroom_tour_step        = -1;
+            global.homeroom_tour_done = true;
+        }
+    } else if (keyboard_check_pressed(vk_escape)) {
+        global.esc_block_frames   = 2;
+        keyboard_clear(vk_escape);
+        homeroom_tour_step        = -1;
+        global.homeroom_tour_done = true;
+    }
+    exit;
+}
 if (global.phone_ui_open || global.shelf_ui_open) exit;
 if (instance_exists(obj_textevent) || instance_exists(obj_textbox)) exit;
 if (!instance_exists(obj_jack)) exit;

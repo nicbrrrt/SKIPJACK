@@ -2,14 +2,15 @@
 
 persistent = true;
 
-is_open        = false;
-current_tab    = 0;
-current_module = 0;
-current_branch = 0;
+is_open         = false;
+current_tab     = 0;
+current_module  = 0;
+current_branch  = 0;
 current_concept = 0;
-content_scroll = 0;
-toast_timer    = 0;
-toast_msg      = "";
+content_scroll  = 0;
+max_scroll_h    = 220;
+toast_timer     = 0;
+toast_msg       = "";
 
 scr_init_cyber_glossary();
 
