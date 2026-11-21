@@ -3524,10 +3524,11 @@ function scr_scan_clickable_terms(_text_array, _max_terms) {
     return _found;
 }
 
-function scr_draw_clickable_term_bar(_x, _y, _max_w, _term_list, _label) {
+function scr_draw_clickable_term_bar(_x, _y, _max_w, _term_list, _label, _label_col = -1) {
     scr_init_cyber_glossary();
     if (!is_array(_term_list) || array_length(_term_list) == 0) return false;
     if (is_undefined(_label)) _label = "CLICK TERM TO DEFINE & ARCHIVE:";
+    var _lcol = (_label_col != -1 && !is_undefined(_label_col)) ? _label_col : make_color_rgb(130, 215, 255);
 
     var _mx = device_mouse_x_to_gui(0);
     var _my = device_mouse_y_to_gui(0);
@@ -3539,8 +3540,8 @@ function scr_draw_clickable_term_bar(_x, _y, _max_w, _term_list, _label) {
     draw_set_halign(fa_left);
     draw_set_valign(fa_middle);
 
-    draw_set_color(make_color_rgb(130, 215, 255));
-    draw_text_transformed(_x, _y + 7, _label, 0.56, 0.56, 0);
+    draw_set_color(_lcol);
+    draw_text_transformed(_x, _y + 4, _label, 0.56, 0.56, 0);
 
     var _cx = _x;
     var _cy = _y + 17;

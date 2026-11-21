@@ -184,11 +184,11 @@ if (_partner_idx != -1) {
 		if (_p_port == spr_greg_dungeon_sprite || string_pos("greg", _p_name_l) > 0 || _p_port == spr_greg_portrait || _p_port == spr_npc1_portrait || (instance_exists(_p_inst) && variable_instance_exists(_p_inst, "npc_spr") && _p_inst.npc_spr == spr_npc1_idle)) {
 			_partner_spr = spr_greg_dungeon_sprite;
 		} else if (string_pos("kyle", _p_name_l) > 0 || _p_port == spr_kyle_portrait || (instance_exists(_p_inst) && variable_instance_exists(_p_inst, "npc_spr") && _p_inst.npc_spr == spr_kyle_idle)) {
-			_partner_spr = spr_kyle_dungeon_portrait;
+			_partner_spr = spr_kyle_dungeon_portrait_neutral;
 		} else if (string_pos("lea", _p_name_l) > 0 || _p_port == spr_lea_portrait || (instance_exists(_p_inst) && variable_instance_exists(_p_inst, "npc_spr") && _p_inst.npc_spr == spr_lea_idle)) {
-			_partner_spr = spr_lea_dungeon_portrait;
+			_partner_spr = spr_lea_dungeon_portrait_neutral;
 		} else if (string_pos("david", _p_name_l) > 0 || _p_port == spr_david_portrait || (instance_exists(_p_inst) && variable_instance_exists(_p_inst, "npc_spr") && _p_inst.npc_spr == spr_david_idle)) {
-			_partner_spr = spr_david_dungeon_portrait;
+			_partner_spr = spr_david_dungeon_portrait_neutral;
 		} else if (string_pos("sarah", _p_name_l) > 0 || _p_port == spr_npc2_portrait || (instance_exists(_p_inst) && variable_instance_exists(_p_inst, "npc_spr") && _p_inst.npc_spr == spr_npc2_idle)) {
 			_partner_spr = spr_sarah_dungeon_portrait;
 		} else if (string_pos("jack", _p_name_l) > 0 || _p_port == spr_jack_portrait) {
@@ -254,6 +254,11 @@ var _j_dy    = scr_battle_sprite_feet_y(_jack_spr, _jack_scale, _stage_feet_y + 
 draw_sprite_ext(_jack_spr, _j_frame, _j_dx, _j_dy, _jack_scale, _jack_scale, 0, _jack_col, _jack_alpha);
 
 // --- RIGHT STAGE: CONVERSATION PARTNER NPC (if present) ---
+var _draw_partner_spr = _partner_spr;
+var _partner_is_kyle  = false;
+var _partner_is_lea   = false;
+var _partner_is_david = false;
+
 if (_partner_spr != -1) {
 	var _npc_speaking = !_is_jack_speaking;
 	var _npc_is_bust  = (sprite_get_height(_partner_spr) > 48);
@@ -270,11 +275,90 @@ if (_partner_spr != -1) {
 		draw_circle(_right_cx, _stage_feet_y - (_npc_is_bust ? 86 : 52) * _stage_mult, (_npc_is_bust ? 70 : 54) * _stage_mult, false);
 	}
 
-	var _n_anim  = scr_dir_idle_anim(_partner_spr, "down", vn_stage_acc, 0);
-	var _n_frame = _n_anim[0];
-	var _n_dx    = _right_cx - (sprite_get_width(_partner_spr) * 0.5 - sprite_get_xoffset(_partner_spr)) * _npc_scale;
-	var _n_dy    = scr_battle_sprite_feet_y(_partner_spr, _npc_scale, _stage_feet_y + _npc_bob);
-	draw_sprite_ext(_partner_spr, _n_frame, _n_dx, _n_dy, _npc_scale, _npc_scale, 0, _npc_col, _npc_alpha);
+	_partner_is_kyle  = (string_pos("kyle", _p_name_l) > 0 || _partner_spr == spr_kyle_dungeon_portrait_neutral);
+	_partner_is_lea   = (string_pos("lea", _p_name_l) > 0 || _partner_spr == spr_lea_dungeon_portrait_neutral);
+	_partner_is_david = (string_pos("david", _p_name_l) > 0 || _partner_spr == spr_david_dungeon_portrait_neutral);
+	var _blink_active = ((current_time mod 3500) < 160);
+
+	if (_is_dungeon && _partner_is_kyle) {
+		if (_npc_speaking && _talking) {
+			// Talking animation cycle
+			var _kyle_frames = [
+				spr_kyle_dungeon_portrait_neutral,
+				spr_kyle_dungeon_portrait_1,
+				spr_kyle_dungeon_portrait_2,
+				spr_kyle_dungeon_portrait_3,
+				spr_kyle_dungeon_portrait_2,
+				spr_kyle_dungeon_portrait_1
+			];
+			var _k_idx = floor(current_time / 85) mod array_length(_kyle_frames);
+			_draw_partner_spr = _kyle_frames[_k_idx];
+			if (_blink_active) {
+				if (_draw_partner_spr == spr_kyle_dungeon_portrait_neutral) _draw_partner_spr = spr_kyle_dungeon_portrait_neutral_blink;
+				else if (_draw_partner_spr == spr_kyle_dungeon_portrait_1) _draw_partner_spr = spr_kyle_dungeon_portrait_1_blink;
+				else if (_draw_partner_spr == spr_kyle_dungeon_portrait_2) _draw_partner_spr = spr_kyle_dungeon_portrait_2_blink;
+				else if (_draw_partner_spr == spr_kyle_dungeon_portrait_3) _draw_partner_spr = spr_kyle_dungeon_portrait_3_blink;
+			}
+		} else {
+			// Idle listening / waiting
+			_draw_partner_spr = _blink_active ? spr_kyle_dungeon_portrait_neutral_blink : spr_kyle_dungeon_portrait_neutral;
+		}
+		var _n_dx = _right_cx - (sprite_get_width(_draw_partner_spr) * 0.5 - sprite_get_xoffset(_draw_partner_spr)) * _npc_scale;
+		var _n_dy = scr_battle_sprite_feet_y(_draw_partner_spr, _npc_scale, _stage_feet_y + _npc_bob);
+		draw_sprite_ext(_draw_partner_spr, 0, _n_dx, _n_dy, _npc_scale, _npc_scale, 0, _npc_col, _npc_alpha);
+	} else if (_is_dungeon && _partner_is_lea) {
+		if (_npc_speaking && _talking) {
+			// Talking animation cycle
+			var _lea_frames = [
+				spr_lea_dungeon_portrait_neutral,
+				spr_lea_dungeon_portrait_1,
+				spr_lea_dungeon_portrait_2,
+				spr_lea_dungeon_portrait_3,
+				spr_lea_dungeon_portrait_2,
+				spr_lea_dungeon_portrait_1
+			];
+			var _l_idx = floor(current_time / 85) mod array_length(_lea_frames);
+			_draw_partner_spr = _lea_frames[_l_idx];
+		} else {
+			// Idle listening / waiting
+			_draw_partner_spr = spr_lea_dungeon_portrait_neutral;
+		}
+		var _n_dx = _right_cx - (sprite_get_width(_draw_partner_spr) * 0.5 - sprite_get_xoffset(_draw_partner_spr)) * _npc_scale;
+		var _n_dy = scr_battle_sprite_feet_y(_draw_partner_spr, _npc_scale, _stage_feet_y + _npc_bob);
+		draw_sprite_ext(_draw_partner_spr, 0, _n_dx, _n_dy, _npc_scale, _npc_scale, 0, _npc_col, _npc_alpha);
+	} else if (_is_dungeon && _partner_is_david) {
+		if (_npc_speaking && _talking) {
+			// Talking animation cycle
+			var _david_frames = [
+				spr_david_dungeon_portrait_neutral,
+				spr_david_dungeon_portrait_1,
+				spr_david_dungeon_portrait_2,
+				spr_david_dungeon_portrait_3,
+				spr_david_dungeon_portrait_2,
+				spr_david_dungeon_portrait_1
+			];
+			var _d_idx = floor(current_time / 85) mod array_length(_david_frames);
+			_draw_partner_spr = _david_frames[_d_idx];
+			if (_blink_active) {
+				if (_draw_partner_spr == spr_david_dungeon_portrait_neutral) _draw_partner_spr = spr_david_dungeon_portrait_neutral_blink;
+				else if (_draw_partner_spr == spr_david_dungeon_portrait_1) _draw_partner_spr = spr_david_dungeon_portrait_1_blink;
+				else if (_draw_partner_spr == spr_david_dungeon_portrait_2) _draw_partner_spr = spr_david_dungeon_portrait_2_blink;
+				else if (_draw_partner_spr == spr_david_dungeon_portrait_3) _draw_partner_spr = spr_david_dungeon_portrait_3_blink;
+			}
+		} else {
+			// Idle listening / waiting
+			_draw_partner_spr = _blink_active ? spr_david_dungeon_portrait_neutral_blink : spr_david_dungeon_portrait_neutral;
+		}
+		var _n_dx = _right_cx - (sprite_get_width(_draw_partner_spr) * 0.5 - sprite_get_xoffset(_draw_partner_spr)) * _npc_scale;
+		var _n_dy = scr_battle_sprite_feet_y(_draw_partner_spr, _npc_scale, _stage_feet_y + _npc_bob);
+		draw_sprite_ext(_draw_partner_spr, 0, _n_dx, _n_dy, _npc_scale, _npc_scale, 0, _npc_col, _npc_alpha);
+	} else {
+		var _n_anim  = scr_dir_idle_anim(_partner_spr, "down", vn_stage_acc, 0);
+		var _n_frame = _n_anim[0];
+		var _n_dx    = _right_cx - (sprite_get_width(_partner_spr) * 0.5 - sprite_get_xoffset(_partner_spr)) * _npc_scale;
+		var _n_dy    = scr_battle_sprite_feet_y(_partner_spr, _npc_scale, _stage_feet_y + _npc_bob);
+		draw_sprite_ext(_partner_spr, _n_frame, _n_dx, _n_dy, _npc_scale, _npc_scale, 0, _npc_col, _npc_alpha);
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -338,6 +422,16 @@ var _spr = portrait[page];
 if (_spr == -1 && _is_jack_speaking) {
 	_spr = spr_jack_portrait;
 }
+if (_is_dungeon && !_is_jack_speaking && _draw_partner_spr != -1) {
+	var _cname_l = string_lower(_cname);
+	if (_partner_is_kyle || string_pos("kyle", _cname_l) > 0 || _spr == spr_kyle_portrait) {
+		_spr = _draw_partner_spr;
+	} else if (_partner_is_lea || string_pos("lea", _cname_l) > 0 || _spr == spr_lea_portrait) {
+		_spr = _draw_partner_spr;
+	} else if (_partner_is_david || string_pos("david", _cname_l) > 0 || _spr == spr_david_portrait) {
+		_spr = _draw_partner_spr;
+	}
+}
 if (_spr != -1) {
 	var posx      = vn_panel_x1 + 12;
 	var posy      = vn_panel_y1 + 14;
@@ -347,7 +441,9 @@ if (_spr != -1) {
 	var _full_anim    = (portrait_talk[page] != -1 && portrait_talk[page] == portrait[page]);
 	var _overlay_talk = (portrait_talk[page] != -1 && portrait_talk[page] != portrait[page]);
 
-	if (_full_anim && _talking) {
+	if (_is_dungeon && (_spr == _draw_partner_spr)) {
+		_frm = 0;
+	} else if (_full_anim && _talking) {
 		_frm = floor(portrait_talk_c) mod portrait_talk_n[page];
 	} else if (_spr == spr_jack_portrait && _talking) {
 		_frm = floor(current_time / 70) mod sprite_get_number(spr_jack_portrait);
@@ -378,7 +474,7 @@ if (_spr != -1) {
 		draw_sprite_ext(_idle_spr, floor(portrait_idle_c), ix, iy, _idle_scale, _idle_scale, 0, c_white, 1);
 	}
 
-	if (_talking && _overlay_talk) {
+	if (_talking && _overlay_talk && !(_is_dungeon && _spr == _draw_partner_spr)) {
 		var _talk_spr   = portrait_talk[page];
 		var _talk_w     = sprite_get_width(_talk_spr);
 		var _talk_h     = sprite_get_height(_talk_spr);
