@@ -126,8 +126,10 @@ for (var _i = 0; _i < 3; _i++) {
 
     draw_set_halign(fa_left);
     draw_set_color(_tx_col);
+    var _is_demo_ans = (variable_global_exists("demo_mode_active") && global.demo_mode_active && _i == correct_option_idx);
     var _prefix = "[" + string(_i + 1) + "]  ";
     if (_elim) _prefix = "[X]  ";
+    else if (_is_demo_ans) _prefix = "[" + string(_i + 1) + " - * DEMO]  ";
     else if (_is_tut_hint) _prefix = "[" + string(_i + 1) + " - TUTORIAL MATCH]  ";
 
     draw_text_ext_transformed(_x1 + 28, (_oy1 + _oy2) * 0.5, _prefix + quiz_options[_i], 13, (_pw - 58) / 0.70, 0.70, 0.70, 0);

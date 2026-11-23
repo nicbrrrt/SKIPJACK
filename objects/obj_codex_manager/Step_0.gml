@@ -1,7 +1,18 @@
 // --- Step Event for obj_codex_manager ---
 
 scr_init_cyber_glossary();
+scr_update_demo_mode_state();
 if (toast_timer > 0) toast_timer--;
+
+// Main Menu shortcut: Press [D] on rm_menu to launch Demonstration Mode directly
+if (room == rm_menu && !is_open && keyboard_check_pressed(ord("D"))) {
+    if (!instance_exists(obj_transition) || obj_transition.fade_mode == "none") {
+        scr_start_demonstration_mode();
+        if (asset_get_type("snd_correct_ping") == asset_sound) audio_play_sound(snd_correct_ping, 10, false);
+        room_goto(rm_cipher_select);
+        exit;
+    }
+}
 
 var _in_homeroom = (room == rm_homeroom);
 var _ui_busy = instance_exists(obj_textbox)
@@ -29,6 +40,17 @@ if (is_open && (keyboard_check_pressed(vk_escape) || keyboard_check_pressed(ord(
         is_open        = true;
         global.codex_new_count = 0;
         content_scroll = 0;
+        if (variable_global_exists("demo_mode_active") && global.demo_mode_active) {
+            current_branch = 4; // CRYPTOGRAPHY
+            sidebar_scroll = 0;
+            var _b4_list = get_branch_terms(4);
+            for (var _bi = 0; _bi < array_length(_b4_list); _bi++) {
+                if (_b4_list[_bi].id == "symmetric_asymmetric") {
+                    current_concept = _bi;
+                    break;
+                }
+            }
+        }
         with (obj_button_master) { image_index = 0; }
         if (instance_exists(obj_jack)) {
             obj_jack.isInCutscene = true;

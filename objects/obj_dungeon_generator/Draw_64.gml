@@ -453,19 +453,22 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
         var _desc   = "";
         var _bd_n2  = array_length(global.case_suspects);
 
+        var _demo_on = (variable_global_exists("demo_mode_active") && global.demo_mode_active);
         if (_mode == 1) {
             _desc = "STEP 1/3 — WHOSE ACCIDENTAL SLIP-UP LET THE HACKERS IN? Select Patient Zero based on your Case Board evidence (" + string(global.evidence_found) + "/" + string(global.evidence_needed) + " clues):";
             for (var _s_i = 0; _s_i < _bd_n2; _s_i++) {
                 var _s_obj = global.case_suspects[_s_i];
                 var _w_tag = (variable_struct_exists(_s_obj, "accused_wrong") && _s_obj.accused_wrong) ? "  [RULED OUT]" : "";
-                array_push(_labels, "SELECT: " + _s_obj.name + "  (" + _s_obj.dept + " - Desk " + _s_obj.nameplate + ")" + _w_tag);
+                var _d_tag = (_demo_on && _s_i == global.case_culprit_idx) ? "  [* DEMO]" : "";
+                array_push(_labels, "SELECT: " + _s_obj.name + "  (" + _s_obj.dept + " - Desk " + _s_obj.nameplate + ")" + _w_tag + _d_tag);
             }
             array_push(_labels, "< Back to Case Board");
         } else if (_mode == 2) {
             var _cul_obj = global.case_suspects[global.case_culprit_idx];
             _desc = "STEP 2/3 — PATIENT ZERO IDENTIFIED: " + _cul_obj.name + " (Desk " + _cul_obj.nameplate + ")!\nNow select WHICH accidental slip-up / hazard caused the breach:";
             for (var _v_i = 0; _v_i < array_length(global.case_vectors); _v_i++) {
-                array_push(_labels, global.case_vectors[_v_i]);
+                var _vd_tag = (_demo_on && _v_i == global.case_vector_correct) ? "  [* DEMO]" : "";
+                array_push(_labels, global.case_vectors[_v_i] + _vd_tag);
             }
             array_push(_labels, "< Back to Case Board");
         } else {
@@ -473,8 +476,10 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
             var _vec_str  = global.case_vectors[global.case_vector_correct];
             _desc = "STEP 3/3 — BREACH CONFIRMED: " + _cul_obj2.name + " -> " + _vec_str + "!\nNow select WHICH cybersecurity safety habit prevents this breach from happening again:";
             var _fix_arr = variable_global_exists("case_fixes") ? global.case_fixes : [_case.prevention_rule];
+            var _fix_ok_i = variable_global_exists("case_fix_correct") ? global.case_fix_correct : 0;
             for (var _f_i = 0; _f_i < array_length(_fix_arr); _f_i++) {
-                array_push(_labels, _fix_arr[_f_i]);
+                var _fd_tag = (_demo_on && _f_i == _fix_ok_i) ? "  [* DEMO]" : "";
+                array_push(_labels, _fix_arr[_f_i] + _fd_tag);
             }
             array_push(_labels, "< Back to Case Board");
         }
@@ -749,12 +754,14 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
                 draw_rectangle(_dx1 + 10, _ry1, _dx2 - 10, _ry2, true);
 
                 var _is_sc = scr_is_term_scanned_on_floor(_dt.id);
-                var _src_tag = _is_sc ? "[SCANNED ★]" : (variable_struct_exists(global.codex_unlocked_terms, _dt.id) ? "[ARCHIVED ✓]" : "[CODEX]");
+                var _cidx_d = variable_global_exists("floor_case_index") ? global.floor_case_index : 0;
+                var _is_d_pol = (_demo_on && scr_validate_case_policy_citation(_dt, _cidx_d).ok);
+                var _src_tag = _is_d_pol ? "[* DEMO MATCH]" : (_is_sc ? "[SCANNED *]" : (variable_struct_exists(global.codex_unlocked_terms, _dt.id) ? "[ARCHIVED +]" : "[CODEX]"));
                 draw_set_halign(fa_left);
                 draw_set_color(_dsel ? c_white : make_color_rgb(195, 225, 245));
                 draw_text_transformed(_dx1 + 16, (_ry1 + _ry2) * 0.5, _dt.term + "  [" + _dt.branch_name + "]", 0.58, 0.58, 0);
                 draw_set_halign(fa_right);
-                draw_set_color(_is_sc ? make_color_rgb(255, 215, 75) : make_color_rgb(120, 230, 165));
+                draw_set_color(_is_d_pol ? c_lime : (_is_sc ? make_color_rgb(255, 215, 75) : make_color_rgb(120, 230, 165)));
                 draw_text_transformed(_dx2 - 16, (_ry1 + _ry2) * 0.5, _src_tag, 0.52, 0.52, 0);
             }
 
@@ -795,11 +802,18 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
         var _sp_obj = global.case_suspects[_s_idx];
         var _a_items = variable_struct_exists(_sp_obj, "audit_items") ? _sp_obj.audit_items : [];
 
+        var _demo_audit = (variable_global_exists("demo_mode_active") && global.demo_mode_active);
+        var _has_risky  = false;
         var _audit_labels = [];
         for (var _ai = 0; _ai < array_length(_a_items); _ai++) {
-            array_push(_audit_labels, "[ITEM " + string(_ai + 1) + "]  " + _a_items[_ai].label);
+            var _it_risk = ((variable_struct_exists(_a_items[_ai], "is_risky") && _a_items[_ai].is_risky)
+                         || (variable_struct_exists(_a_items[_ai], "is_breach") && _a_items[_ai].is_breach));
+            if (_it_risk) _has_risky = true;
+            var _ad_tag = (_demo_audit && _it_risk) ? "  [* DEMO]" : "";
+            array_push(_audit_labels, "[ITEM " + string(_ai + 1) + "]  " + _a_items[_ai].label + _ad_tag);
         }
-        array_push(_audit_labels, "[VERIFY CLEAN]  All 3 items follow safe cybersecurity habits (Log Alibi)");
+        var _clean_d_tag = (_demo_audit && !_has_risky) ? "  [* DEMO]" : "";
+        array_push(_audit_labels, "[VERIFY CLEAN]  All 3 items follow safe cybersecurity habits (Log Alibi)" + _clean_d_tag);
         var _n_audit = array_length(_audit_labels);
 
         if (keyboard_check_pressed(vk_up) || keyboard_check_pressed(ord("W"))) {

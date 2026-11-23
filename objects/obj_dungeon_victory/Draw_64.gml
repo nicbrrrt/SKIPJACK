@@ -178,7 +178,8 @@ draw_set_valign(fa_middle);
 
         draw_set_halign(fa_left);
         draw_set_color(_qtx);
-        var _qpref = _qelm ? "[X]  " : ("[" + string(_qi + 1) + "]  ");
+        var _is_demo_sq = (variable_global_exists("demo_mode_active") && global.demo_mode_active && _qi == safety_quiz_correct_idx);
+        var _qpref = _qelm ? "[X]  " : (_is_demo_sq ? ("[" + string(_qi + 1) + " - * DEMO]  ") : ("[" + string(_qi + 1) + "]  "));
         draw_text_ext_transformed(_x1 + 30 + _q_sx, (_qy1 + _qy2) * 0.5, _qpref + safety_quiz_options[_qi], 13, (_pw - 64) / 0.70, 0.70, 0.70, 0);
     }
 

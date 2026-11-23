@@ -1987,6 +1987,11 @@ function scr_draw_power_breaker_ui(_gui_w, _gui_h) {
 
     // 5. Guided Tutorial Hint (Floors 1-3) & Status Footer
     var _repaired = (variable_global_exists("breaker_repaired") && global.breaker_repaired);
+    if (variable_global_exists("demo_mode_active") && global.demo_mode_active) {
+        if (!variable_global_exists("scrap_count") || global.scrap_count < 2) {
+            global.scrap_count = 2;
+        }
+    }
     var _cur_scrp = variable_global_exists("scrap_count") ? global.scrap_count : 0;
 
     if (!_repaired) {
@@ -4635,6 +4640,387 @@ function scr_draw_visual_mechanic_tutorial(_kind, _gui_w, _gui_h) {
 
     draw_set_color(c_lime);
     draw_text_transformed(_cx, _y2 - 18, "[E / ENTER / CLICK] Got It!", 0.72, 0.72, 0);
+
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+    draw_set_color(c_white);
+}
+
+// =============================================================================
+// 7-BEAT LIVE PRESENTATION DEMONSTRATION MODE (TELEPROMPTER & SAFETY NETS)
+// =============================================================================
+function scr_start_demonstration_mode() {
+    scr_init_cyber_glossary();
+    scr_ensure_cyber_stats();
+    scr_ensure_tutorial_flags();
+
+    global.demo_mode_active   = true;
+    global.demo_guide_beat    = 1;
+    global.demo_hud_minimized = false;
+
+    // 1. Unlock all 3 Chapters & all 10 Floors
+    global.unlock_all_ciphers  = true;
+    global.vigenere_unlocked   = true;
+    global.atbash_unlocked     = true;
+    global.chapter_best_floor  = [10, 10, 10];
+    global.dungeon_chapter     = CHAPTER_CAESAR;
+    global.chapter_floor       = 1;
+    global.intern_duty_flagged = false;
+
+    // 2. Unlock all 34 Cybersecurity Codex entries
+    for (var _gi = 0; _gi < array_length(global.cyber_glossary); _gi++) {
+        global.codex_unlocked_terms[$ global.cyber_glossary[_gi].id] = true;
+    }
+    global.codex_new_count = 0;
+
+    // 3. Populate realistic 5-Branch Competency Mastery stats (so Mastery Bars & 2x Adaptive Weighting shine)
+    global.cyber_stats = {
+        social_eng:   { correct: 4, total: 5 },
+        identity:     { correct: 4, total: 5 },
+        malware:      { correct: 3, total: 4 },
+        network_phys: { correct: 2, total: 4 },
+        crypto:       { correct: 5, total: 5 }
+    };
+
+    // 4. Give presenter starter kit & suppress unprompted tutorial interruptions
+    global.player_cash                  = 500;
+    global.scrap_count                  = 4;
+    global.hr_scrap_count               = 4;
+    global.rare_cores                   = 2;
+    global.statues_owned                = [true, false, false];
+    global.statues_pending              = [false, false, false];
+    global.equipped_statues             = [0, -1, -1];
+    global.chapter_select_tutorial_seen = true;
+    global.homeroom_tour_done           = true;
+    global.tut_seen_terms               = true;
+    global.tut_seen_bot                 = true;
+    global.tut_seen_scrap               = true;
+    global.tut_seen_brig                = true;
+    global.tut_seen_breaker             = true;
+    global.visual_tut_kind              = "";
+
+    if (instance_exists(obj_codex_manager)) {
+        obj_codex_manager.tab_locked = [false, false, false, false, false];
+    }
+}
+
+function scr_update_demo_mode_state() {
+    if (!variable_global_exists("demo_mode_active") || !global.demo_mode_active) return;
+    if (!variable_global_exists("demo_guide_beat"))    global.demo_guide_beat    = 1;
+    if (!variable_global_exists("demo_hud_minimized")) global.demo_hud_minimized = false;
+
+    // Keyboard controls for Presenter Teleprompter:
+    // [F2] Minimize/Expand, [ / ] Previous/Next Beat, [Shift + D] Exit Demo Mode
+    if (keyboard_check_pressed(vk_f2)) {
+        global.demo_hud_minimized = !global.demo_hud_minimized;
+        if (asset_get_type("snd_button_click") == asset_sound) audio_play_sound(snd_button_click, 6, false);
+    }
+    if (keyboard_check_pressed(219)) { // '['
+        global.demo_guide_beat = max(1, global.demo_guide_beat - 1);
+        if (asset_get_type("snd_button_hover") == asset_sound) audio_play_sound(snd_button_hover, 6, false);
+    }
+    if (keyboard_check_pressed(221)) { // ']'
+        global.demo_guide_beat = min(7, global.demo_guide_beat + 1);
+        if (asset_get_type("snd_button_hover") == asset_sound) audio_play_sound(snd_button_hover, 6, false);
+    }
+    if (keyboard_check(vk_shift) && keyboard_check_pressed(ord("D"))) {
+        global.demo_mode_active = false;
+        if (asset_get_type("snd_button_click") == asset_sound) audio_play_sound(snd_button_click, 6, false);
+        return;
+    }
+
+    // Automatic context-aware Beat progression so the teleprompter follows the presenter naturally
+    if (room == rm_cipher_select) {
+        if (global.demo_guide_beat > 2) global.demo_guide_beat = 1;
+    } else if (room == rm_homeroom) {
+        if (global.demo_guide_beat < 2) global.demo_guide_beat = 2;
+    } else if (room == dungeon_test) {
+        if (instance_exists(obj_dungeon_victory)) {
+            global.demo_guide_beat = 7;
+        } else if (variable_global_exists("incident_solved") && global.incident_solved) {
+            if (global.demo_guide_beat < 6) global.demo_guide_beat = 6;
+        } else if (variable_global_exists("pc_screen_open") && global.pc_screen_open
+                && variable_global_exists("pc_screen_mode") && global.pc_screen_mode >= 1) {
+            if (global.demo_guide_beat < 5) global.demo_guide_beat = 5;
+        } else if (variable_global_exists("has_dungeon_cipher_key") && global.has_dungeon_cipher_key) {
+            if (global.demo_guide_beat < 4) global.demo_guide_beat = 4;
+        } else if (global.demo_guide_beat < 3) {
+            global.demo_guide_beat = 3;
+        }
+    }
+}
+
+function scr_demo_warp_to_beat(_beat) {
+    if (instance_exists(obj_transition) && obj_transition.fade_mode != "none") return;
+
+    if (_beat == 1) {
+        global.demo_guide_beat = 2;
+        room_goto(rm_homeroom);
+        return;
+    }
+    if (_beat == 2) {
+        if (room != rm_homeroom) {
+            room_goto(rm_homeroom);
+            return;
+        }
+        if (instance_exists(obj_codex_manager) && !obj_codex_manager.is_open) {
+            obj_codex_manager.is_open        = true;
+            obj_codex_manager.current_branch = 4; // CRYPTOGRAPHY
+            obj_codex_manager.content_scroll = 0;
+            obj_codex_manager.sidebar_scroll = 0;
+            var _b4 = obj_codex_manager.get_branch_terms(4);
+            obj_codex_manager.current_concept = 0;
+            for (var _i = 0; _i < array_length(_b4); _i++) {
+                if (_b4[_i].id == "symmetric_asymmetric") {
+                    obj_codex_manager.current_concept = _i;
+                    break;
+                }
+            }
+            return;
+        }
+        if (instance_exists(obj_codex_manager)) obj_codex_manager.is_open = false;
+        global.dungeon_chapter     = CHAPTER_CAESAR;
+        global.chapter_floor       = 1;
+        global.intern_duty_flagged = false;
+        global.demo_guide_beat     = 3;
+        room_goto(dungeon_test);
+        return;
+    }
+
+    // Beats 3..7 take place inside dungeon_test
+    if (room != dungeon_test) {
+        global.dungeon_chapter     = CHAPTER_CAESAR;
+        global.chapter_floor       = 1;
+        global.intern_duty_flagged = false;
+        room_goto(dungeon_test);
+        return;
+    }
+
+    if (!instance_exists(obj_jack)) return;
+
+    if (_beat == 3) {
+        // Warp to Gold Key Vault Quiz Lock or Pedestal
+        if (instance_exists(obj_door_quiz_lock)) {
+            with (obj_door_quiz_lock) {
+                if (locked) {
+                    obj_jack.x = draw_x + 8;
+                    obj_jack.y = draw_y + 24;
+                    return;
+                }
+            }
+        }
+        if (instance_exists(obj_caesar_key_pedestal)) {
+            obj_jack.x = obj_caesar_key_pedestal.x + 8;
+            obj_jack.y = obj_caesar_key_pedestal.y + 22;
+        }
+        global.demo_guide_beat = 4;
+    } else if (_beat == 4) {
+        global.has_dungeon_cipher_key = true;
+        global.scrap_count            = max(4, global.scrap_count);
+        global.hr_scrap_count         = 4;
+        // Warp near a patrol bot / locker in the hallway
+        with (obj_dungeon_prop) {
+            if (prop_type == TILE_PROP_LOCKER) {
+                obj_jack.x = x + 8;
+                obj_jack.y = y + 22;
+                break;
+            }
+        }
+        global.demo_guide_beat = 5;
+    } else if (_beat == 5) {
+        global.has_dungeon_cipher_key = true;
+        global.scrap_count            = max(4, global.scrap_count);
+        global.hr_scrap_count         = 4;
+        // Reveal Level 1 & 2 evidence and warp directly to Patient Zero's desk terminal
+        if (variable_global_exists("case_evidence") && is_array(global.case_evidence)) {
+            var _fnd = 0;
+            for (var _ei = 0; _ei < array_length(global.case_evidence); _ei++) {
+                if (global.case_evidence[_ei].tier <= 2) {
+                    global.case_evidence[_ei].found = true;
+                }
+                if (global.case_evidence[_ei].found) _fnd++;
+            }
+            global.evidence_found = _fnd;
+        }
+        with (obj_dungeon_prop) {
+            if (prop_type == TILE_PROP_PC && suspect_idx == global.case_culprit_idx) {
+                obj_jack.x = x + 8;
+                obj_jack.y = y + 22;
+                break;
+            }
+        }
+    } else if (_beat == 6) {
+        global.has_dungeon_cipher_key = true;
+        global.incident_solved        = true;
+        global.scrap_count            = max(4, global.scrap_count);
+        global.hr_scrap_count         = clamp(global.hr_scrap_count, 4, 6);
+        global.intern_duty_flagged    = false;
+        with (obj_door_caesar_lock) { locked = false; }
+
+        if (!variable_global_exists("lockdown_overridden") || !global.lockdown_overridden) {
+            with (obj_dungeon_prop) {
+                if (prop_type == TILE_PROP_OVERRIDE) {
+                    obj_jack.x = x + 8;
+                    obj_jack.y = y + 22;
+                    return;
+                }
+            }
+        } else if (!variable_global_exists("power_restored") || !global.power_restored) {
+            with (obj_dungeon_prop) {
+                if (prop_type == TILE_PROP_BREAKER) {
+                    obj_jack.x = x + 8;
+                    obj_jack.y = y + 22;
+                    return;
+                }
+            }
+        } else {
+            global.demo_guide_beat = 7;
+            if (!instance_exists(obj_dungeon_victory)) {
+                instance_create_depth(0, 0, -15000, obj_dungeon_victory);
+            }
+        }
+    } else if (_beat == 7) {
+        global.hr_scrap_count      = clamp(global.hr_scrap_count, 4, 6);
+        global.intern_duty_flagged = false;
+        if (!instance_exists(obj_dungeon_victory)) {
+            instance_create_depth(0, 0, -15000, obj_dungeon_victory);
+        }
+    }
+}
+
+function scr_draw_demo_teleprompter_hud(_gui_w, _gui_h) {
+    if (!variable_global_exists("demo_mode_active") || !global.demo_mode_active) return;
+    if (room == rm_menu) return;
+
+    var _beat = clamp(variable_global_exists("demo_guide_beat") ? global.demo_guide_beat : 1, 1, 7);
+    var _min  = (variable_global_exists("demo_hud_minimized") && global.demo_hud_minimized);
+    var _mx   = device_mouse_x_to_gui(0);
+    var _my   = device_mouse_y_to_gui(0);
+
+    var _titles = [
+        "",
+        "BEAT 1/7: PREMISE & CHAPTER SELECT",
+        "BEAT 2/7: HOMEROOM & CROSS-LINKED CODEX",
+        "BEAT 3/7: KEY VAULT LOG & KEY CALIBRATION",
+        "BEAT 4/7: BOT STEALTH & 4-6 GREEN ZONE SCRAP",
+        "BEAT 5/7: DESK AUDIT & 'CITE SOURCE' CASE BOARD",
+        "BEAT 6/7: LOCKDOWN OVERRIDE, BREAKER & ELEVATOR",
+        "BEAT 7/7: DEBRIEF, PAYSTUB & ADAPTIVE MASTERY"
+    ];
+    var _do_lines = [
+        "",
+        "DO: Point out 3 Chapters (Caesar/Vigenere/Atbash) & 1-10 Floors -> Press [H] or [WARP >] for Homeroom.",
+        "DO: Press [C] -> Click cyan 'Symmetric' inside text -> [< BACK] -> Close [C] & enter Floor 1 [WARP >].",
+        "DO: Show [M] Radar & [+ Term] pill -> Unlock Gold Key Vault [E] ([* DEMO]) -> Calibrate Key [E] (Ctrl+P).",
+        "DO: Approach Bot for directional red edge glow & [E] Locker -> Scrap PC [RMB/R] (Ctrl+P) into 4-6 Green Zone.",
+        "DO: Audit [E] Patient Zero desk ([* DEMO]) -> Open [TAB] Case Board -> Steps 1-3 + [P] Attach Codex Policy.",
+        "DO: Red Override Console [E] (Ctrl+P) -> Power Breaker [E] (2 Scrap + 2 Valid Fuses, Ctrl+P) -> Elevator!",
+        "DO: Complete Safety Check (+$50, [* DEMO]) -> Show Paystub & 5-Branch Mastery Bars (2x adaptive weight)."
+    ];
+    var _say_lines = [
+        "",
+        "SAY: 'SKIPJACK teaches cybersecurity & 3 ciphers across 10 scaffolded floors per chapter.'",
+        "SAY: 'All 34 concepts auto-archive into 5 branches, with clickable hyperlinked sub-terms inside descriptions.'",
+        "SAY: 'You inspect a forensic log to open the Key Vault, then calibrate the cipher key across 3 difficulty tiers.'",
+        "SAY: 'Directional red glow warns of bots without harsh flashing; salvage must stay in the 4-6 Green Zone.'",
+        "SAY: 'Innocent desks have benign red herrings (-$75 fine); Step 3 requires citing the matching Codex policy.'",
+        "SAY: 'Override flips decryption into encryption under a trace timer; fixing the breaker auto-unlocks the elevator.'",
+        "SAY: 'Every floor updates 5-branch mastery and gives 2x spawn weight to your weakest branch on the next floor.'"
+    ];
+
+    if (_min) {
+        var _mw1 = 158;
+        var _mh1 = 18;
+        var _mx2 = _gui_w - 8;
+        var _mx1 = _mx2 - _mw1;
+        var _my2 = _gui_h - 4;
+        var _my1 = _my2 - _mh1;
+        var _hov_m = (_mx >= _mx1 && _mx <= _mx2 && _my >= _my1 && _my <= _my2);
+
+        draw_set_alpha(0.90);
+        draw_set_color(_hov_m ? make_color_rgb(30, 56, 86) : make_color_rgb(12, 22, 38));
+        draw_rectangle(_mx1, _my1, _mx2, _my2, false);
+        draw_set_alpha(1.0);
+        draw_set_color(make_color_rgb(255, 215, 65));
+        draw_rectangle(_mx1, _my1, _mx2, _my2, true);
+        draw_set_font(fnt_dialogue);
+        draw_set_halign(fa_center);
+        draw_set_valign(fa_middle);
+        draw_text_transformed((_mx1 + _mx2) * 0.5, (_my1 + _my2) * 0.5, "[*] DEMO BEAT " + string(_beat) + "/7 [F2]", 0.54, 0.54, 0);
+        if (_hov_m && mouse_check_button_pressed(mb_left)) {
+            global.demo_hud_minimized = false;
+            if (asset_get_type("snd_button_click") == asset_sound) audio_play_sound(snd_button_click, 6, false);
+        }
+        draw_set_halign(fa_left);
+        draw_set_valign(fa_top);
+        draw_set_color(c_white);
+        return;
+    }
+
+    var _cw  = 342;
+    var _ch  = 54;
+    var _cx2 = _gui_w - 6;
+    var _cx1 = _cx2 - _cw;
+    var _cy1 = (room == rm_homeroom) ? 44 : 6;
+    var _cy2 = _cy1 + _ch;
+
+    draw_set_alpha(0.92);
+    draw_set_color(make_color_rgb(10, 18, 32));
+    draw_rectangle(_cx1, _cy1, _cx2, _cy2, false);
+    draw_set_alpha(1.0);
+    draw_set_color(make_color_rgb(255, 215, 65));
+    draw_rectangle(_cx1, _cy1, _cx2, _cy2, true);
+
+    draw_set_font(fnt_dialogue);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_middle);
+    draw_set_color(make_color_rgb(255, 220, 75));
+    draw_text_transformed(_cx1 + 6, _cy1 + 9, "[*] " + _titles[_beat], 0.54, 0.54, 0);
+
+    // Header mini buttons: [<] [>] [WARP >] [F2] [X]
+    var _bx = _cx2 - 126;
+    var _by = _cy1 + 3;
+    var _bh = 13;
+    var _btns = [
+        { lbl: "<",      w: 16, act: "prev" },
+        { lbl: ">",      w: 16, act: "next" },
+        { lbl: "WARP >", w: 42, act: "warp" },
+        { lbl: "F2",     w: 22, act: "min"  },
+        { lbl: "X",      w: 16, act: "exit" }
+    ];
+    draw_set_halign(fa_center);
+    for (var _bi = 0; _bi < array_length(_btns); _bi++) {
+        var _b   = _btns[_bi];
+        var _bx2 = _bx + _b.w;
+        var _bhov = (_mx >= _bx && _mx <= _bx2 && _my >= _by && _my <= _by + _bh);
+        draw_set_color(_bhov ? make_color_rgb(42, 86, 128) : make_color_rgb(20, 36, 58));
+        draw_rectangle(_bx, _by, _bx2, _by + _bh, false);
+        draw_set_color(_bhov ? c_yellow : c_aqua);
+        draw_rectangle(_bx, _by, _bx2, _by + _bh, true);
+        draw_set_color(_bhov ? c_yellow : c_white);
+        draw_text_transformed((_bx + _bx2) * 0.5, _by + _bh * 0.5, _b.lbl, 0.46, 0.46, 0);
+
+        if (_bhov && mouse_check_button_pressed(mb_left)) {
+            if (asset_get_type("snd_button_click") == asset_sound) audio_play_sound(snd_button_click, 6, false);
+            if (_b.act == "prev") global.demo_guide_beat = max(1, _beat - 1);
+            if (_b.act == "next") global.demo_guide_beat = min(7, _beat + 1);
+            if (_b.act == "warp") scr_demo_warp_to_beat(_beat);
+            if (_b.act == "min")  global.demo_hud_minimized = true;
+            if (_b.act == "exit") global.demo_mode_active   = false;
+        }
+        _bx = _bx2 + 3;
+    }
+
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+    var _do_sc  = min(0.49, (_cw - 12) / max(1, string_width(_do_lines[_beat])));
+    var _say_sc = min(0.48, (_cw - 12) / max(1, string_width(_say_lines[_beat])));
+    draw_set_color(c_aqua);
+    draw_text_transformed(_cx1 + 6, _cy1 + 20, _do_lines[_beat], _do_sc, _do_sc, 0);
+    draw_set_color(make_color_rgb(215, 235, 250));
+    draw_text_transformed(_cx1 + 6, _cy1 + 33, _say_lines[_beat], _say_sc, _say_sc, 0);
+    draw_set_color(make_color_rgb(145, 225, 165));
+    draw_text_transformed(_cx1 + 6, _cy1 + 44, "SHORTCUTS: [Ctrl+P] Auto-Solve Minigame  |  [ / ] Change Beat  |  [WARP >] Jump", 0.45, 0.45, 0);
 
     draw_set_halign(fa_left);
     draw_set_valign(fa_top);

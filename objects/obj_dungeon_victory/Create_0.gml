@@ -27,6 +27,9 @@ floor_key   = variable_global_exists("dungeon_cipher_key")   ? global.dungeon_ci
 vig_key     = variable_global_exists("dungeon_vigenere_key") ? global.dungeon_vigenere_key : "CAB";
 
 // Evaluate Floor Salvage Compliance Status (4..6 Scrap = GREEN / Compliant)
+if (variable_global_exists("demo_mode_active") && global.demo_mode_active) {
+    global.hr_scrap_count = clamp(variable_global_exists("hr_scrap_count") ? global.hr_scrap_count : 4, 4, 6);
+}
 hr_scrapped   = variable_global_exists("hr_scrap_count") ? global.hr_scrap_count : 0;
 hr_limit      = 6;
 is_compliant  = (hr_scrapped >= 4 && hr_scrapped <= 6);

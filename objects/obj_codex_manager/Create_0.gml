@@ -14,6 +14,10 @@ nav_history     = [];
 toast_timer     = 0;
 toast_msg       = "";
 
+if (!variable_global_exists("demo_mode_active"))   global.demo_mode_active   = false;
+if (!variable_global_exists("demo_guide_beat"))    global.demo_guide_beat    = 1;
+if (!variable_global_exists("demo_hud_minimized")) global.demo_hud_minimized = false;
+
 scr_init_cyber_glossary();
 
 // 5 Cybersecurity Branch Tabs

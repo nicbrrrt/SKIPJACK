@@ -6,8 +6,47 @@ var _gh = display_get_gui_height();
 var _mx = device_mouse_x_to_gui(0);
 var _my = device_mouse_y_to_gui(0);
 
-// ── 1. Homeroom HUD Button (when Codex is closed in rm_homeroom) ──────────
+// ── 1. Homeroom HUD Button & Main Menu Demonstration Mode Button ──────────
 if (!is_open) {
+    if (room == rm_menu) {
+        var _db_x1 = 18;
+        var _db_y1 = 158;
+        var _db_w  = 216;
+        var _db_h  = 54;
+        var _db_x2 = _db_x1 + _db_w;
+        var _db_y2 = _db_y1 + _db_h;
+        var _db_hov = (_mx >= _db_x1 && _mx <= _db_x2 && _my >= _db_y1 && _my <= _db_y2);
+        var _db_on  = (variable_global_exists("demo_mode_active") && global.demo_mode_active);
+        var _db_pls = 0.78 + 0.22 * sin(current_time / 240.0);
+
+        draw_set_alpha(0.94);
+        draw_set_color(_db_hov ? make_color_rgb(32, 64, 96) : make_color_rgb(12, 24, 42));
+        draw_rectangle(_db_x1, _db_y1, _db_x2, _db_y2, false);
+        draw_set_alpha(1.0);
+        draw_set_color(_db_hov ? c_yellow : merge_color(make_color_rgb(255, 195, 45), c_aqua, 0.35 * _db_pls));
+        draw_rectangle(_db_x1, _db_y1, _db_x2, _db_y2, true);
+        draw_rectangle(_db_x1 + 2, _db_y1 + 2, _db_x2 - 2, _db_y2 - 2, true);
+
+        draw_set_font(fnt_dialogue);
+        draw_set_halign(fa_center);
+        draw_set_valign(fa_middle);
+        draw_set_color(_db_hov ? c_yellow : make_color_rgb(255, 225, 85));
+        draw_text_transformed((_db_x1 + _db_x2) * 0.5, _db_y1 + 16, "[*] DEMONSTRATION MODE [D]", 0.72, 0.72, 0);
+        draw_set_color(make_color_rgb(175, 230, 255));
+        draw_text_transformed((_db_x1 + _db_x2) * 0.5, _db_y1 + 32, "7-Beat Live Presenter Guide & Unlocks", 0.54, 0.54, 0);
+        draw_set_color(_db_on ? c_lime : make_color_rgb(145, 200, 230));
+        draw_text_transformed((_db_x1 + _db_x2) * 0.5, _db_y1 + 45, _db_on ? "STATUS: ACTIVE (Click to Enter)" : "Click or Press [D] to Start Demo", 0.50, 0.50, 0);
+
+        if (_db_hov && mouse_check_button_pressed(mb_left)) {
+            scr_start_demonstration_mode();
+            if (asset_get_type("snd_correct_ping") == asset_sound) audio_play_sound(snd_correct_ping, 10, false);
+            room_goto(rm_cipher_select);
+        }
+        draw_set_halign(fa_left);
+        draw_set_valign(fa_top);
+        draw_set_color(c_white);
+    }
+
     if (room == rm_homeroom && !instance_exists(obj_textbox) && !instance_exists(obj_textevent)
      && !(variable_global_exists("is_paused") && global.is_paused)) {
         var _unlocked_n = scr_get_cyber_glossary_unlocked_count();
@@ -48,6 +87,17 @@ if (!is_open) {
             is_open        = true;
             global.codex_new_count = 0;
             content_scroll = 0;
+            if (variable_global_exists("demo_mode_active") && global.demo_mode_active) {
+                current_branch = 4; // CRYPTOGRAPHY
+                sidebar_scroll = 0;
+                var _b4_terms = get_branch_terms(4);
+                for (var _b4i = 0; _b4i < array_length(_b4_terms); _b4i++) {
+                    if (_b4_terms[_b4i].id == "symmetric_asymmetric") {
+                        current_concept = _b4i;
+                        break;
+                    }
+                }
+            }
             if (instance_exists(obj_jack)) {
                 obj_jack.isInCutscene = true;
                 obj_jack.image_speed  = 0;
@@ -76,6 +126,7 @@ if (!is_open) {
         draw_set_halign(fa_left);
         draw_set_valign(fa_top);
     }
+    scr_draw_demo_teleprompter_hud(_gw, _gh);
     exit;
 }
 
@@ -395,6 +446,8 @@ draw_set_halign(fa_center);
 draw_set_valign(fa_middle);
 draw_set_color(make_color_rgb(150, 200, 235));
 draw_text_transformed((_fx1 + _fx2) * 0.5, _fy2 - 12, "[A/D] Branch   |   [W/S] Concept   |   [Click Cyan Terms] Cross-Link   |   [Backspace] Back   |   [C/ESC] Close", 0.54, 0.54, 0);
+
+scr_draw_demo_teleprompter_hud(_gw, _gh);
 
 draw_set_halign(fa_left);
 draw_set_valign(fa_top);
