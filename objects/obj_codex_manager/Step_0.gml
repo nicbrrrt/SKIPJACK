@@ -40,13 +40,13 @@ if (is_open && (keyboard_check_pressed(vk_escape) || keyboard_check_pressed(ord(
     }
 }
 
-// Demo shortcut inside Homeroom: Ctrl + U unlocks all 27 Codex entries
+// Demo shortcut inside Homeroom: Ctrl + U unlocks all Codex entries
 if (_in_homeroom && keyboard_check(vk_control) && keyboard_check_pressed(ord("U"))) {
     for (var _gi = 0; _gi < array_length(global.cyber_glossary); _gi++) {
         global.codex_unlocked_terms[$ global.cyber_glossary[_gi].id] = true;
     }
     toast_timer = 120;
-    toast_msg   = "DEMO: All 27 Cybersecurity Codex entries unlocked!";
+    toast_msg   = "DEMO: All " + string(array_length(global.cyber_glossary)) + " Cybersecurity Codex entries unlocked!";
     if (asset_get_type("snd_correct_ping") == asset_sound) audio_play_sound(snd_correct_ping, 8, false);
 }
 
@@ -56,18 +56,30 @@ var _branch_terms = get_branch_terms(current_branch);
 var _term_count   = array_length(_branch_terms);
 current_concept   = clamp(current_concept, 0, max(0, _term_count - 1));
 
+// Backspace returns to previous cross-linked concept
+if (keyboard_check_pressed(vk_backspace) && array_length(nav_history) > 0) {
+    var _prev = array_pop(nav_history);
+    current_branch  = _prev.branch;
+    current_concept = _prev.concept;
+    content_scroll  = 0;
+    sidebar_scroll  = max(0, current_concept - 3);
+    if (asset_get_type("snd_button_click") == asset_sound) audio_play_sound(snd_button_click, 6, false);
+}
+
 // Keyboard navigation: Left/Right or A/D switches Branch Tab; Up/Down or W/S switches Concept
 var _num_tabs = array_length(tab_names);
 if (keyboard_check_pressed(vk_right) || keyboard_check_pressed(ord("D"))) {
     current_branch  = (current_branch + 1) mod _num_tabs;
     current_concept = 0;
     content_scroll  = 0;
+    sidebar_scroll  = 0;
     if (asset_get_type("snd_page_flip") == asset_sound) audio_play_sound(snd_page_flip, 10, false);
 }
 if (keyboard_check_pressed(vk_left) || keyboard_check_pressed(ord("A"))) {
     current_branch  = (current_branch + _num_tabs - 1) mod _num_tabs;
     current_concept = 0;
     content_scroll  = 0;
+    sidebar_scroll  = 0;
     if (asset_get_type("snd_page_flip") == asset_sound) audio_play_sound(snd_page_flip, 10, false);
 }
 
@@ -75,11 +87,13 @@ if (_term_count > 0) {
     if (keyboard_check_pressed(vk_down) || keyboard_check_pressed(ord("S"))) {
         current_concept = (current_concept + 1) mod _term_count;
         content_scroll  = 0;
+        if (current_concept == 0) sidebar_scroll = 0;
         if (asset_get_type("snd_button_hover") == asset_sound) audio_play_sound(snd_button_hover, 6, false);
     }
     if (keyboard_check_pressed(vk_up) || keyboard_check_pressed(ord("W"))) {
         current_concept = (current_concept + _term_count - 1) mod _term_count;
         content_scroll  = 0;
+        if (current_concept == _term_count - 1) sidebar_scroll = max(0, _term_count - 7);
         if (asset_get_type("snd_button_hover") == asset_sound) audio_play_sound(snd_button_hover, 6, false);
     }
 }

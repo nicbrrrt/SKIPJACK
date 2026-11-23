@@ -9,6 +9,8 @@ current_branch  = 0;
 current_concept = 0;
 content_scroll  = 0;
 max_scroll_h    = 220;
+sidebar_scroll  = 0;
+nav_history     = [];
 toast_timer     = 0;
 toast_msg       = "";
 

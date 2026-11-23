@@ -661,12 +661,13 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
         draw_rectangle(_mx1 + 14, _my2 - 74, _mx2 - 14, _my2 - 58, false);
         draw_set_color(c_aqua);
         draw_rectangle(_mx1 + 14, _my2 - 74, _mx2 - 14, _my2 - 58, true);
-        draw_set_color(make_color_rgb(165, 235, 255));
-        draw_text_transformed(_mcx, _my2 - 66, _kyle_tip, 0.62, 0.62, 0);
-
-        // Feedback / Educational debrief line
         draw_set_halign(fa_center);
         draw_set_valign(fa_middle);
+        var _kt_sc = min(0.60, (_mw - 38) / max(1, string_width(_kyle_tip)));
+        draw_set_color(make_color_rgb(165, 235, 255));
+        draw_text_transformed(_mcx, _my2 - 66, _kyle_tip, _kt_sc, _kt_sc, 0);
+
+        // Feedback / Educational debrief line
         var _default_fb = "Select a suspect to accuse, or return to the Case Board.";
         if (_mode == 2) _default_fb = "Select the accidental slip-up from the culprit's Level 3 Critical Forensics.";
         if (_mode == 4) _default_fb = "Select the safety habit and attach a matching Codex Policy.";
@@ -1420,42 +1421,60 @@ if (variable_instance_exists(id, "room_popup_alpha") && room_popup_alpha > 0 && 
 }
 
 // =========================================================
-// FLOOR BLUEPRINT RADAR (MINIMAP — Toggleable with [M]) + PULSING RED PROXIMITY VIGNETTE
+// FLOOR BLUEPRINT RADAR (MINIMAP — Toggleable with [M]) + DIRECTIONAL GENTLE BOT PROXIMITY GLOW
 // =========================================================
-var _bot_near_dist = 9999;
-var _max_det       = 0.0;
 var _j_x = instance_exists(obj_jack) ? obj_jack.x : 0;
 var _j_y = instance_exists(obj_jack) ? (obj_jack.y - 6) : 0;
 var _ov_lifted = (variable_global_exists("lockdown_overridden") && global.lockdown_overridden);
 var _jam_on    = (variable_global_exists("drone_jammed_timer") && global.drone_jammed_timer > 0);
 
-with (obj_dungeon_prop) {
-    if (prop_type == TILE_PROP_DRONE && !is_scrapped) {
-        if (!_ov_lifted && !_jam_on && instance_exists(obj_jack)) {
+// Gentle, photosensitivity-safe (~0.33 Hz) directional edge glow in the direction of nearby Security Bots
+if (!_ov_lifted && !_jam_on && instance_exists(obj_jack)) {
+    var _breathe = 0.88 + 0.12 * sin(current_time / 480.0);
+    with (obj_dungeon_prop) {
+        if (prop_type == TILE_PROP_DRONE && !is_scrapped) {
             var _bd = point_distance(_j_x, _j_y, x + 8, y + 8);
-            if (_bd < _bot_near_dist) _bot_near_dist = _bd;
-            if (variable_instance_exists(id, "detect_meter") && detect_meter > _max_det) {
-                _max_det = detect_meter;
+            if (_bd <= 210) {
+                var _det     = variable_instance_exists(id, "detect_meter") ? detect_meter : 0.0;
+                var _prox    = clamp(1.0 - (_bd / 210.0), 0.14, 1.0);
+                var _base_a  = clamp((0.22 + _prox * 0.34 + _det * 0.16) * _breathe, 0, 0.68);
+                var _dir     = point_direction(_j_x, _j_y, x + 8, y + 8);
+                var _dx      = lengthdir_x(1, _dir);
+                var _dy      = lengthdir_y(1, _dir);
+                var _span_x  = _gui_w * 0.62;
+                var _span_y  = _gui_h * 0.66;
+                var _focal_x = clamp(_gui_w * (0.5 + _dx * 0.45), _span_x * 0.5, _gui_w - _span_x * 0.5);
+                var _focal_y = clamp(_gui_h * (0.5 + _dy * 0.45), _span_y * 0.5, _gui_h - _span_y * 0.5);
+
+                draw_set_color(make_color_rgb(245, 35, 45));
+                for (var _band = 0; _band < 4; _band++) {
+                    var _band_f = ((4 - _band) / 4.0) * 0.58;
+                    var _d      = round(14 + _band * (12 + _prox * 14));
+
+                    if (_dx > 0.15) {
+                        var _w_r = _base_a * clamp(_dx, 0.35, 1.0);
+                        draw_set_alpha(_w_r * _band_f);
+                        draw_rectangle(_gui_w - _d, _focal_y - _span_y * 0.5, _gui_w, _focal_y + _span_y * 0.5, false);
+                    } else if (_dx < -0.15) {
+                        var _w_l = _base_a * clamp(-_dx, 0.35, 1.0);
+                        draw_set_alpha(_w_l * _band_f);
+                        draw_rectangle(0, _focal_y - _span_y * 0.5, _d, _focal_y + _span_y * 0.5, false);
+                    }
+
+                    if (_dy < -0.15) {
+                        var _w_t = _base_a * clamp(-_dy, 0.35, 1.0);
+                        draw_set_alpha(_w_t * _band_f);
+                        draw_rectangle(_focal_x - _span_x * 0.5, 0, _focal_x + _span_x * 0.5, _d, false);
+                    } else if (_dy > 0.15) {
+                        var _w_b = _base_a * clamp(_dy, 0.35, 1.0);
+                        draw_set_alpha(_w_b * _band_f);
+                        draw_rectangle(_focal_x - _span_x * 0.5, _gui_h - _d, _focal_x + _span_x * 0.5, _gui_h, false);
+                    }
+                }
+                draw_set_alpha(1.0);
             }
         }
     }
-}
-
-// Pulsing Red Screen-Edge Vignette when an active Security Bot is nearby (closer = more intense!)
-if (_bot_near_dist <= 180 && instance_exists(obj_jack)) {
-    var _prox   = clamp(1.0 - (_bot_near_dist / 180.0), 0.10, 1.0);
-    var _spd_ms = lerp(220, 75, _prox);
-    var _vpulse = 0.55 + 0.45 * sin(current_time / _spd_ms);
-    var _valpha = clamp((0.12 + _prox * 0.34 + _max_det * 0.25) * _vpulse, 0, 0.72);
-    var _thick  = round(10 + _prox * 18);
-
-    draw_set_alpha(_valpha);
-    draw_set_color(make_color_rgb(255, 25, 35));
-    draw_rectangle(0, 0, _gui_w, _thick, false);
-    draw_rectangle(0, _gui_h - _thick, _gui_w, _gui_h, false);
-    draw_rectangle(0, _thick, _thick, _gui_h - _thick, false);
-    draw_rectangle(_gui_w - _thick, _thick, _gui_w, _gui_h - _thick, false);
-    draw_set_alpha(1.0);
 }
 
 var _map_x     = 8;

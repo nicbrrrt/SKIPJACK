@@ -1752,6 +1752,11 @@ function scr_draw_override_console_ui(_gui_w, _gui_h) {
         return;
     }
 
+    if (variable_global_exists("override_input_cooldown") && global.override_input_cooldown > 0) {
+        global.override_input_cooldown--;
+        return;
+    }
+
     // Trace Timer countdown (frozen while the pause menu is open)
     if (!(variable_global_exists("is_paused") && global.is_paused)) {
         global.override_timer--;
@@ -3145,6 +3150,9 @@ function scr_init_cyber_glossary() {
     if (!variable_global_exists("term_popup_block_frames")) {
         global.term_popup_block_frames = 0;
     }
+    if (!variable_global_exists("term_popup_history") || !is_array(global.term_popup_history)) {
+        global.term_popup_history = [];
+    }
     if (variable_global_exists("cyber_glossary") && is_array(global.cyber_glossary) && array_length(global.cyber_glossary) > 0) {
         return;
     }
@@ -3282,6 +3290,17 @@ function scr_init_cyber_glossary() {
             deep_real: "Even after you change your password, an approved malicious OAuth app can keep reading your inbox and cloud drive until an admin revokes its token.",
             deep_defense: "Always read the permission list before clicking 'Allow'. Only connect IT-approved apps and periodically revoke unused third-party app connections."
         },
+        {
+            id: "session_cookie",
+            term: "Session Token / Cookie",
+            branch_idx: 1,
+            branch_name: "IDENTITY & ACCESS",
+            keywords: ["session cookie", "session token", "cookies", "api token", "hijack"],
+            short_def: "A Session Token or Cookie is a temporary digital pass stored by your browser after you log in, proving to the website that you are already authenticated so you don't have to re-type your password on every page.",
+            deep_how: "If an attacker steals your active session cookie (via Packet Sniffing on unsecured Wi-Fi or a malicious browser extension), they can paste it into their own browser and impersonate you without needing your password or 2FA.",
+            deep_real: "Session hijacking is one of the fastest ways attackers take over cloud email and corporate dashboards after a user connects to open Wi-Fi or installs unvetted extensions.",
+            deep_defense: "Always use HTTPS websites, enable a VPN on public Wi-Fi, log out of shared devices, and avoid untrusted browser extensions."
+        },
 
         // ── BRANCH 2: MALWARE & ENDPOINTS ────────────────────────────────────
         {
@@ -3305,6 +3324,28 @@ function scr_init_cyber_glossary() {
             deep_how: "Unlike legitimate IT remote tools, a RAT hides in the background, logs keystrokes, captures screenshots, and opens an outbound connection so attackers bypass firewalls.",
             deep_real: "RATs often arrive disguised as 'Invoice_Final.exe', cracked software, or remote-support tools installed during a tech-support scam call.",
             deep_defense: "Only install software from official IT catalogs, watch for unknown background processes, and keep endpoint antivirus/EDR active."
+        },
+        {
+            id: "firewall",
+            term: "Firewall",
+            branch_idx: 3,
+            branch_name: "NETWORK & PHYSICAL",
+            keywords: ["firewall", "port", "inbound traffic", "packet inspection"],
+            short_def: "A Firewall is a network security barrier (software or hardware) that inspects incoming and outgoing data packets and blocks unauthorized connections based on strict security rules.",
+            deep_how: "Think of a Firewall like a security guard at a building lobby: it checks every packet's source, destination, and port number, allowing safe corporate traffic through while dropping suspicious scans or unapproved remote access attempts.",
+            deep_real: "Turning off your computer's Firewall—even briefly to 'fix Wi-Fi speed'—exposes open network ports directly to attackers on the same Wi-Fi network.",
+            deep_defense: "Never disable your OS or corporate Firewall. Restrict open ports to only what is strictly required and pair with a VPN when working remotely."
+        },
+        {
+            id: "https_tls",
+            term: "HTTPS & TLS",
+            branch_idx: 3,
+            branch_name: "NETWORK & PHYSICAL",
+            keywords: ["https", "tls", "padlock", "ssl"],
+            short_def: "HTTPS (powered by TLS encryption) is the secure version of web browsing—shown by a padlock icon—that encrypts data traveling between your browser and a website so snoops cannot read it.",
+            deep_how: "When you visit an HTTPS site, your browser uses Asymmetric cryptography during a TLS handshake to verify the site's identity certificate and agree on a fast Symmetric session key for the rest of your visit.",
+            deep_real: "Without HTTPS (plain HTTP), passwords, messages, and session cookies travel in readable plaintext that anyone performing Packet Sniffing on public Wi-Fi can capture.",
+            deep_defense: "Never enter passwords or payment info on plain HTTP sites without a padlock, and heed browser warnings about invalid TLS certificates."
         },
         {
             id: "usb_baiting",
@@ -3338,6 +3379,17 @@ function scr_init_cyber_glossary() {
             deep_how: "Employees often install unvetted browser extensions or upload confidential PDFs to random 'Free PDF Merge' websites to save time, unknowingly handing company data to third-party servers.",
             deep_real: "Malicious browser extensions can read every page you visit, capture session cookies, and steal logins without triggering traditional antivirus.",
             deep_defense: "Use only IT-approved tools and extensions for company data. If you need a new tool, request an official security review."
+        },
+        {
+            id: "antivirus_edr",
+            term: "Antivirus & EDR",
+            branch_idx: 2,
+            branch_name: "MALWARE & ENDPOINTS",
+            keywords: ["antivirus", "edr", "endpoint detection"],
+            short_def: "Antivirus and Endpoint Detection & Response (EDR) are security tools running on computers and servers to spot, block, and isolate malware like Ransomware or Trojans before they spread.",
+            deep_how: "Traditional Antivirus checks files against known malware signatures, while modern EDR watches live behavior—like a program suddenly encrypting hundreds of files or opening a hidden remote shell—and automatically quarantines the threat.",
+            deep_real: "Disabling Antivirus/EDR to 'speed up' a PC or run an unverified installer removes the last safety net protecting an endpoint.",
+            deep_defense: "Keep Antivirus and EDR enabled and updated on every device, and never bypass security warnings for downloaded executables."
         },
 
         // ── BRANCH 3: NETWORK & PHYSICAL ─────────────────────────────────────
@@ -3463,6 +3515,39 @@ function scr_init_cyber_glossary() {
             deep_how: "Symmetric encryption is blazingly fast for encrypting files and VPN tunnels, while Asymmetric encryption solves the 'how do we safely share the key over the internet?' problem during HTTPS/TLS handshakes.",
             deep_real: "Every time you see the padlock in your browser (HTTPS), your browser uses Asymmetric crypto to safely agree on a temporary Symmetric AES key for your session.",
             deep_defense: "Use modern vetted standards like AES-256, ChaCha20, and TLS 1.3—never invent custom encryption algorithms."
+        },
+        {
+            id: "symmetric_encryption",
+            term: "Symmetric Encryption",
+            branch_idx: 4,
+            branch_name: "CRYPTOGRAPHY",
+            keywords: ["symmetric encryption", "aes-256", "shared secret key", "chacha20"],
+            short_def: "Symmetric encryption uses ONE shared secret key to both lock (encrypt) and unlock (decrypt) data—like a physical house key that both locks and opens the same door.",
+            deep_how: "Algorithms like AES-256 scramble huge amounts of data very quickly using a single secret key. Because both sender and receiver need the exact same key, the main challenge is sharing that key safely beforehand.",
+            deep_real: "Symmetric encryption powers hard-drive encryption (BitLocker), Password Manager vaults, and active VPN tunnels because it can encrypt gigabytes of traffic in real time.",
+            deep_defense: "Use strong 256-bit Symmetric ciphers (AES-256) and never transmit the shared secret key in plaintext—exchange it using Asymmetric encryption."
+        },
+        {
+            id: "asymmetric_encryption",
+            term: "Asymmetric Encryption",
+            branch_idx: 4,
+            branch_name: "CRYPTOGRAPHY",
+            keywords: ["asymmetric encryption", "public key", "private key", "rsa"],
+            short_def: "Asymmetric encryption (public-key cryptography) uses a mathematically linked pair of keys: a Public Key anyone can use to lock data, and a secret Private Key that only the owner can use to unlock it.",
+            deep_how: "Think of a Public Key like an open padlock you hand out to anyone: anyone can snap it shut on a box (encrypt), but only your matching Private Key can open it (decrypt). Algorithms like RSA and ECC make this possible without sharing a secret key first.",
+            deep_real: "Asymmetric encryption secures HTTPS/TLS website handshakes, digital signatures on software updates, and SSH logins so attackers sniffing the network cannot intercept the key.",
+            deep_defense: "Guard your Private Key like a master secret—never share or commit private keys to public folders or code repositories."
+        },
+        {
+            id: "security_by_obscurity",
+            term: "Security by Obscurity",
+            branch_idx: 4,
+            branch_name: "CRYPTOGRAPHY",
+            keywords: ["security by obscurity", "security through obscurity", "secretless"],
+            short_def: "Security by Obscurity is the flawed belief that a system is safe simply because its method or hidden location isn't widely known—without using a real secret key or password.",
+            deep_how: "Ciphers like Atbash or renaming 'passwords.txt' to 'notes_old.txt' rely on attackers not noticing the trick. As soon as someone guesses or discovers the fixed rule, protection drops to zero.",
+            deep_real: "Real-world cryptography follows Kerckhoffs's Principle: a system should stay secure even if everyone knows how the algorithm works, because security depends on keeping the KEY secret.",
+            deep_defense: "Never rely on hiding files or secretless rules. Always protect data with strong authentication and vetted keyed encryption."
         }
     ];
 }
@@ -3481,17 +3566,48 @@ function scr_get_cyber_glossary_unlocked_count() {
     return _n;
 }
 
-function scr_unlock_cyber_term(_term_struct) {
+function scr_find_cyber_term_by_id(_term_id) {
     scr_init_cyber_glossary();
-    if (!is_struct(_term_struct)) return;
+    for (var i = 0; i < array_length(global.cyber_glossary); i++) {
+        if (global.cyber_glossary[i].id == _term_id) {
+            return global.cyber_glossary[i];
+        }
+    }
+    return undefined;
+}
+
+function scr_silent_archive_cyber_term(_term_struct) {
+    scr_init_cyber_glossary();
+    if (!is_struct(_term_struct)) return false;
     var _is_new = !variable_struct_exists(global.codex_unlocked_terms, _term_struct.id);
     if (_is_new) {
         global.codex_unlocked_terms[$ _term_struct.id] = true;
         global.codex_new_count++;
     }
+    scr_add_floor_scanned_term(_term_struct);
+    // Composite concepts automatically unlock their foundational sub-concepts
+    if (_term_struct.id == "symmetric_asymmetric") {
+        var _sym  = scr_find_cyber_term_by_id("symmetric_encryption");
+        var _asym = scr_find_cyber_term_by_id("asymmetric_encryption");
+        if (is_struct(_sym) && !variable_struct_exists(global.codex_unlocked_terms, _sym.id)) {
+            global.codex_unlocked_terms[$ _sym.id] = true;
+            global.codex_new_count++;
+        }
+        if (is_struct(_asym) && !variable_struct_exists(global.codex_unlocked_terms, _asym.id)) {
+            global.codex_unlocked_terms[$ _asym.id] = true;
+            global.codex_new_count++;
+        }
+    }
+    return _is_new;
+}
+
+function scr_unlock_cyber_term(_term_struct) {
+    scr_init_cyber_glossary();
+    if (!is_struct(_term_struct)) return;
+    var _is_new = scr_silent_archive_cyber_term(_term_struct);
+    global.term_popup_history         = [];
     global.active_term_popup          = _term_struct;
     global.active_term_popup_just_new = _is_new;
-    scr_add_floor_scanned_term(_term_struct);
 }
 
 function scr_scan_clickable_terms(_text_array, _max_terms) {
@@ -3549,9 +3665,10 @@ function scr_draw_clickable_term_bar(_x, _y, _max_w, _term_list, _label, _label_
     var _gap = 6;
 
     for (var i = 0; i < array_length(_term_list); i++) {
-        var _t       = _term_list[i];
+        var _t        = _term_list[i];
+        scr_silent_archive_cyber_term(_t);
         var _unlocked = variable_struct_exists(global.codex_unlocked_terms, _t.id);
-        var _tag     = _unlocked ? ("[✓ " + _t.term + "]") : ("[? " + _t.term + "]");
+        var _tag      = _unlocked ? ("[+ " + _t.term + "]") : ("[? " + _t.term + "]");
         var _pw      = string_width(_tag) * 0.58 + 12;
 
         if (_cx + _pw > _x + _max_w && _cx > _x) {
@@ -3586,6 +3703,216 @@ function scr_draw_clickable_term_bar(_x, _y, _max_w, _term_list, _label, _label_
     return _did_click;
 }
 
+function scr_get_term_inline_link_map() {
+    // Ordered longest-first so multi-word phrases match before single words
+    return [
+        { token: "security through obscurity", id: "security_by_obscurity" },
+        { token: "security by obscurity",    id: "security_by_obscurity" },
+        { token: "two-factor authentication", id: "mfa_2fa" },
+        { token: "multi-factor authentication", id: "mfa_2fa" },
+        { token: "password manager",         id: "password_manager" },
+        { token: "credential stuffing",      id: "credential_stuffing" },
+        { token: "look-alike domain",        id: "typosquatting" },
+        { token: "tech-support scam",        id: "tech_support_scam" },
+        { token: "mfa push bombing",         id: "mfa_fatigue" },
+        { token: "remote access trojan",     id: "rat_malware" },
+        { token: "shoulder surfing",         id: "shoulder_surfing" },
+        { token: "packet sniffing",          id: "packet_sniffing" },
+        { token: "session cookies",          id: "session_cookie" },
+        { token: "session cookie",           id: "session_cookie" },
+        { token: "session tokens",           id: "session_cookie" },
+        { token: "session token",            id: "session_cookie" },
+        { token: "public wi-fi",             id: "public_wifi" },
+        { token: "typosquatting",            id: "typosquatting" },
+        { token: "asymmetric",               id: "asymmetric_encryption" },
+        { token: "symmetric",                id: "symmetric_encryption" },
+        { token: "ransomware",               id: "ransomware" },
+        { token: "ciphertext",               id: "plaintext_ciphertext" },
+        { token: "plaintext",                id: "plaintext_ciphertext" },
+        { token: "plain text",               id: "plaintext_ciphertext" },
+        { token: "firewalls",                id: "firewall" },
+        { token: "firewall",                 id: "firewall" },
+        { token: "antivirus",                id: "antivirus_edr" },
+        { token: "phishing",                 id: "phishing" },
+        { token: "pretexting",               id: "pretexting" },
+        { token: "tailgating",               id: "tailgating" },
+        { token: "vigenere",                 id: "vigenere_cipher" },
+        { token: "caesar",                   id: "caesar_cipher" },
+        { token: "atbash",                   id: "atbash_cipher" },
+        { token: "vishing",                  id: "vishing" },
+        { token: "aes-256",                  id: "symmetric_encryption" },
+        { token: "oauth",                    id: "oauth_permissions" },
+        { token: "https",                    id: "https_tls" },
+        { token: "wpa2/wpa3",                id: "wpa_security" },
+        { token: "wpa2",                     id: "wpa_security" },
+        { token: "wpa3",                     id: "wpa_security" },
+        { token: "vpn",                      id: "vpn" },
+        { token: "mfa",                      id: "mfa_2fa" },
+        { token: "2fa",                      id: "mfa_2fa" },
+        { token: "edr",                      id: "antivirus_edr" },
+        { token: "tls",                      id: "https_tls" },
+        { token: "rsa",                      id: "asymmetric_encryption" },
+        { token: "rat",                      id: "rat_malware" },
+        { token: "usb",                      id: "usb_baiting" }
+    ];
+}
+
+function scr_is_word_boundary_char(_ch) {
+    if (_ch == "") return true;
+    var _o = ord(string_upper(_ch));
+    var _is_alnum = ((_o >= 65 && _o <= 90) || (_o >= 48 && _o <= 57));
+    return !_is_alnum;
+}
+
+function scr_wrap_text_lines(_str, _max_w_unscaled) {
+    var _lines = [];
+    if (!is_string(_str) || _str == "") return [""];
+    var _paras = string_split(_str, "\n");
+    for (var _pi = 0; _pi < array_length(_paras); _pi++) {
+        var _words = string_split(_paras[_pi], " ");
+        var _cur   = "";
+        for (var _wi = 0; _wi < array_length(_words); _wi++) {
+            var _w = _words[_wi];
+            var _cand = (_cur == "") ? _w : (_cur + " " + _w);
+            if (_cur != "" && string_width(_cand) > _max_w_unscaled) {
+                array_push(_lines, _cur);
+                _cur = _w;
+            } else {
+                _cur = _cand;
+            }
+        }
+        array_push(_lines, _cur);
+    }
+    return _lines;
+}
+
+function scr_measure_linked_cyber_text_h(_str, _lsep, _max_w_unscaled, _sc) {
+    var _lines = scr_wrap_text_lines(_str, _max_w_unscaled);
+    return array_length(_lines) * _lsep * _sc;
+}
+
+/// @function scr_draw_linked_cyber_text(_x, _y, _str, _lsep, _max_w_unscaled, _sc, _base_col, _exclude_id, _allow_click, _clip_y1, _clip_y2)
+/// @description Wraps and draws text with inline clickable highlights for recognized Codex terms.
+///              Returns the clicked term struct if a highlighted term was clicked, otherwise undefined.
+function scr_draw_linked_cyber_text(_x, _y, _str, _lsep, _max_w_unscaled, _sc, _base_col, _exclude_id, _allow_click, _clip_y1, _clip_y2) {
+    var _lines   = scr_wrap_text_lines(_str, _max_w_unscaled);
+    var _map     = scr_get_term_inline_link_map();
+    var _mx      = device_mouse_x_to_gui(0);
+    var _my      = device_mouse_y_to_gui(0);
+    var _clicked = _allow_click && mouse_check_button_pressed(mb_left);
+    var _ret     = undefined;
+
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+
+    var _line_h = _lsep * _sc;
+
+    for (var _li = 0; _li < array_length(_lines); _li++) {
+        var _ly = _y + _li * _line_h;
+        if (_ly < _clip_y1 || (_ly + _line_h) > _clip_y2) continue;
+
+        var _line     = _lines[_li];
+        var _line_low = string_lower(_line);
+        var _len      = string_length(_line);
+        var _pos      = 1;
+        var _cur_x    = _x;
+
+        while (_pos <= _len) {
+            var _best_pos = _len + 1;
+            var _best_len = 0;
+            var _best_id  = "";
+
+            for (var _mi = 0; _mi < array_length(_map); _mi++) {
+                var _tok    = _map[_mi].token;
+                var _tid    = _map[_mi].id;
+                if (_tid == _exclude_id) continue;
+                var _tlen   = string_length(_tok);
+                var _search = _pos;
+                while (_search <= _len) {
+                    var _sub  = string_copy(_line_low, _search, _len - _search + 1);
+                    var _rel  = string_pos(_tok, _sub);
+                    if (_rel <= 0) break;
+                    var _abs  = _search + _rel - 1;
+                    var _prev = (_abs > 1) ? string_char_at(_line, _abs - 1) : "";
+                    var _next = (_abs + _tlen <= _len) ? string_char_at(_line, _abs + _tlen) : "";
+                    if (scr_is_word_boundary_char(_prev) && scr_is_word_boundary_char(_next)) {
+                        if (_abs < _best_pos || (_abs == _best_pos && _tlen > _best_len)) {
+                            _best_pos = _abs;
+                            _best_len = _tlen;
+                            _best_id  = _tid;
+                        }
+                        break;
+                    }
+                    _search = _abs + 1;
+                }
+            }
+
+            if (_best_pos > _len) {
+                var _tail = string_copy(_line, _pos, _len - _pos + 1);
+                draw_set_color(_base_col);
+                draw_text_transformed(_cur_x, _ly, _tail, _sc, _sc, 0);
+                break;
+            }
+
+            if (_best_pos > _pos) {
+                var _pre = string_copy(_line, _pos, _best_pos - _pos);
+                draw_set_color(_base_col);
+                draw_text_transformed(_cur_x, _ly, _pre, _sc, _sc, 0);
+                _cur_x += string_width(_pre) * _sc;
+            }
+
+            var _tok_txt = string_copy(_line, _best_pos, _best_len);
+            var _tok_w   = string_width(_tok_txt) * _sc;
+            var _hov     = (_mx >= _cur_x - 1 && _mx <= _cur_x + _tok_w + 1 && _my >= _ly - 1 && _my <= _ly + _line_h);
+
+            draw_set_color(_hov ? c_yellow : make_color_rgb(95, 225, 255));
+            draw_text_transformed(_cur_x, _ly, _tok_txt, _sc, _sc, 0);
+            draw_line(_cur_x, _ly + _line_h - 3, _cur_x + _tok_w, _ly + _line_h - 3);
+
+            if (_hov && _clicked && _ret == undefined) {
+                _ret = scr_find_cyber_term_by_id(_best_id);
+            }
+
+            _cur_x += _tok_w;
+            _pos    = _best_pos + _best_len;
+        }
+    }
+
+    draw_set_color(_base_col);
+    return _ret;
+}
+
+function scr_get_related_terms_in_text(_term_struct, _max_out) {
+    if (is_undefined(_max_out)) _max_out = 5;
+    var _out = [];
+    if (!is_struct(_term_struct)) return _out;
+    var _joined = string_lower(_term_struct.short_def + " " + _term_struct.deep_how + " " + _term_struct.deep_real + " " + _term_struct.deep_defense);
+    var _map    = scr_get_term_inline_link_map();
+    var _seen   = {};
+    var _len    = string_length(_joined);
+
+    for (var _mi = 0; _mi < array_length(_map); _mi++) {
+        var _tid = _map[_mi].id;
+        if (_tid == _term_struct.id || variable_struct_exists(_seen, _tid)) continue;
+        var _tok  = _map[_mi].token;
+        var _tlen = string_length(_tok);
+        var _idx  = string_pos(_tok, _joined);
+        if (_idx > 0) {
+            var _prev = (_idx > 1) ? string_char_at(_joined, _idx - 1) : "";
+            var _next = (_idx + _tlen <= _len) ? string_char_at(_joined, _idx + _tlen) : "";
+            if (scr_is_word_boundary_char(_prev) && scr_is_word_boundary_char(_next)) {
+                var _target = scr_find_cyber_term_by_id(_tid);
+                if (is_struct(_target)) {
+                    _seen[$ _tid] = true;
+                    array_push(_out, _target);
+                    if (array_length(_out) >= _max_out) break;
+                }
+            }
+        }
+    }
+    return _out;
+}
+
 function scr_handle_term_popup_input() {
     scr_init_cyber_glossary();
     if (global.term_popup_block_frames > 0) {
@@ -3593,7 +3920,21 @@ function scr_handle_term_popup_input() {
     }
     if (global.active_term_popup == undefined) return false;
 
-    if (mouse_check_button_pressed(mb_left)
+    var _gw  = display_get_gui_width();
+    var _gh  = display_get_gui_height();
+    var _bw  = min(510, _gw - 40);
+    var _bh  = 210;
+    var _bx1 = (_gw - _bw) * 0.5;
+    var _by1 = (_gh - _bh) * 0.5;
+    var _bx2 = _bx1 + _bw;
+    var _by2 = _by1 + _bh;
+    var _mx  = device_mouse_x_to_gui(0);
+    var _my  = device_mouse_y_to_gui(0);
+
+    var _click_outside = mouse_check_button_pressed(mb_left)
+                      && (_mx < _bx1 || _mx > _bx2 || _my < _by1 || _my > _by2);
+
+    if (_click_outside
      || keyboard_check_pressed(vk_escape)
      || keyboard_check_pressed(ord("E"))
      || keyboard_check_pressed(vk_space)
@@ -3606,6 +3947,7 @@ function scr_handle_term_popup_input() {
         keyboard_clear(vk_space);
         keyboard_clear(vk_enter);
         global.active_term_popup        = undefined;
+        global.term_popup_history       = [];
         global.term_popup_block_frames  = 2;
         if (asset_get_type("snd_button_click") == asset_sound) audio_play_sound(snd_button_click, 5, false);
     }
@@ -3619,14 +3961,16 @@ function scr_draw_term_quick_popup() {
     var _t  = global.active_term_popup;
     var _gw = display_get_gui_width();
     var _gh = display_get_gui_height();
+    var _mx = device_mouse_x_to_gui(0);
+    var _my = device_mouse_y_to_gui(0);
 
     draw_set_alpha(0.72);
     draw_set_color(make_color_rgb(3, 6, 14));
     draw_rectangle(0, 0, _gw, _gh, false);
     draw_set_alpha(1);
 
-    var _bw = min(490, _gw - 40);
-    var _bh = 196;
+    var _bw = min(510, _gw - 40);
+    var _bh = 210;
     var _bx1 = (_gw - _bw) * 0.5;
     var _by1 = (_gh - _bh) * 0.5;
     var _bx2 = _bx1 + _bw;
@@ -3649,11 +3993,53 @@ function scr_draw_term_quick_popup() {
     draw_rectangle(_bx1 + 14, _by1 + 12, _bx1 + 210, _by1 + 30, true);
     draw_text_transformed(_bx1 + 20, _by1 + 15, "BRANCH: " + _t.branch_name, 0.58, 0.58, 0);
 
-    // Codex status pill
+    // Optional [< Back] button when navigated via inline link
+    if (array_length(global.term_popup_history) > 0) {
+        var _bk_x1 = _bx1 + 218;
+        var _bk_y1 = _by1 + 12;
+        var _bk_x2 = _bk_x1 + 78;
+        var _bk_y2 = _by1 + 30;
+        var _bk_hov = (_mx >= _bk_x1 && _mx <= _bk_x2 && _my >= _bk_y1 && _my <= _bk_y2);
+        draw_set_color(_bk_hov ? make_color_rgb(35, 75, 110) : make_color_rgb(16, 36, 58));
+        draw_rectangle(_bk_x1, _bk_y1, _bk_x2, _bk_y2, false);
+        draw_set_color(_bk_hov ? c_yellow : c_aqua);
+        draw_rectangle(_bk_x1, _bk_y1, _bk_x2, _bk_y2, true);
+        draw_set_halign(fa_center);
+        draw_text_transformed((_bk_x1 + _bk_x2) * 0.5, _bk_y1 + 3, "< BACK", 0.58, 0.58, 0);
+        draw_set_halign(fa_left);
+        if (_bk_hov && mouse_check_button_pressed(mb_left)) {
+            var _prev = array_pop(global.term_popup_history);
+            global.active_term_popup          = _prev;
+            global.active_term_popup_just_new = false;
+            if (asset_get_type("snd_button_click") == asset_sound) audio_play_sound(snd_button_click, 5, false);
+        }
+    }
+
+    // Codex status pill + [X] Close button
+    var _cl_x1 = _bx2 - 32, _cl_y1 = _by1 + 12, _cl_x2 = _bx2 - 12, _cl_y2 = _by1 + 30;
+    var _cl_hov = (_mx >= _cl_x1 && _mx <= _cl_x2 && _my >= _cl_y1 && _my <= _cl_y2);
+    draw_set_color(_cl_hov ? make_color_rgb(110, 32, 38) : make_color_rgb(30, 38, 54));
+    draw_rectangle(_cl_x1, _cl_y1, _cl_x2, _cl_y2, false);
+    draw_set_color(_cl_hov ? c_red : make_color_rgb(120, 175, 210));
+    draw_rectangle(_cl_x1, _cl_y1, _cl_x2, _cl_y2, true);
+    draw_set_halign(fa_center);
+    draw_set_color(_cl_hov ? c_white : make_color_rgb(200, 225, 245));
+    draw_text_transformed((_cl_x1 + _cl_x2) * 0.5, _cl_y1 + 3, "X", 0.62, 0.62, 0);
+    if (_cl_hov && mouse_check_button_pressed(mb_left)) {
+        global.active_term_popup       = undefined;
+        global.term_popup_history      = [];
+        global.term_popup_block_frames = 2;
+        if (asset_get_type("snd_button_click") == asset_sound) audio_play_sound(snd_button_click, 5, false);
+        draw_set_halign(fa_left);
+        draw_set_valign(fa_top);
+        draw_set_color(c_white);
+        exit;
+    }
+
     draw_set_halign(fa_right);
-    var _st_txt = global.active_term_popup_just_new ? "[+] ARCHIVED TO HOMEROOM CODEX!" : "[✓] IN HOMEROOM CODEX";
+    var _st_txt = global.active_term_popup_just_new ? "[+] ARCHIVED TO CODEX!" : "[+] IN HOMEROOM CODEX";
     draw_set_color(global.active_term_popup_just_new ? make_color_rgb(255, 220, 80) : make_color_rgb(110, 245, 165));
-    draw_text_transformed(_bx2 - 14, _by1 + 15, _st_txt, 0.58, 0.58, 0);
+    draw_text_transformed(_cl_x1 - 8, _by1 + 15, _st_txt, 0.56, 0.56, 0);
 
     // Term Title
     draw_set_halign(fa_left);
@@ -3663,14 +4049,23 @@ function scr_draw_term_quick_popup() {
     draw_set_color(make_color_rgb(50, 95, 145));
     draw_line(_bx1 + 14, _by1 + 64, _bx2 - 14, _by1 + 64);
 
-    // Short Definition
-    draw_set_color(make_color_rgb(225, 240, 255));
-    draw_text_ext_transformed(_bx1 + 14, _by1 + 74, _t.short_def, 20, (_bw - 28) / 0.72, 0.72, 0.72, 0);
+    // Short Definition with inline clickable highlighted sub-terms
+    var _jump_term = scr_draw_linked_cyber_text(
+        _bx1 + 14, _by1 + 74, _t.short_def, 20, (_bw - 28) / 0.72, 0.72,
+        make_color_rgb(225, 240, 255), _t.id, true, _by1 + 66, _by2 - 28
+    );
+    if (is_struct(_jump_term)) {
+        array_push(global.term_popup_history, _t);
+        var _jnew = scr_silent_archive_cyber_term(_jump_term);
+        global.active_term_popup          = _jump_term;
+        global.active_term_popup_just_new = _jnew;
+        if (asset_get_type("snd_button_click") == asset_sound) audio_play_sound(snd_button_click, 5, false);
+    }
 
     // Footer
     draw_set_halign(fa_center);
     draw_set_color(make_color_rgb(155, 200, 235));
-    draw_text_transformed((_bx1 + _bx2) * 0.5, _by2 - 22, "Open [C] in your HOMEROOM for the full in-depth breakdown  |  [CLICK / E / ESC] Close", 0.58, 0.58, 0);
+    draw_text_transformed((_bx1 + _bx2) * 0.5, _by2 - 20, "Click highlighted terms to jump  |  Homeroom [C] for full guide  |  [E / ESC / X] Close", 0.55, 0.55, 0);
 
     draw_set_halign(fa_left);
     draw_set_valign(fa_top);
@@ -3940,7 +4335,7 @@ function scr_is_term_scanned_on_floor(_term_id) {
 function scr_auto_collect_floor_terms(_text_array) {
     var _matched = scr_scan_clickable_terms(_text_array, 6);
     for (var i = 0; i < array_length(_matched); i++) {
-        scr_add_floor_scanned_term(_matched[i]);
+        scr_silent_archive_cyber_term(_matched[i]);
     }
 }
 
@@ -4124,7 +4519,7 @@ function scr_draw_visual_mechanic_tutorial(_kind, _gui_w, _gui_h) {
 
     } else if (_kind == "security_bot") {
         _title = "VISUAL GUIDE: SECURITY BOTS & STEALTH";
-        _sub   = "Red screen pulse = Bot near!  You have 5s in its beam—hide in [E] Lockers or behind walls!";
+        _sub   = "Directional red edge glow = Bot direction!  You have 2.5s in its beam—hide in [E] Lockers or behind walls!";
 
         var _sw = sin(_t * 2.4);
         var _bx = _cx - 80 + _sw * 35;
@@ -4138,14 +4533,14 @@ function scr_draw_visual_mechanic_tutorial(_kind, _gui_w, _gui_h) {
         draw_set_color(c_white);
         draw_text_transformed(_bx, _ay - 16, "BOT", 0.52, 0.52, 0);
 
-        // 5s Detection Bar
+        // 2.5s Detection Bar
         var _fill = frac(_t * 0.35);
         draw_set_color(c_black);
         draw_rectangle(_cx - 30, _ay + 28, _cx + 30, _ay + 34, false);
         draw_set_color((_fill > 0.7) ? c_red : c_yellow);
         draw_rectangle(_cx - 30, _ay + 28, _cx - 30 + 60 * _fill, _ay + 34, false);
         draw_set_color(c_white);
-        draw_text_transformed(_cx, _ay + 43, "5.0s Detection Grace", 0.52, 0.52, 0);
+        draw_text_transformed(_cx, _ay + 43, "2.5s Detection Grace", 0.52, 0.52, 0);
 
         // Blue Locker safe zone on right
         draw_set_color(make_color_rgb(20, 60, 110));

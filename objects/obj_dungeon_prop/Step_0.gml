@@ -486,9 +486,11 @@ if (player_near && keyboard_check_pressed(ord("E"))) {
                 "Gather evidence from the offices, narrow down the suspects on the Case Board [TAB], then accuse the culprit at their desk!"
             ], [obj_jack.id, obj_jack.id, obj_jack.id]);
         } else {
-            global.override_ui_open   = true;
-            global.override_timer_max = scr_get_cipher_timer_frames("sever");
-            global.override_timer     = global.override_timer_max;
+            keyboard_clear(ord("E"));
+            global.override_input_cooldown = 4;
+            global.override_ui_open        = true;
+            global.override_timer_max      = scr_get_cipher_timer_frames("sever");
+            global.override_timer          = global.override_timer_max;
         }
         exit;
     }
