@@ -723,12 +723,13 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
             if (global.policy_drawer_sel < global.policy_drawer_scroll) global.policy_drawer_scroll = global.policy_drawer_sel;
             if (global.policy_drawer_sel >= global.policy_drawer_scroll + _vis_max) global.policy_drawer_scroll = global.policy_drawer_sel - _vis_max + 1;
 
-            var _dw  = min(440, _mw - 40);
-            var _dh  = 196;
+            var _dw  = min(468, _mw - 24);
+            var _dh  = 226;
             var _dx1 = _mcx - _dw * 0.5;
             var _dy1 = _mcy - _dh * 0.5;
             var _dx2 = _dx1 + _dw;
             var _dy2 = _dy1 + _dh;
+            var _tut_pol = (!variable_global_exists("chapter_floor") || global.chapter_floor <= 3);
 
             draw_set_alpha(0.65);
             draw_set_color(c_black);
@@ -743,16 +744,17 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
             draw_set_halign(fa_center);
             draw_set_valign(fa_middle);
             draw_set_color(make_color_rgb(130, 225, 255));
-            draw_text_transformed(_mcx, _dy1 + 14, "ATTACH CODEX POLICY CITATION (" + string(_pt_cnt) + " AVAILABLE)", 0.72, 0.72, 0);
+            draw_text_transformed(_mcx, _dy1 + 13, "ATTACH CODEX POLICY CITATION (" + string(_pt_cnt) + " AVAILABLE)", 0.70, 0.70, 0);
 
             var _d_clicked = false;
             var _gmx_d = device_mouse_x_to_gui(0);
             var _gmy_d = device_mouse_y_to_gui(0);
+            var _cidx_d = variable_global_exists("floor_case_index") ? global.floor_case_index : 0;
             for (var _di = 0; _di < min(_vis_max, _pt_cnt - global.policy_drawer_scroll); _di++) {
                 var _idx  = global.policy_drawer_scroll + _di;
                 var _dt   = _p_terms[_idx];
-                var _ry1  = _dy1 + 28 + _di * 24;
-                var _ry2  = _ry1 + 21;
+                var _ry1  = _dy1 + 25 + _di * 23;
+                var _ry2  = _ry1 + 20;
                 var _dsel = (_idx == global.policy_drawer_sel);
                 var _dhov = point_in_rectangle(_gmx_d, _gmy_d, _dx1 + 10, _ry1, _dx2 - 10, _ry2);
                 if (_dhov && mouse_check_button_pressed(mb_left)) {
@@ -766,21 +768,36 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
                 draw_set_color(_dsel ? c_aqua : make_color_rgb(55, 110, 150));
                 draw_rectangle(_dx1 + 10, _ry1, _dx2 - 10, _ry2, true);
 
-                var _is_sc = scr_is_term_scanned_on_floor(_dt.id);
-                var _cidx_d = variable_global_exists("floor_case_index") ? global.floor_case_index : 0;
-                var _is_d_pol = (_demo_on && scr_validate_case_policy_citation(_dt, _cidx_d).ok);
-                var _src_tag = _is_d_pol ? "[* DEMO MATCH]" : (_is_sc ? "[SCANNED *]" : (variable_struct_exists(global.codex_unlocked_terms, _dt.id) ? "[ARCHIVED +]" : "[CODEX]"));
+                var _is_sc     = scr_is_term_scanned_on_floor(_dt.id);
+                var _is_ok_pol = scr_validate_case_policy_citation(_dt, _cidx_d).ok;
+                var _is_d_pol  = (_demo_on && _is_ok_pol);
+                var _is_t_pol  = (_tut_pol && _is_ok_pol);
+                var _src_tag   = _is_d_pol
+                    ? "[* DEMO MATCH]"
+                    : (_is_t_pol ? "[TUTORIAL MATCH]" : (_is_sc ? "[THIS FLOOR *]" : "[IN CODEX]"));
                 draw_set_halign(fa_left);
                 draw_set_color(_dsel ? c_white : make_color_rgb(195, 225, 245));
                 draw_text_transformed(_dx1 + 16, (_ry1 + _ry2) * 0.5, _dt.term + "  [" + _dt.branch_name + "]", 0.58, 0.58, 0);
                 draw_set_halign(fa_right);
-                draw_set_color(_is_d_pol ? c_lime : (_is_sc ? make_color_rgb(255, 215, 75) : make_color_rgb(120, 230, 165)));
+                draw_set_color((_is_d_pol || _is_t_pol) ? c_lime : (_is_sc ? make_color_rgb(255, 215, 75) : make_color_rgb(120, 230, 165)));
                 draw_text_transformed(_dx2 - 16, (_ry1 + _ry2) * 0.5, _src_tag, 0.52, 0.52, 0);
+            }
+
+            // Live Plain-English Summary of the Currently Highlighted Policy Term
+            if (_pt_cnt > 0) {
+                var _sel_pol = _p_terms[global.policy_drawer_sel];
+                draw_set_color(make_color_rgb(8, 16, 28));
+                draw_rectangle(_dx1 + 10, _dy2 - 58, _dx2 - 10, _dy2 - 22, false);
+                draw_set_color(make_color_rgb(65, 165, 215));
+                draw_rectangle(_dx1 + 10, _dy2 - 58, _dx2 - 10, _dy2 - 22, true);
+                draw_set_halign(fa_left);
+                draw_set_color(make_color_rgb(185, 240, 255));
+                draw_text_ext_transformed(_dx1 + 16, _dy2 - 40, "WHAT THIS MEANS: " + _sel_pol.short_def, 11, (_dw - 34) / 0.50, 0.50, 0.50, 0);
             }
 
             draw_set_halign(fa_center);
             draw_set_color(make_color_rgb(155, 200, 235));
-            draw_text_transformed(_mcx, _dy2 - 12, "[W/S / Wheel] Browse   |   [E / ENTER / Click] Attach   |   [P / ESC] Cancel", 0.54, 0.54, 0);
+            draw_text_transformed(_mcx, _dy2 - 11, "[W/S / Wheel] Browse   |   [E / ENTER / Click] Attach   |   [P / ESC] Cancel", 0.52, 0.52, 0);
 
             if (_can_input && (_d_clicked || keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space))) {
                 if (_pt_cnt > 0) {
@@ -830,11 +847,13 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
         var _n_audit = array_length(_audit_labels);
 
         if (keyboard_check_pressed(vk_up) || keyboard_check_pressed(ord("W"))) {
-            global.pc_screen_select = (global.pc_screen_select + _n_audit - 1) mod _n_audit;
+            global.pc_screen_select   = (global.pc_screen_select + _n_audit - 1) mod _n_audit;
+            global.pc_screen_feedback = "";
             audio_play_sound(select1, 6, false);
         }
         if (keyboard_check_pressed(vk_down) || keyboard_check_pressed(ord("S"))) {
-            global.pc_screen_select = (global.pc_screen_select + 1) mod _n_audit;
+            global.pc_screen_select   = (global.pc_screen_select + 1) mod _n_audit;
+            global.pc_screen_feedback = "";
             audio_play_sound(select1, 6, false);
         }
         global.pc_screen_select = clamp(global.pc_screen_select, 0, _n_audit - 1);
@@ -960,21 +979,23 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
         draw_set_halign(fa_center);
         draw_set_valign(fa_middle);
         draw_set_color(make_color_rgb(14, 34, 56));
-        draw_rectangle(_mx1 + 14, _my2 - 76, _mx2 - 14, _my2 - 62, false);
+        draw_rectangle(_mx1 + 14, _my2 - 80, _mx2 - 14, _my2 - 66, false);
         draw_set_color(_is_white ? c_black : c_aqua);
-        draw_rectangle(_mx1 + 14, _my2 - 76, _mx2 - 14, _my2 - 62, true);
+        draw_rectangle(_mx1 + 14, _my2 - 80, _mx2 - 14, _my2 - 66, true);
         draw_set_color(make_color_rgb(165, 235, 255));
-        draw_text_transformed(_mcx, _my2 - 69, "KYLE: Audit all 3 items—flag the 1 risky slip-up, or choose [VERIFY CLEAN] if all 3 are safe!", 0.62, 0.62, 0);
+        draw_text_transformed(_mcx, _my2 - 73, "KYLE: Highlight each item [W/S] to read its Plain-English details below before pressing [ENTER]!", 0.58, 0.58, 0);
 
-        // Bottom Feedback / Inspection Note (black text, moved up above the line)
-        var _audit_fb = (variable_global_exists("pc_screen_feedback") && global.pc_screen_feedback != "")
-            ? global.pc_screen_feedback
-            : "Use [W/S], [1-4], or Click to inspect.";
-        var _audit_fcol = (variable_global_exists("pc_screen_feedback_col") && global.pc_screen_feedback != "")
-            ? global.pc_screen_feedback_col
-            : c_black;
+        // Live Plain-English Item Details / Audit Feedback Box (shows what the highlighted item means BEFORE committing!)
+        var _live_item_preview = "ITEM DETAILS: Choose [4 - VERIFY CLEAN] if all 3 items on this computer follow safe cybersecurity habits!";
+        if (global.pc_screen_select >= 0 && global.pc_screen_select < array_length(_a_items)) {
+            _live_item_preview = "ITEM " + string(global.pc_screen_select + 1) + " DETAILS: " + _a_items[global.pc_screen_select].desc;
+        }
+        var _has_fb     = (variable_global_exists("pc_screen_feedback") && global.pc_screen_feedback != "");
+        var _audit_fb   = _has_fb ? global.pc_screen_feedback : _live_item_preview;
+        var _audit_fcol = _has_fb ? global.pc_screen_feedback_col : make_color_rgb(15, 75, 125);
         draw_set_color(_audit_fcol);
-        draw_text(floor(_mcx), floor(_my2 - 54), _audit_fb);
+        draw_text_ext_transformed(_mcx, _my2 - 48, _audit_fb, 11, (_mw - 32) / 0.58, 0.58, 0.58, 0);
+        draw_text_ext_transformed(_mcx + 0.6, _my2 - 48, _audit_fb, 11, (_mw - 32) / 0.58, 0.58, 0.58, 0);
 
     } else {
         // Centered Main Clue Box
@@ -1027,8 +1048,8 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
 
     // Clickable Cyber Terms Bar below Monitor / Case Board + Quick-Definition Popup
     var _pc_scan = [global.pc_screen_title, global.pc_screen_body, global.pc_screen_feedback];
-    if (_mode == 5 && variable_global_exists("pc_audit_suspect_idx") && global.pc_audit_suspect_idx >= 0 && global.pc_audit_suspect_idx < array_length(global.case_suspects)) {
-        var _sa = global.case_suspects[global.pc_audit_suspect_idx];
+    if (_mode == 5 && variable_global_exists("pc_screen_suspect_idx") && global.pc_screen_suspect_idx >= 0 && global.pc_screen_suspect_idx < array_length(global.case_suspects)) {
+        var _sa = global.case_suspects[global.pc_screen_suspect_idx];
         if (variable_struct_exists(_sa, "audit_items")) {
             for (var _ai = 0; _ai < array_length(_sa.audit_items); _ai++) {
                 array_push(_pc_scan, _sa.audit_items[_ai].label + " " + _sa.audit_items[_ai].desc);

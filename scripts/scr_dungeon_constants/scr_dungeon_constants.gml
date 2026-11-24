@@ -4296,68 +4296,68 @@ function scr_draw_cyber_mastery_bars(_x1, _y1, _w, _h, _show_header) {
 function scr_get_benign_red_herring_pool() {
     return [
         {
-            label:          "File: 'bonus_structure_2026.pdf.exe' in C:\\EDR_Quarantine\\Blocked\\",
+            label:          "Antivirus Alert: 'bonus_2026.pdf.exe' -> BLOCKED in Quarantine (Never Opened)",
             is_breach:      false,
             is_risky:       false,
             is_red_herring: true,
-            desc:           "SAFE (QUARANTINED): Double-extension malware was automatically blocked inside C:\\EDR_Quarantine\\Blocked\\ and reported to IT.",
-            audit_feedback: "Audit Rejected: That '.pdf.exe' file was never executed—it is safely isolated inside C:\\EDR_Quarantine\\Blocked\\!"
+            desc:           "SAFE (BLOCKED BY ANTIVIRUS): The computer's Antivirus caught this fake '.pdf.exe' file and locked it inside a safe Quarantine folder before anyone could open it.",
+            audit_feedback: "Audit Rejected: That '.pdf.exe' file was never opened—Antivirus already blocked and locked it inside the Quarantine folder!"
         },
         {
-            label:          "Browser: Login Page open at 'https://sso.company-internal.com' (Valid TLS Lock)",
+            label:          "Browser: Official Company Login Page ('https://sso.company-internal.com' - Verified Lock)",
             is_breach:      false,
             is_risky:       false,
             is_red_herring: true,
-            desc:           "SAFE (OFFICIAL SSO): The domain 'sso.company-internal.com' is the verified internal Single Sign-On portal with a valid TLS certificate.",
-            audit_feedback: "Audit Rejected: 'https://sso.company-internal.com' with a valid TLS lock is the legitimate corporate SSO portal, not a phishing site!"
+            desc:           "SAFE (OFFICIAL COMPANY PORTAL): 'sso.company-internal.com' is the real, verified internal company login page with a valid HTTPS security lock.",
+            audit_feedback: "Audit Rejected: 'https://sso.company-internal.com' is the real, verified company login page—not a fake phishing site!"
         },
         {
-            label:          "Desktop Sticky Note: 'Password Reminder -> Stored in Bitwarden Vault'",
+            label:          "Desktop Sticky Note: 'Reminder: All Passwords Stored in Encrypted Bitwarden Vault'",
             is_breach:      false,
             is_risky:       false,
             is_red_herring: true,
-            desc:           "SAFE (PASSWORD MANAGER): The sticky note contains zero credentials—it only reminds the employee to use their encrypted Bitwarden Vault.",
-            audit_feedback: "Audit Rejected: That sticky note doesn't expose a password—it directs the user to their encrypted Bitwarden Password Manager!"
+            desc:           "SAFE (PASSWORD MANAGER): This sticky note has NO actual passwords written on it—it only reminds the employee to open their encrypted Password Manager vault.",
+            audit_feedback: "Audit Rejected: That sticky note doesn't expose any password—it reminds the employee to use their encrypted Password Manager!"
         },
         {
-            label:          "USB Port: Flash Drive Mounted — 'IT-Approved Encrypted Backup (BitLocker)'",
+            label:          "USB Port: 'IT-Approved Encrypted Backup Drive' (Issued by IT Security)",
             is_breach:      false,
             is_risky:       false,
             is_red_herring: true,
-            desc:           "SAFE (AUTHORIZED HARDWARE): Hardware-encrypted BitLocker drive issued and signed by Corporate IT Asset Management.",
-            audit_feedback: "Audit Rejected: That USB drive is an IT-Approved, BitLocker-encrypted backup drive—not an untrusted parking-lot drop!"
+            desc:           "SAFE (OFFICIAL IT DRIVE): This is an encrypted backup flash drive officially issued and verified by the company's IT Security team (not a random drive found outside).",
+            audit_feedback: "Audit Rejected: That USB drive is an official, encrypted backup drive issued by IT Security—not an unknown drive found outside!"
         },
         {
-            label:          "Email: '[EXTERNAL] Urgent Wire Request' -> Replied: 'Verifying via Official Directory First'",
+            label:          "Email: 'Urgent Wire Request' -> Employee Replied: 'Calling Official Phone Directory to Verify First'",
             is_breach:      false,
             is_risky:       false,
             is_red_herring: true,
-            desc:           "SAFE (OUT-OF-BAND VERIFICATION): The employee spotted the external pretexting email and refused to open the attachment without calling the official directory.",
-            audit_feedback: "Audit Rejected: The employee followed proper anti-phishing procedure by verifying via the official phone directory before opening anything!"
+            desc:           "SAFE (VERIFIED BY PHONE): The employee spotted a suspicious urgent email and refused to send anything until calling the sender's real phone number to double-check.",
+            audit_feedback: "Audit Rejected: The employee did the right thing—they refused the urgent email and verified by calling the official phone directory!"
         },
         {
-            label:          "Phone Log: 5 Missed MFA Push Prompts -> Status: 'DENIED & REPORTED TO SOC'",
+            label:          "Phone Log: 5 Unexpected 2FA Login Popups -> Employee Tapped 'DENY & REPORT TO IT'",
             is_breach:      false,
             is_risky:       false,
             is_red_herring: true,
-            desc:           "SAFE (MFA FATIGUE BLOCKED): When spammed with unexpected login prompts, the employee tapped 'Deny' and alerted the Security Operations Center.",
-            audit_feedback: "Audit Rejected: Those MFA Push Bombing prompts were DENIED and reported to the SOC—the employee stopped the attack!"
+            desc:           "SAFE (ATTACK BLOCKED): When spammed with unexpected 2FA login popups on their phone, the employee tapped 'DENY' and reported it to IT Security right away.",
+            audit_feedback: "Audit Rejected: The employee tapped 'DENY' on those unexpected 2FA login prompts and reported the attack to IT!"
         },
         {
-            label:          "Wi-Fi: Connected to 'CoffeeShop_Free_WiFi' -> Corporate VPN: 'AES-256 TUNNEL ACTIVE'",
+            label:          "Wi-Fi: Connected to 'CoffeeShop_Free_WiFi' -> Corporate VPN: 'ENCRYPTED TUNNEL ON'",
             is_breach:      false,
             is_risky:       false,
             is_red_herring: true,
-            desc:           "SAFE (ENCRYPTED VPN TUNNEL): Although using guest Wi-Fi, an AES-256 Corporate VPN tunnel was active the entire session, preventing packet sniffing.",
-            audit_feedback: "Audit Rejected: The employee had their AES-256 Corporate VPN Tunnel ON before sending any traffic over guest Wi-Fi!"
+            desc:           "SAFE (VPN TURNED ON): Even though the employee used coffee-shop Wi-Fi, their encrypted Corporate VPN privacy shield was turned ON the entire time.",
+            audit_feedback: "Audit Rejected: The employee had their encrypted Corporate VPN turned ON before using coffee-shop Wi-Fi, keeping their data safe!"
         },
         {
-            label:          "Software: 'Chrome_Security_Patch.msi' -> Source: 'Verified Corporate IT Software Center'",
+            label:          "Software Update: 'Chrome_Security_Patch' -> Installed from Official IT Software Center",
             is_breach:      false,
             is_risky:       false,
             is_red_herring: true,
-            desc:           "SAFE (OFFICIAL PATCH): Update was deployed and digitally signed by the internal Corporate IT Software Center, not a web popup.",
-            audit_feedback: "Audit Rejected: That patch was installed from the verified Corporate IT Software Center, not a malvertising browser popup!"
+            desc:           "SAFE (OFFICIAL UPDATE): This browser update came directly from the official Corporate IT Software Center, not from a random website pop-up ad.",
+            audit_feedback: "Audit Rejected: That update was installed from the official Corporate IT Software Center, not a fake website pop-up ad!"
         }
     ];
 }
