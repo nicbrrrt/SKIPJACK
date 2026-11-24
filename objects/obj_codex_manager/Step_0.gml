@@ -15,20 +15,29 @@ if (room == rm_menu && !is_open && keyboard_check_pressed(ord("D"))) {
 }
 
 var _in_homeroom = (room == rm_homeroom);
+var _in_dungeon  = instance_exists(obj_dungeon_generator) && !(variable_instance_exists(obj_dungeon_generator, "is_intern_mode") && obj_dungeon_generator.is_intern_mode);
 var _ui_busy = instance_exists(obj_textbox)
             || instance_exists(obj_textevent)
             || instance_exists(obj_dungeon_quiz)
             || instance_exists(obj_dungeon_victory)
+            || instance_exists(obj_cipher)
+            || (variable_global_exists("cam_pan_phase") && global.cam_pan_phase != "off")
             || (variable_global_exists("is_paused") && global.is_paused)
             || (variable_global_exists("pc_screen_open") && global.pc_screen_open)
+            || (variable_global_exists("key_analyzer_open") && global.key_analyzer_open)
+            || (variable_global_exists("override_ui_open") && global.override_ui_open)
+            || (variable_global_exists("breaker_ui_open") && global.breaker_ui_open)
+            || (variable_global_exists("scrap_ui_open") && global.scrap_ui_open)
+            || (variable_global_exists("bot_grapple_active") && global.bot_grapple_active)
             || (variable_global_exists("active_term_popup") && global.active_term_popup != undefined);
 
-// ── Open / Close (Homeroom-Only!) ────────────────────────────────────────
+// ── Open / Close (Available in Homeroom AND inside the Dungeon Field Manual!) ──
 if (is_open && (keyboard_check_pressed(vk_escape) || keyboard_check_pressed(ord("C")))) {
     if (keyboard_check_pressed(vk_escape)) {
         global.esc_block_frames = 2;
         keyboard_clear(vk_escape);
     }
+    keyboard_clear(ord("C"));
     is_open = false;
     with (obj_button_master) { image_index = 0; }
     if (instance_exists(obj_jack)) {
@@ -56,9 +65,9 @@ if (is_open && (keyboard_check_pressed(vk_escape) || keyboard_check_pressed(ord(
             obj_jack.isInCutscene = true;
             obj_jack.image_speed  = 0;
         }
-    } else if (instance_exists(obj_dungeon_generator)) {
-        toast_timer = 150;
-        toast_msg   = "Homeroom Codex only opens in your HOMEROOM! Click [? Terms] during missions to archive them.";
+    } else if (_in_dungeon) {
+        keyboard_clear(ord("C"));
+        scr_open_codex_to_current_floor_topic();
     }
 }
 

@@ -8,6 +8,30 @@ if (!gen_complete) exit;
 if (scr_handle_term_popup_input()) exit;
 scr_ensure_tutorial_flags();
 
+// Handle active Pre-Shift Cybersecurity Briefing Modal ([B] / [E] / [ENTER] / [SPACE] / [ESC] to close, [C] for Full Manual)
+if (variable_global_exists("preshift_briefing_open") && global.preshift_briefing_open
+    && !instance_exists(obj_textbox) && !instance_exists(obj_textevent)) {
+    if (keyboard_check_pressed(ord("C"))) {
+        keyboard_clear(ord("C"));
+        scr_open_codex_to_current_floor_topic();
+        exit;
+    }
+    if (keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space)
+        || keyboard_check_pressed(ord("B")) || keyboard_check_pressed(vk_escape)) {
+        if (keyboard_check_pressed(vk_escape)) {
+            global.esc_block_frames = 2;
+            keyboard_clear(vk_escape);
+        }
+        keyboard_clear(ord("E"));
+        keyboard_clear(vk_enter);
+        keyboard_clear(vk_space);
+        keyboard_clear(ord("B"));
+        global.preshift_briefing_open = false;
+        audio_play_sound(snd_button_click, 8, false);
+    }
+    exit;
+}
+
 // Dismiss active Visual Mechanic Tutorial Modal (queued after any active dialogue!)
 if (global.visual_tut_kind != "" && !instance_exists(obj_textbox) && !instance_exists(obj_textevent)) {
     if (keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space)
@@ -75,6 +99,8 @@ if (keyboard_check(vk_control) && keyboard_check_pressed(ord("U"))) {
 
 var _any_ui_busy = instance_exists(obj_textbox)
     || instance_exists(obj_textevent)
+    || (variable_global_exists("preshift_briefing_open") && global.preshift_briefing_open)
+    || (instance_exists(obj_codex_manager)          && obj_codex_manager.is_open)
     || (variable_global_exists("pc_screen_open")    && global.pc_screen_open)
     || (variable_global_exists("key_analyzer_open") && global.key_analyzer_open)
     || (variable_global_exists("override_ui_open")   && global.override_ui_open)
@@ -86,6 +112,12 @@ var _any_ui_busy = instance_exists(obj_textbox)
     || instance_exists(obj_dungeon_victory);
 
 if (!_any_ui_busy && !(variable_global_exists("is_paused") && global.is_paused)) {
+    if (keyboard_check_pressed(ord("B"))) {
+        keyboard_clear(ord("B"));
+        global.preshift_briefing_open = true;
+        audio_play_sound(snd_button_click, 6, false);
+        exit;
+    }
     if (keyboard_check_pressed(ord("M"))) {
         radar_open = !radar_open;
         audio_play_sound(snd_button_click, 6, false);
@@ -284,8 +316,15 @@ if (!intro_pending && instance_exists(obj_jack) && !_any_ui_busy && !_pan_active
         _pan_active = true;
     }
 
+    // Auto-show the Pre-Shift Cybersecurity Briefing Card ("Teach Before Test") once per floor right after any opening tour finishes!
+    if (!_pan_active && !_any_ui_busy && !preshift_briefing_shown) {
+        preshift_briefing_shown       = true;
+        global.preshift_briefing_open = true;
+        audio_play_sound(snd_select, 8, false);
+    }
+
     // One-Time Visual Mechanic Demos (Clickable Terms, Security Bots, Scrapping)
-    if (!_pan_active && !_any_ui_busy && global.visual_tut_kind == "") {
+    if (!_pan_active && !_any_ui_busy && !global.preshift_briefing_open && global.visual_tut_kind == "") {
         if (!global.tut_seen_terms && global.chapter_floor == 1 && !intro_pending) {
             global.tut_seen_terms  = true;
             global.visual_tut_kind = "clickable_terms";

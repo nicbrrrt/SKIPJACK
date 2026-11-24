@@ -339,6 +339,8 @@ function scr_get_floor_incident_case(_case_idx) {
         scenario: "Classical cipher that shifts every letter in the alphabet by a fixed key:",
         hint:     "Named after Roman leader Julius Caesar.",
         takeaway: "TIP: Caesar ciphers only have 25 keys—easy for computers to crack!",
+        briefing_what: "Public Wi-Fi (like at a coffee shop) has no encryption, meaning anyone nearby can see what you send unless you turn on a VPN (Virtual Private Network) privacy tunnel.",
+        briefing_spot: "WHAT TO LOOK FOR TODAY: Look for someone connecting to 'OPEN / Free Guest Wi-Fi' with their 'VPN: OFF / Disconnected'!",
         victim_name: "David (Security Lead)",
         victim_dept: "Cybersecurity Ops",
         suspects: ["David (Sec Lead)", "Alice (Legal)", "Toby (Sales)"],
@@ -407,6 +409,8 @@ function scr_get_floor_incident_case(_case_idx) {
             scenario: "Cipher that uses a repeating KEYWORD to shift each letter by a different amount:",
             hint:     "Uses a repeating keyword (A=0, B=1, C=2...) instead of a single shift.",
             takeaway: "TIP: Vigenere resists simple frequency analysis by using multiple shifts!",
+            briefing_what: "A Vigenere Cipher uses a secret repeating KEYWORD (where A=+0, B=+1, C=+2). If someone saves that secret keyword in a plain-text file inside a public folder, anyone can steal it!",
+            briefing_spot: "WHAT TO LOOK FOR TODAY: Look for a secret password or keyword file saved in a 'Public / Guest Shared Folder' with 'Encryption: None'!",
             victim_name: "David (Security Lead)",
             victim_dept: "Cybersecurity Ops",
             suspects: ["David (Sec Lead)", "Alice (Legal)", "Toby (Sales)"],
@@ -474,6 +478,8 @@ function scr_get_floor_incident_case(_case_idx) {
             scenario: "Ancient substitution cipher that folds the alphabet like a mirror (A<->Z, B<->Y):",
             hint:     "Swaps the first letter (A) with the last (Z), second (B) with second-to-last (Y).",
             takeaway: "TIP: Atbash has no secret key—anyone who knows the mirror rule can decode it!",
+            briefing_what: "Atbash simply flips the alphabet backwards (A<->Z, B<->Y). Because it uses a fixed rule with NO secret key, relying on it is called 'Security by Obscurity'—anyone who knows the trick can unlock it.",
+            briefing_spot: "WHAT TO LOOK FOR TODAY: Look for a security lock left on 'ATBASH_MIRROR' test mode with 'Secret Key: NONE'!",
             victim_name: "David (Security Lead)",
             victim_dept: "Cybersecurity Ops",
             suspects: ["David (Sec Lead)", "Alice (Legal)", "Toby (Sales)"],
@@ -544,6 +550,8 @@ function scr_get_floor_incident_case(_case_idx) {
             scenario: "Fake emails or websites that trick you into giving up passwords:",
             hint:     "Uses fake emails as 'bait' to steal logins.",
             takeaway: "TIP: Always check the sender's address before clicking login links!",
+            briefing_what: "Phishing is when scammers send urgent fake emails pretending to be IT, HR, or a bank to trick you into clicking a link and typing your password into a fake website.",
+            briefing_spot: "WHAT TO LOOK FOR TODAY: Check the sender's email address for sneaky misspellings (like 'skipj4ck' with a '4') and fake '10-minute' panic timers!",
             victim_name: "Dave Miller",
             victim_dept: "Logistics & Shipping",
             suspects: ["Dave Miller", "Karen Jenkins", "Frank Castle"],
@@ -610,6 +618,8 @@ function scr_get_floor_incident_case(_case_idx) {
             scenario: "Malware disguised as a harmless, useful program:",
             hint:     "Hides inside a normal-looking app (like the Trojan Horse).",
             takeaway: "TIP: Only download apps from official, verified sources!",
+            briefing_what: "Named after the wooden Trojan Horse, a Trojan is a virus disguised inside a 'free, helpful' app (like a free PDF tool or game mod) downloaded from an unofficial website.",
+            briefing_spot: "WHAT TO LOOK FOR TODAY: Look for an unofficial '.exe' download from a random website with 'Unknown Publisher' asking for Full System Access!",
             victim_name: "Karen Jenkins",
             victim_dept: "Human Resources",
             suspects: ["Karen Jenkins", "Dave Miller", "Marcus Vance"],
@@ -676,6 +686,8 @@ function scr_get_floor_incident_case(_case_idx) {
             scenario: "The security barrier that monitors and blocks unauthorized network traffic:",
             hint:     "Blocks suspicious traffic between your network and the internet.",
             takeaway: "TIP: Keep your Firewall enabled to block unauthorized connections!",
+            briefing_what: "A Firewall is your computer's 24/7 digital security guard that blocks outside hackers from sneaking into your network ports.",
+            briefing_spot: "WHAT TO LOOK FOR TODAY: Look for someone who switched their 'Inbound Network Firewall = OFF' (leaving all ports open) to fix video lag!",
             victim_name: "Bob Higgins",
             victim_dept: "Marketing & PR",
             suspects: ["Bob Higgins", "Chloe Rivera", "Alice Cooper"],
@@ -742,6 +754,8 @@ function scr_get_floor_incident_case(_case_idx) {
             scenario: "A network of hijacked 'zombie' computers controlled remotely by a hacker:",
             hint:     "'Robot' + 'Network' — an army of infected devices.",
             takeaway: "TIP: Change default passwords on smart devices to stop Botnets!",
+            briefing_what: "A Botnet ('Robot' + 'Network') is an army of smart devices (like Wi-Fi printers, cameras, or lights) hijacked by hackers because nobody changed their factory 'admin / 1234' password.",
+            briefing_spot: "WHAT TO LOOK FOR TODAY: Look for smart office devices left on their factory-default 'admin / 1234' password!",
             victim_name: "Chloe Rivera",
             victim_dept: "Smart Facilities",
             suspects: ["Chloe Rivera", "Bob Higgins", "Greg Vance"],
@@ -808,6 +822,8 @@ function scr_get_floor_incident_case(_case_idx) {
             scenario: "Malicious software that secretly watches your screen and records keystrokes:",
             hint:     "Acts like a hidden spy to steal your passwords.",
             takeaway: "TIP: Scan regularly for hidden background keyloggers and Spyware!",
+            briefing_what: "Spyware is hidden malware that silently watches your screen and records every key you press (a keylogger) to steal your passwords—often installed by clicking fake website pop-up ads.",
+            briefing_spot: "WHAT TO LOOK FOR TODAY: Look for a flashing website pop-up ad ('ad-server...') pretending to be a 'Browser Security Update'!",
             victim_name: "Greg Vance",
             victim_dept: "Accounting",
             suspects: ["Greg Vance", "Karen Jenkins", "Dave Miller"],
@@ -874,6 +890,8 @@ function scr_get_floor_incident_case(_case_idx) {
             scenario: "The general umbrella term for any 'Malicious Software' built to harm a PC:",
             hint:     "Short for MALicious + softWARE.",
             takeaway: "TIP: Never plug unknown USB drives into your computer!",
+            briefing_what: "Malware ('Malicious Software') is the umbrella term for any harmful program. A classic hacker trick is leaving a 'lost' USB drive in a parking lot with a file ending in '.pdf.exe'.",
+            briefing_spot: "WHAT TO LOOK FOR TODAY: Look for someone plugging in a found USB drive ('LOST_DRIVE') and opening a fake PDF that actually ends in '.exe'!",
             victim_name: "Marcus Vance",
             victim_dept: "Software Engineering",
             suspects: ["Marcus Vance", "Chloe Rivera", "Toby Flend"],
@@ -940,6 +958,8 @@ function scr_get_floor_incident_case(_case_idx) {
             scenario: "Faking a trusted email address, caller ID, or IP address to impersonate someone:",
             hint:     "Disguising an untrusted sender's identity as a trusted one.",
             takeaway: "TIP: Display names and caller IDs can be faked—verify through a second channel!",
+            briefing_what: "Spoofing is when a scammer fakes their email Display Name or Caller ID (like typing 'Company CEO') so you trust them without checking their real email address.",
+            briefing_spot: "WHAT TO LOOK FOR TODAY: Compare the Display Name ('Company CEO') against the real email address inside the '< >' brackets!",
             victim_name: "Sarah Connor",
             victim_dept: "Legal & Compliance",
             suspects: ["Sarah Connor", "Bob Higgins", "Marcus Vance"],
@@ -1006,6 +1026,8 @@ function scr_get_floor_incident_case(_case_idx) {
             scenario: "Attack that encrypts a victim's files and demands payment to unlock them:",
             hint:     "Holds your data hostage until a payment (ransom) is made.",
             takeaway: "TIP: Keep offline backups of critical data so you never have to pay a ransom!",
+            briefing_what: "Ransomware locks all your computer files and demands money to unlock them. Hackers often break in by taking a password leaked from an old gaming site and trying it on your work account (Password Reuse).",
+            briefing_spot: "WHAT TO LOOK FOR TODAY: Look for an employee who reused the exact same password on an old gaming forum and their work PC!",
             victim_name: "Toby Flend",
             victim_dept: "Enterprise Sales",
             suspects: ["Toby Flend", "Sarah Connor", "Dave Miller"],
@@ -1072,6 +1094,8 @@ function scr_get_floor_incident_case(_case_idx) {
             scenario: "A hidden entrance left in software that bypasses normal login security:",
             hint:     "Like a secret unlocked 'back door' into a building's system.",
             takeaway: "TIP: Audit code and remove default test accounts to close hidden backdoors!",
+            briefing_what: "A Backdoor is a secret shortcut left in a computer system that skips the normal password and Two-Factor Authentication (2FA) login screen.",
+            briefing_spot: "WHAT TO LOOK FOR TODAY: Look for a maintenance shortcut port where 'require_password = FALSE' and 'require_2fa = FALSE' were left open overnight!",
             victim_name: "Frank Castle",
             victim_dept: "Server Infrastructure",
             suspects: ["Frank Castle", "Greg Vance", "David (Sec Lead)"],
@@ -3144,7 +3168,19 @@ function scr_init_case_dossier(_case, _floor) {
     global.policy_drawer_open     = false;
     global.policy_drawer_sel      = 0;
     global.policy_drawer_scroll   = 0;
-    scr_auto_collect_floor_terms([_case.scenario, _case.hint, _case.takeaway]);
+
+    // Pre-unlock the active floor's primary Codex entries so the player can read the Field Manual [C] BEFORE investigating!
+    scr_init_cyber_glossary();
+    var _floor_pol_ids = scr_get_case_valid_policy_ids(_cidx);
+    for (var _pi = 0; _pi < array_length(_floor_pol_ids); _pi++) {
+        var _pt = scr_find_cyber_term_by_id(_floor_pol_ids[_pi]);
+        if (is_struct(_pt)) {
+            scr_silent_archive_cyber_term(_pt);
+        }
+    }
+    var _bw_str = variable_struct_exists(_case, "briefing_what") ? _case.briefing_what : "";
+    var _bs_str = variable_struct_exists(_case, "briefing_spot") ? _case.briefing_spot : "";
+    scr_auto_collect_floor_terms([_case.scenario, _case.hint, _case.takeaway, _bw_str, _bs_str]);
     scr_case_recompute();
 }
 
@@ -3567,6 +3603,23 @@ function scr_init_cyber_glossary() {
             deep_defense: "Never rely on hiding files or secretless rules. Always protect data with strong authentication and vetted keyed encryption."
         }
     ];
+
+    // Pre-unlock the 10 Foundational Beginner Starter Pack entries so new players always have a Core Field Manual [C] from Minute 1!
+    var _starter_ids = [
+        "plaintext_ciphertext",
+        "caesar_cipher",
+        "vigenere_cipher",
+        "atbash_cipher",
+        "phishing",
+        "vpn",
+        "public_wifi",
+        "mfa_2fa",
+        "password_manager",
+        "firewall"
+    ];
+    for (var _si = 0; _si < array_length(_starter_ids); _si++) {
+        global.codex_unlocked_terms[$ _starter_ids[_si]] = true;
+    }
 }
 
 function scr_get_cyber_glossary() {
@@ -4652,6 +4705,216 @@ function scr_draw_visual_mechanic_tutorial(_kind, _gui_w, _gui_h) {
 
     draw_set_color(c_lime);
     draw_text_transformed(_cx, _y2 - 18, "[E / ENTER / CLICK] Got It!", 0.72, 0.72, 0);
+
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+    draw_set_color(c_white);
+}
+
+// ---------------------------------------------------------------------------
+/// @function scr_open_codex_to_current_floor_topic()
+/// @description Opens the Cybersecurity Codex Field Manual (`obj_codex_manager`)
+///              and focuses it directly on the active floor's primary concept.
+// ---------------------------------------------------------------------------
+function scr_open_codex_to_current_floor_topic() {
+    scr_init_cyber_glossary();
+    if (!instance_exists(obj_codex_manager)) return;
+
+    var _cidx = variable_global_exists("floor_case_index") ? global.floor_case_index : 0;
+    var _pids = scr_get_case_valid_policy_ids(_cidx);
+    var _tid  = (array_length(_pids) > 0) ? _pids[0] : "phishing";
+    var _term = scr_find_cyber_term_by_id(_tid);
+    if (is_struct(_term)) {
+        scr_silent_archive_cyber_term(_term);
+        obj_codex_manager.current_branch = _term.branch_idx;
+        var _b_list = obj_codex_manager.get_branch_terms(_term.branch_idx);
+        for (var _bi = 0; _bi < array_length(_b_list); _bi++) {
+            if (_b_list[_bi].id == _term.id) {
+                obj_codex_manager.current_concept = _bi;
+                obj_codex_manager.sidebar_scroll  = max(0, _bi - 3);
+                break;
+            }
+        }
+    }
+    obj_codex_manager.is_open        = true;
+    obj_codex_manager.content_scroll = 0;
+    global.codex_new_count           = 0;
+    global.preshift_briefing_open    = false;
+    if (instance_exists(obj_jack)) {
+        obj_jack.isInCutscene = true;
+        obj_jack.image_speed  = 0;
+    }
+    if (asset_get_type("snd_button_click") == asset_sound) audio_play_sound(snd_button_click, 8, false);
+}
+
+// ---------------------------------------------------------------------------
+/// @function scr_draw_preshift_cyber_briefing(_gui_w, _gui_h)
+/// @description Renders the Beginner-Friendly Pre-Shift Cybersecurity & Cipher
+///              Briefing Card ("TEACH BEFORE TEST") at the start of each floor
+///              and whenever the player presses [B] or clicks [B] BRIEFING.
+// ---------------------------------------------------------------------------
+function scr_draw_preshift_cyber_briefing(_gui_w, _gui_h) {
+    scr_init_cyber_glossary();
+    var _case = variable_global_exists("floor_case") ? global.floor_case : scr_get_floor_incident_case(0);
+    var _ch   = variable_global_exists("dungeon_chapter") ? global.dungeon_chapter : CHAPTER_CAESAR;
+    var _flr  = variable_global_exists("chapter_floor")   ? global.chapter_floor   : 1;
+    var _gmx  = device_mouse_x_to_gui(0);
+    var _gmy  = device_mouse_y_to_gui(0);
+    var _popup_open = (variable_global_exists("active_term_popup") && global.active_term_popup != undefined);
+
+    var _cx = _gui_w * 0.5;
+    var _cy = (_gui_h * 0.5) - 10;
+    var _pw = 576;
+    var _ph = 312;
+    var _x1 = _cx - _pw * 0.5;
+    var _y1 = _cy - _ph * 0.5;
+    var _x2 = _cx + _pw * 0.5;
+    var _y2 = _cy + _ph * 0.5;
+
+    // 1. Dark Backdrop & Briefing Card Frame
+    draw_set_alpha(0.86);
+    draw_set_color(c_black);
+    draw_rectangle(0, 0, _gui_w, _gui_h, false);
+
+    draw_set_alpha(0.98);
+    draw_set_color(make_color_rgb(10, 18, 32));
+    draw_rectangle(_x1, _y1, _x2, _y2, false);
+    draw_set_alpha(1.0);
+    draw_set_color(c_aqua);
+    draw_rectangle(_x1, _y1, _x2, _y2, true);
+    draw_rectangle(_x1 + 3, _y1 + 3, _x2 - 3, _y2 - 3, true);
+
+    draw_set_font(fnt_dialogue);
+    draw_set_halign(fa_center);
+    draw_set_valign(fa_middle);
+
+    // 2. Top Header Banner
+    draw_set_color(make_color_rgb(18, 40, 68));
+    draw_rectangle(_x1 + 6, _y1 + 6, _x2 - 6, _y1 + 40, false);
+    draw_set_color(make_color_rgb(255, 215, 65));
+    draw_text_transformed(_cx, _y1 + 15, "PRE-SHIFT INTEL BRIEFING  —  FLOOR " + string(_flr) + "/10 BEGINNER FIELD GUIDE", 0.84, 0.84, 0);
+    draw_set_color(make_color_rgb(175, 230, 255));
+    draw_text_transformed(_cx, _y1 + 31, "No prior cybersecurity knowledge needed! Read this 20-second guide before starting your shift:", 0.62, 0.62, 0);
+
+    // 3. Section 1: Today's Cyber Concept & What It Means in Plain English
+    var _b1_y1 = _y1 + 46;
+    var _b1_y2 = _y1 + 136;
+    draw_set_color(make_color_rgb(16, 28, 46));
+    draw_rectangle(_x1 + 14, _b1_y1, _x2 - 14, _b1_y2, false);
+    draw_set_color(make_color_rgb(255, 185, 55));
+    draw_rectangle(_x1 + 14, _b1_y1, _x2 - 14, _b1_y2, true);
+
+    draw_set_halign(fa_left);
+    draw_set_color(make_color_rgb(255, 210, 70));
+    draw_text_transformed(_x1 + 22, _b1_y1 + 12, "1. TODAY'S CYBERSECURITY TOPIC:  " + _case.word + " (" + _case.title + ")", 0.72, 0.72, 0);
+
+    var _what_txt = variable_struct_exists(_case, "briefing_what")
+        ? ("WHAT IT IS: " + _case.briefing_what)
+        : ("WHAT IT IS: " + _case.scenario + " (" + _case.hint + ")");
+
+    var _clicked_b_term = scr_draw_linked_cyber_text(
+        _x1 + 22, _b1_y1 + 23, _what_txt, 14, (_pw - 46) / 0.64, 0.64,
+        c_white, "", !_popup_open, _b1_y1 + 21, _b1_y1 + 56
+    );
+    if (is_struct(_clicked_b_term)) {
+        var _b_new = scr_silent_archive_cyber_term(_clicked_b_term);
+        global.active_term_popup          = _clicked_b_term;
+        global.active_term_popup_just_new = _b_new;
+        global.term_popup_history         = [];
+        if (asset_get_type("snd_button_click") == asset_sound) audio_play_sound(snd_button_click, 6, false);
+    }
+    draw_set_valign(fa_middle);
+
+    // Highlighted Green "HOW TO SPOT IT TODAY" Cheat-Sheet Sub-Box
+    draw_set_color(make_color_rgb(14, 42, 32));
+    draw_rectangle(_x1 + 20, _b1_y1 + 57, _x2 - 20, _b1_y2 - 5, false);
+    draw_set_color(c_lime);
+    draw_rectangle(_x1 + 20, _b1_y1 + 57, _x2 - 20, _b1_y2 - 5, true);
+
+    var _spot_txt = variable_struct_exists(_case, "briefing_spot")
+        ? _case.briefing_spot
+        : ("WHAT TO LOOK FOR TODAY: " + _case.takeaway);
+    draw_set_color(make_color_rgb(180, 255, 200));
+    draw_text_ext_transformed(_x1 + 26, _b1_y1 + 71, _spot_txt, 12, (_pw - 54) / 0.62, 0.62, 0.62, 0);
+
+    // 4. Section 2: Today's Cipher Tool & Your 3-Step Mission Plan
+    var _b2_y1 = _y1 + 142;
+    var _b2_y2 = _y1 + 236;
+    draw_set_color(make_color_rgb(14, 24, 40));
+    draw_rectangle(_x1 + 14, _b2_y1, _x2 - 14, _b2_y2, false);
+    draw_set_color(make_color_rgb(80, 175, 235));
+    draw_rectangle(_x1 + 14, _b2_y1, _x2 - 14, _b2_y2, true);
+
+    var _cip_hdr = "2. TODAY'S ENCRYPTION TOOL:  CAESAR SHIFT CIPHER (A-Z RULER)";
+    var _cip_how = "HOW IT WORKS: Every letter shifts down the alphabet by a fixed number (e.g. Shift +3: 'A' -> 'D'). Use the A-Z Ruler at the top of every lock to count the hops visually!";
+    if (_ch == CHAPTER_VIGENERE) {
+        _cip_hdr = "2. TODAY'S ENCRYPTION TOOL:  VIGENERE KEYWORD CIPHER (REPEATING SHIFTS)";
+        _cip_how = "HOW IT WORKS: Uses a repeating KEYWORD where A=+0, B=+1, C=+2, D=+3. Look at the purple Keyword letter badge above each lock slot to see how many steps right to count!";
+    } else if (_ch == CHAPTER_ATBASH) {
+        _cip_hdr = "2. TODAY'S ENCRYPTION TOOL:  ATBASH MIRROR CIPHER (A <-> Z FLIP)";
+        _cip_how = "HOW IT WORKS: Folds the alphabet in half like a mirror (Top Row A..M swaps directly with Bottom Row Z..N). Find your letter on one row and pick the letter straight across from it!";
+    }
+
+    draw_set_color(c_aqua);
+    draw_text_transformed(_x1 + 22, _b2_y1 + 12, _cip_hdr, 0.70, 0.70, 0);
+    draw_set_color(make_color_rgb(215, 230, 248));
+    draw_text_ext_transformed(_x1 + 22, _b2_y1 + 34, _cip_how, 13, (_pw - 46) / 0.62, 0.62, 0.62, 0);
+
+    draw_set_color(make_color_rgb(35, 70, 105));
+    draw_line(_x1 + 22, _b2_y1 + 54, _x2 - 22, _b2_y1 + 54);
+
+    draw_set_color(make_color_rgb(255, 220, 95));
+    draw_text_transformed(_x1 + 22, _b2_y1 + 65, "3. YOUR SHIFT CHECKLIST (FOLLOW TOP-LEFT QUEST TRACKER):", 0.66, 0.66, 0);
+    draw_set_color(make_color_rgb(195, 225, 245));
+    draw_text_transformed(_x1 + 22, _b2_y1 + 81, "Step 1: Spot the Red Flag at the Gold Key Vault [E] & grab the Cipher Key   ->   Step 2: Audit Suspect Desks [E] & Accuse on [TAB]   ->   Step 3: Override & Fix Breaker!", 0.56, 0.56, 0);
+
+    // 5. Action Buttons: [C] OPEN FULL FIELD MANUAL  &  [E / ENTER / CLICK] START SHIFT >
+    var _btn_y1 = _y2 - 64;
+    var _btn_y2 = _y2 - 36;
+
+    // Left Button: [C] OPEN FULL CYBER FIELD MANUAL (CODEX)
+    var _cb_x1  = _x1 + 18;
+    var _cb_x2  = _cx - 8;
+    var _cb_hov = !_popup_open && point_in_rectangle(_gmx, _gmy, _cb_x1, _btn_y1, _cb_x2, _btn_y2);
+    draw_set_color(_cb_hov ? make_color_rgb(28, 68, 105) : make_color_rgb(16, 38, 64));
+    draw_rectangle(_cb_x1, _btn_y1, _cb_x2, _btn_y2, false);
+    draw_set_color(_cb_hov ? c_yellow : c_aqua);
+    draw_rectangle(_cb_x1, _btn_y1, _cb_x2, _btn_y2, true);
+    draw_set_halign(fa_center);
+    draw_set_color(_cb_hov ? c_yellow : c_white);
+    draw_text_transformed((_cb_x1 + _cb_x2) * 0.5, (_btn_y1 + _btn_y2) * 0.5, "[C] OPEN FULL FIELD MANUAL (DEEP DIVE)", 0.68, 0.68, 0);
+
+    // Right Button: [E / ENTER / SPACE / CLICK] GOT IT — START SHIFT >
+    var _sb_x1  = _cx + 8;
+    var _sb_x2  = _x2 - 18;
+    var _sb_hov = !_popup_open && point_in_rectangle(_gmx, _gmy, _sb_x1, _btn_y1, _sb_x2, _btn_y2);
+    draw_set_color(_sb_hov ? make_color_rgb(28, 92, 48) : make_color_rgb(18, 62, 34));
+    draw_rectangle(_sb_x1, _btn_y1, _sb_x2, _btn_y2, false);
+    draw_set_color(_sb_hov ? c_yellow : c_lime);
+    draw_rectangle(_sb_x1, _btn_y1, _sb_x2, _btn_y2, true);
+    draw_set_color(_sb_hov ? c_yellow : c_lime);
+    draw_text_transformed((_sb_x1 + _sb_x2) * 0.5, (_btn_y1 + _btn_y2) * 0.5, "[E / ENTER / CLICK] GOT IT — START SHIFT >", 0.70, 0.70, 0);
+
+    // Footer Note
+    draw_set_color(make_color_rgb(160, 195, 225));
+    draw_text_transformed(_cx, _y2 - 16, "TIP: Press [B] anytime to re-open this Cheat-Sheet, or press [C] anytime to open the Cybersecurity Field Manual!", 0.60, 0.60, 0);
+
+    // Clickable Cyber Terms Bar below the Briefing Card + Quick-Definition Popup
+    var _br_terms = scr_scan_clickable_terms([_case.word, _case.title, _what_txt, _spot_txt, _cip_hdr, _cip_how], 5);
+    if (array_length(_br_terms) > 0) {
+        scr_draw_clickable_term_bar(_x1 + 12, _y2 + 4, _pw - 24, _br_terms, "CLICK ANY TERM FOR A QUICK DEFINITION:");
+    }
+    scr_draw_term_quick_popup();
+
+    // Handle Button Clicks
+    if (!_popup_open) {
+        if (_cb_hov && mouse_check_button_pressed(mb_left)) {
+            scr_open_codex_to_current_floor_topic();
+        } else if (_sb_hov && mouse_check_button_pressed(mb_left)) {
+            global.preshift_briefing_open = false;
+            if (asset_get_type("snd_button_click") == asset_sound) audio_play_sound(snd_button_click, 8, false);
+        }
+    }
 
     draw_set_halign(fa_left);
     draw_set_valign(fa_top);

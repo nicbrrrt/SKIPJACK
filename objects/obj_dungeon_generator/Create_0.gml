@@ -104,6 +104,8 @@ room_popup_alpha        = 0.0;
 radar_open              = false; // Toggleable with [M]
 hud_tasks_collapsed     = false; // Collapsible Salvage Tasks card ([V] or click [-])
 hud_priority_collapsed  = false; // Collapsible Priority Assignment tag (click [-])
+preshift_briefing_shown      = false; // Auto-shows the Pre-Shift Cybersecurity Briefing once per floor
+global.preshift_briefing_open = false; // Toggleable anytime during the floor with [B]
 
 // ===========================================================================
 // Step 1 — Initialise the logic map & fog alpha grid

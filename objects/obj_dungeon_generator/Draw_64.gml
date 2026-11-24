@@ -8,11 +8,24 @@ if (instance_exists(obj_dungeon_victory)
     || instance_exists(obj_dungeon_quiz)
     || instance_exists(obj_cipher)
     || instance_exists(obj_textbox)
+    || (instance_exists(obj_codex_manager)          && obj_codex_manager.is_open)
     || (variable_global_exists("cam_pan_phase")     && global.cam_pan_phase != "off")
     || (variable_global_exists("key_analyzer_open") && global.key_analyzer_open)) exit;
 
 var _gui_w = display_get_gui_width();
 var _gui_h = display_get_gui_height();
+
+// =========================================================
+// PRE-SHIFT CYBERSECURITY & CIPHER BRIEFING MODAL ([B])
+// =========================================================
+if (variable_global_exists("preshift_briefing_open") && global.preshift_briefing_open) {
+    scr_draw_preshift_cyber_briefing(_gui_w, _gui_h);
+    draw_set_font(fnt_default);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+    draw_set_color(c_white);
+    exit;
+}
 
 // =========================================================
 // WRENCH SABOTAGE / MAINFRAME SEVER ENCRYPTION UI
@@ -1627,22 +1640,58 @@ if (variable_instance_exists(id, "room_discovered")) {
     draw_set_alpha(1.0);
     _next_hud_y = _map_y + _map_h + 6;
     } else {
-        // Compact [M] RADAR Toggle Pill when Blueprint Radar is closed
+        // Compact [M] RADAR + [B] BRIEFING + [C] CODEX Quick-Reference Pills
         var _gmx_m = device_mouse_x_to_gui(0);
         var _gmy_m = device_mouse_y_to_gui(0);
-        var _hov_m = point_in_rectangle(_gmx_m, _gmy_m, _map_x, _map_y, _map_x + 86, _map_y + 18);
+
+        // 1. [M] RADAR Pill
+        var _hov_m = point_in_rectangle(_gmx_m, _gmy_m, _map_x, _map_y, _map_x + 62, _map_y + 18);
         if (_hov_m && mouse_check_button_pressed(mb_left)) {
             radar_open = true;
             audio_play_sound(snd_button_click, 6, false);
         }
         draw_set_alpha(0.80);
         draw_set_color(_hov_m ? make_color_rgb(20, 42, 68) : make_color_rgb(8, 13, 22));
-        draw_rectangle(_map_x, _map_y, _map_x + 86, _map_y + 18, false);
+        draw_rectangle(_map_x, _map_y, _map_x + 62, _map_y + 18, false);
         draw_set_alpha(0.90);
         draw_set_color(make_color_rgb(65, 165, 215));
-        draw_rectangle(_map_x, _map_y, _map_x + 86, _map_y + 18, true);
+        draw_rectangle(_map_x, _map_y, _map_x + 62, _map_y + 18, true);
         draw_set_color(make_color_rgb(130, 220, 255));
-        draw_text_transformed(_map_x + 6, _map_y + 9, "[M] RADAR", 0.62, 0.62, 0);
+        draw_text_transformed(_map_x + 5, _map_y + 9, "[M] RADAR", 0.56, 0.56, 0);
+
+        // 2. [B] BRIEFING Pill (Re-opens today's Pre-Shift Cyber Lesson Cheat-Sheet)
+        var _bx1_b = _map_x + 66;
+        var _bx2_b = _bx1_b + 72;
+        var _hov_b = point_in_rectangle(_gmx_m, _gmy_m, _bx1_b, _map_y, _bx2_b, _map_y + 18);
+        if (_hov_b && mouse_check_button_pressed(mb_left)) {
+            global.preshift_briefing_open = true;
+            audio_play_sound(snd_button_click, 6, false);
+        }
+        draw_set_alpha(0.84);
+        draw_set_color(_hov_b ? make_color_rgb(56, 44, 14) : make_color_rgb(18, 16, 10));
+        draw_rectangle(_bx1_b, _map_y, _bx2_b, _map_y + 18, false);
+        draw_set_alpha(0.92);
+        draw_set_color(_hov_b ? c_yellow : make_color_rgb(255, 195, 55));
+        draw_rectangle(_bx1_b, _map_y, _bx2_b, _map_y + 18, true);
+        draw_set_color(_hov_b ? c_yellow : make_color_rgb(255, 225, 110));
+        draw_text_transformed(_bx1_b + 5, _map_y + 9, "[B] BRIEFING", 0.56, 0.56, 0);
+
+        // 3. [C] CODEX Pill (Opens full Cybersecurity Field Manual to today's topic)
+        var _cx1_c = _bx2_b + 4;
+        var _cx2_c = _cx1_c + 56;
+        var _hov_c = point_in_rectangle(_gmx_m, _gmy_m, _cx1_c, _map_y, _cx2_c, _map_y + 18);
+        if (_hov_c && mouse_check_button_pressed(mb_left)) {
+            scr_open_codex_to_current_floor_topic();
+        }
+        draw_set_alpha(0.84);
+        draw_set_color(_hov_c ? make_color_rgb(18, 56, 44) : make_color_rgb(10, 22, 18));
+        draw_rectangle(_cx1_c, _map_y, _cx2_c, _map_y + 18, false);
+        draw_set_alpha(0.92);
+        draw_set_color(_hov_c ? c_yellow : c_lime);
+        draw_rectangle(_cx1_c, _map_y, _cx2_c, _map_y + 18, true);
+        draw_set_color(_hov_c ? c_yellow : make_color_rgb(165, 255, 195));
+        draw_text_transformed(_cx1_c + 5, _map_y + 9, "[C] CODEX", 0.56, 0.56, 0);
+
         _next_hud_y = _map_y + 24;
     }
 
