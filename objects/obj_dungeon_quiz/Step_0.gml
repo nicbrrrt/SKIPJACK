@@ -59,21 +59,42 @@ if (keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyb
     _submit = true;
 }
 
-// Mouse hover & click on the 3 option cards (matching Draw_64 coordinates)
+// Press [K] to ask Kyle for a plain-English Red-Flag Breakdown on the spot (even if Security PC wasn't scanned yet!)
+if (keyboard_check_pressed(ord("K"))) {
+    if (!kyle_hint_unlocked) {
+        kyle_hint_unlocked = true;
+        status_msg = "KYLE'S BREAKDOWN UNLOCKED: Read the green Forensic Guide strip above to spot the exact red flag!";
+        status_col = c_lime;
+        audio_play_sound(snd_correct_ping, 8, false);
+    }
+}
+
+// Mouse hover & click on the Forensic Scanner / Kyle Breakdown strip and the 3 option cards (matching Draw_64 coordinates)
 var _gui_w = display_get_gui_width();
 var _gui_h = display_get_gui_height();
 var _cx    = _gui_w * 0.5;
-var _cy    = _gui_h * 0.5;
-var _pw    = 556;
-var _ph    = 312;
+var _cy    = (_gui_h * 0.5) - 12;
+var _pw    = 560;
+var _ph    = 328;
 var _x1    = _cx - (_pw * 0.5);
 var _y1    = _cy - (_ph * 0.5);
 var _x2    = _cx + (_pw * 0.5);
 var _gmx   = device_mouse_x_to_gui(0);
 var _gmy   = device_mouse_y_to_gui(0);
 
+// Click on the Forensic Scanner / Kyle Breakdown bar (_y1 + 104 .. _y1 + 129) to reveal Kyle's hint
+if (!kyle_hint_unlocked && point_in_rectangle(_gmx, _gmy, _x1 + 16, _y1 + 104, _x2 - 16, _y1 + 129)) {
+    if (mouse_check_button_pressed(mb_left)) {
+        kyle_hint_unlocked = true;
+        status_msg = "KYLE'S BREAKDOWN UNLOCKED: Read the green Forensic Guide strip above to spot the exact red flag!";
+        status_col = c_lime;
+        audio_play_sound(snd_correct_ping, 8, false);
+        exit;
+    }
+}
+
 for (var _i = 0; _i < 3; _i++) {
-    var _oy1 = _y1 + 148 + (_i * 38);
+    var _oy1 = _y1 + 160 + (_i * 38);
     var _oy2 = _oy1 + 32;
     if (point_in_rectangle(_gmx, _gmy, _x1 + 18, _oy1, _x2 - 18, _oy2)) {
         if (mouse_check_button_pressed(mb_left)) {
@@ -98,11 +119,9 @@ if (_submit) {
     } else {
         shake_timer = 12;
         option_eliminated[selected_option] = true;
-        var _clues_cur = variable_global_exists("clues_found") ? global.clues_found : 0;
-        status_msg = (_clues_cur >= 1)
-            ? "NOT A THREAT — Check the green Forensic Scanner hint above for the real red flag!"
-            : "NOT A THREAT — Look closely at the suspicious log above (or inspect the Security Sector PC for a scan)!";
-        status_col = make_color_rgb(255, 110, 95);
+        kyle_hint_unlocked = true;
+        status_msg = "MYTH / NOT THE RED FLAG — Kyle's green breakdown above is now ON! Pick the option that matches the " + target_word + " warning sign.";
+        status_col = make_color_rgb(255, 130, 95);
         audio_play_sound(wrong1, 10, false);
     }
 }

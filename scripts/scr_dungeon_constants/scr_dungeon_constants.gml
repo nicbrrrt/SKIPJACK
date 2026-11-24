@@ -371,6 +371,7 @@ function scr_get_floor_incident_case(_case_idx) {
         vault_challenge: {
             artifact_header: "CAPTURED WI-FI SESSION:  SSID = 'BeanScene_Cafe_Free_Guest' (Security: OPEN)",
             artifact_body:   "VPN STATUS: Disconnected  |  TRAFFIC: Synced 'floor_caesar_shift_config.json' over local Wi-Fi",
+            plain_summary:   "PLAIN ENGLISH: An employee sent our secret cipher key file over free coffee-shop Wi-Fi with no password and their VPN privacy shield turned OFF.",
             scanner_note:    "FORENSIC GUIDE: Inspect the Wi-Fi security type ('OPEN') and whether an encrypted VPN tunnel was active during the file sync!",
             prompt:          "Analyze this network log—what security mistake allowed an attacker in the cafe to intercept the Caesar Key?",
             options: [
@@ -438,6 +439,7 @@ function scr_get_floor_incident_case(_case_idx) {
             vault_challenge: {
                 artifact_header: "CAPTURED FILE PROPERTIES:  Path = /Company_Guest_Share/floor_vigenere_key.txt",
                 artifact_body:   "ENCRYPTION: None (Plain Text)  |  SHARE ACCESS: Guest_Network (Read / Write Allowed)",
+                plain_summary:   "PLAIN ENGLISH: Someone saved the floor's secret keyword inside an unlocked 'Guest' folder where anyone on the guest network could open and read it.",
                 scanner_note:    "FORENSIC GUIDE: Check the file's Encryption setting and who has Share Access to '/Company_Guest_Share/'!",
                 prompt:          "Analyze this file audit—why were attackers able to steal the floor's Vigenere Keyword without hacking a password?",
                 options: [
@@ -504,6 +506,7 @@ function scr_get_floor_incident_case(_case_idx) {
             vault_challenge: {
                 artifact_header: "CAPTURED LOCK DIAGNOSTIC:  Cipher_Algorithm = ATBASH_REFLECT (A<->Z)",
                 artifact_body:   "KEY PARAMETER: None (Fixed Rule: Output = 25 - Input)  |  AUTH_REQUIRED: False",
+                plain_summary:   "PLAIN ENGLISH: This lock just flips the alphabet backwards (A<->Z) with NO secret password or key—so anyone who knows the trick can unlock it.",
                 scanner_note:    "FORENSIC GUIDE: Check the 'KEY PARAMETER' field—does Atbash use a secret key, or does it always use the exact same A<->Z flip?",
                 prompt:          "Analyze this door lock config—what cryptographic flaw let intruders decode the lock without a key?",
                 options: [
@@ -573,6 +576,7 @@ function scr_get_floor_incident_case(_case_idx) {
             vault_challenge: {
                 artifact_header: "CAPTURED INBOX MESSAGE:  From: support@skipj4ck-login-verify.net  |  Subject: URGENT INVOICE!",
                 artifact_body:   "BODY: 'Account suspension in 10 mins! Sign in at https://skipj4ck-login-verify.net/auth to keep access.'",
+                plain_summary:   "PLAIN ENGLISH: This scary '10-minute deadline' email comes from a fake misspelled address ('skipj4ck' with a '4' instead of 'skipjack.com').",
                 scanner_note:    "FORENSIC GUIDE: Compare the sender domain ('skipj4ck-login-verify.net') against our official domain ('skipjack.com') and note the 10-minute panic timer!",
                 prompt:          "Analyze this email—how can you tell it is a Phishing trap rather than a real IT notice?",
                 options: [
@@ -638,6 +642,7 @@ function scr_get_floor_incident_case(_case_idx) {
             vault_challenge: {
                 artifact_header: "CAPTURED INSTALLER PROMPT:  File = 'Free_PDF_Helper_Pro.exe'  |  Source: mega-free-tools.biz",
                 artifact_body:   "DIGITAL SIGNATURE: None (Unknown Publisher)  |  PERMISSIONS REQUESTED: Full System & Network Access",
+                plain_summary:   "PLAIN ENGLISH: A 'free PDF tool' from a random website has no verified creator and is secretly asking for full control of the computer and internet.",
                 scanner_note:    "FORENSIC GUIDE: Check the installer's Digital Signature ('Unknown Publisher'), download site, and why a simple PDF tool wants Full Network Access!",
                 prompt:          "Analyze this installer prompt—what warning sign reveals this 'free utility' is likely a Trojan Horse?",
                 options: [
@@ -703,6 +708,7 @@ function scr_get_floor_incident_case(_case_idx) {
             vault_challenge: {
                 artifact_header: "CAPTURED NETWORK SHIELD STATUS:  Inbound_Packet_Filter (FIREWALL) = OFF",
                 artifact_body:   "PORT POLICY: Accept All Incoming Connections (Ports 1-65535 Open)  |  UPTIME: Disabled for 3 hrs",
+                plain_summary:   "PLAIN ENGLISH: The computer's digital security guard (Firewall) was switched OFF for 3 hours, leaving every digital door wide open to outside hackers.",
                 scanner_note:    "FORENSIC GUIDE: Look at the 'PORT POLICY' when the Firewall is turned OFF—every network port is left open to external scanners!",
                 prompt:          "Analyze this security status—what risk was created when the user turned off the Firewall to troubleshoot video lag?",
                 options: [
@@ -768,6 +774,7 @@ function scr_get_floor_incident_case(_case_idx) {
             vault_challenge: {
                 artifact_header: "CAPTURED SMART DEVICE CONFIG:  240 Wi-Fi Printers & Smart Lights Online",
                 artifact_body:   "REMOTE ADMIN PORT: Enabled  |  AUTH CREDENTIALS: User = 'admin' / Pass = '1234' (Factory Preset)",
+                plain_summary:   "PLAIN ENGLISH: 240 smart printers and lights were plugged into the internet still using their factory 'admin / 1234' password that anyone can guess.",
                 scanner_note:    "FORENSIC GUIDE: Inspect the 'AUTH CREDENTIALS' on these 240 network-connected smart devices—were the factory presets ever changed?",
                 prompt:          "Analyze this device configuration—how were attackers able to hijack all 240 smart devices at once into a Botnet?",
                 options: [
@@ -833,6 +840,7 @@ function scr_get_floor_incident_case(_case_idx) {
             vault_challenge: {
                 artifact_header: "CAPTURED WEB POP-UP BANNER:  Origin = 'ad-server.free-coupons-daily.net'",
                 artifact_body:   "BANNER TEXT: 'WARNING: Your Browser Is Out of Date! Click [ALLOW] to install Browser_Security_Fix.exe'",
+                plain_summary:   "PLAIN ENGLISH: A coupon website's pop-up ad is pretending to be a 'Browser Security Update' to trick the user into installing a password-stealing program.",
                 scanner_note:    "FORENSIC GUIDE: Check the Origin of the update alert ('ad-server.free-coupons-daily.net')—do real browser updates come from website ad banners?",
                 prompt:          "Analyze this browser alert—why did clicking '[ALLOW]' infect the PC with keylogging Spyware?",
                 options: [
@@ -898,6 +906,7 @@ function scr_get_floor_incident_case(_case_idx) {
             vault_challenge: {
                 artifact_header: "CAPTURED HARDWARE EVENT:  USB Mass Storage Device Connected (Volume: 'LOST_DRIVE')",
                 artifact_body:   "FILE OPENED: 'If_Found_Read_Me.pdf.exe'  |  PROCESS SPAWNED: cmd.exe /c powershell - hidden",
+                plain_summary:   "PLAIN ENGLISH: Someone plugged in a 'lost' USB drive found outside and opened a file pretending to be a PDF that actually ends in '.exe' (a hidden program).",
                 scanner_note:    "FORENSIC GUIDE: Look closely at the double file extension ('If_Found_Read_Me.pdf.exe') and the hidden PowerShell process it launched from the found USB!",
                 prompt:          "Analyze this USB event log—how did plugging in a 'lost' flash drive infect the workstation with Malware?",
                 options: [
@@ -963,6 +972,7 @@ function scr_get_floor_incident_case(_case_idx) {
             vault_challenge: {
                 artifact_header: "CAPTURED MESSAGE HEADER:  From: \"Company CEO (Director)\" <exec.office.task99@free-mail-host.org>",
                 artifact_body:   "REPLY-TO: exec.office.task99@free-mail-host.org  |  BODY: 'I'm in a board meeting—text me the floor override code now.'",
+                plain_summary:   "PLAIN ENGLISH: The sender typed 'Company CEO' as their display name, but their real email address inside '< >' is a random free email account.",
                 scanner_note:    "FORENSIC GUIDE: Compare the Display Name in quotes (\"Company CEO\") against the actual email address inside the '< >' brackets!",
                 prompt:          "Analyze this email header—how can you tell the sender's identity is Spoofed?",
                 options: [
@@ -1028,6 +1038,7 @@ function scr_get_floor_incident_case(_case_idx) {
             vault_challenge: {
                 artifact_header: "CAPTURED BREACH & EXTORTION REPORT:  User = tflend@skipjack.com",
                 artifact_body:   "LOGIN METHOD: Valid Password ('Toby123!' — matched public breach dump from 'RetroGamesForum.net')  |  FILES: Encrypted (.LOCKED)",
+                plain_summary:   "PLAIN ENGLISH: Hackers stole Toby's password from an old gaming website and used that exact same password to log into his work PC and lock his files.",
                 scanner_note:    "FORENSIC GUIDE: Look at how the attacker logged in ('Valid Password matched public breach dump from RetroGamesForum.net') before deploying Ransomware!",
                 prompt:          "Analyze this incident report—how did the Ransomware attackers get into Toby's work account on the first try?",
                 options: [
@@ -1093,6 +1104,7 @@ function scr_get_floor_incident_case(_case_idx) {
             vault_challenge: {
                 artifact_header: "CAPTURED SERVER CONFIG:  Endpoint = '/admin_quick_maint' (Port 8080)",
                 artifact_body:   "AUTH_CHECK: Bypassed (require_password = FALSE, require_2fa = FALSE)  |  STATUS: Active Overnight",
+                plain_summary:   "PLAIN ENGLISH: An engineer created a late-night maintenance shortcut that completely turned off the password and 2FA login screens, and left it open overnight.",
                 scanner_note:    "FORENSIC GUIDE: Inspect the 'AUTH_CHECK' settings on '/admin_quick_maint'—both password and 2FA verification were set to FALSE!",
                 prompt:          "Analyze this server configuration—why did this maintenance shortcut act as a Backdoor for attackers?",
                 options: [

@@ -22,6 +22,7 @@ current_takeaway = _case.takeaway;
 var _vc = variable_struct_exists(_case, "vault_challenge") ? _case.vault_challenge : {
     artifact_header: "CAPTURED SECURITY LOG:  Threat Signature = " + _case.word,
     artifact_body:   _case.scenario,
+    plain_summary:   "PLAIN ENGLISH: " + _case.scenario + " (" + _case.hint + ")",
     scanner_note:    "FORENSIC SCAN: " + _case.hint,
     prompt:          "Identify the cybersecurity red flag in this captured log:",
     options: [
@@ -35,6 +36,9 @@ var _vc = variable_struct_exists(_case, "vault_challenge") ? _case.vault_challen
 
 artifact_header = _vc.artifact_header;
 artifact_body   = _vc.artifact_body;
+plain_summary   = variable_struct_exists(_vc, "plain_summary")
+    ? _vc.plain_summary
+    : ("PLAIN ENGLISH: " + _case.scenario + " (" + _case.hint + ")");
 scanner_note    = _vc.scanner_note;
 prompt_text     = _vc.prompt;
 explain_win     = _vc.explain_win;
@@ -58,11 +62,14 @@ for (var _k = 0; _k < 3; _k++) {
     if (_order[_k] == _src_corr) correct_option_idx = _k;
 }
 
-selected_option = 0;
-shake_timer     = 0;
-status_msg      = "";
-status_col      = c_white;
-success_timer   = 0;
+selected_option    = 0;
+shake_timer        = 0;
+status_msg         = "";
+status_col         = c_white;
+success_timer      = 0;
+kyle_hint_unlocked = false;
+
+scr_auto_collect_floor_terms([artifact_header, artifact_body, plain_summary, scanner_note, prompt_text, current_takeaway]);
 
 audio_play_sound(snd_select, 10, false);
 show_debug_message("[obj_dungeon_quiz] Spot-the-Red-Flag Challenge started. Topic: " + target_word);
