@@ -64,6 +64,18 @@ if (variable_global_exists("breaker_ui_open") && global.breaker_ui_open) {
 }
 
 // =========================================================
+// FLOOR 10 FINAL EXAM: S.O.S. (SAVE OUR SYSTEM) CONSOLE UI
+// =========================================================
+if (variable_global_exists("sos_ui_open") && global.sos_ui_open) {
+    scr_draw_sos_ui(_gui_w, _gui_h);
+    draw_set_font(fnt_default);
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+    draw_set_color(c_white);
+    exit;
+}
+
+// =========================================================
 // DEDICATED COMPUTER MONITOR SCREEN OVERLAY (Clean & Minimal)
 // =========================================================
 if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
@@ -1097,7 +1109,7 @@ if (variable_global_exists("pc_screen_open") && global.pc_screen_open) {
 // Hide regular HUD while dialogue box is active so the greyed-out dialogue background is clean
 if (instance_exists(obj_textbox) || instance_exists(obj_textevent)) exit;
 
-// [TAB] opens the Case Board (suspects + evidence trail) from anywhere on the floor
+// [TAB] opens the Case Board (or the S.O.S. Console on Floor 10 Final Exam!) from anywhere on the floor
 if (keyboard_check_pressed(vk_tab)
     && variable_global_exists("case_suspects")
     && instance_exists(obj_jack)
@@ -1109,6 +1121,12 @@ if (keyboard_check_pressed(vk_tab)
     && !(variable_global_exists("bot_grapple_active") && global.bot_grapple_active))
 {
     keyboard_clear(vk_tab);
+    if (variable_global_exists("sos_active") && global.sos_active
+        && variable_global_exists("has_dungeon_cipher_key") && global.has_dungeon_cipher_key
+        && global.sos_phase >= 1 && global.sos_phase <= 3) {
+        scr_open_sos_ui(2, noone);
+        exit;
+    }
     audio_play_sound(snd_button_click, 5, false);
     global.pc_screen_open     = true;
     global.pc_input_cooldown  = 8;
@@ -1298,8 +1316,26 @@ if (!_has_key) {
         : "[ ] QUEST 1B: Get the Key in the Key Vault";
     _q_col2  = (_clues_cur >= 1) ? c_aqua : make_color_rgb(150, 170, 190);
 } else if (!_pz_solved) {
-    // PHASE 2 QUEST: Investigate & Accuse on Case Board [TAB]
-    if (_all_ev) {
+    if (variable_global_exists("sos_active") && global.sos_active) {
+        // FLOOR 10 FINAL EXAM: S.O.S. (Search -> Identify -> Destroy) Quest Tracker!
+        if (global.sos_phase == 1) {
+            _q_line1 = "[>] S.O.S. 1/3 SEARCH: Catch Infected PC (" + string(global.sos_catches) + "/3)";
+            _q_col1  = make_color_rgb(255, 95, 110);
+            _q_line2 = "[!] TARGET: " + global.sos_target_room_name + " (" + string(ceil(global.sos_hop_timer / 60)) + "s)";
+            _q_col2  = c_yellow;
+        } else if (global.sos_phase == 2) {
+            _q_line1 = "[x] S.O.S. 1/3: All 3 Symptoms Captured!";
+            _q_col1  = c_lime;
+            _q_line2 = "[!] S.O.S. 2/3: Press [TAB] to Identify Virus!";
+            _q_col2  = make_color_rgb(255, 215, 60);
+        } else {
+            var _pz_q = global.case_suspects[global.case_culprit_idx];
+            _q_line1 = "[x] S.O.S. 2/3: Kill-Switch Armed!";
+            _q_col1  = c_lime;
+            _q_line2 = "[!] S.O.S. 3/3 DESTROY: Desk " + _pz_q.nameplate + " (" + _pz_q.name + ") [E]!";
+            _q_col2  = make_color_rgb(255, 95, 115);
+        }
+    } else if (_all_ev) {
         _q_line1 = "[x] ALL EVIDENCE FOUND (" + string(_ev_cur) + "/" + string(_ev_req) + ")!";
         _q_col1  = c_lime;
         _q_line2 = "[!] QUEST: Accuse on [TAB] -> Override Lockdown!";
@@ -1658,6 +1694,32 @@ if (variable_instance_exists(id, "room_discovered")) {
             draw_line(_bpx, _bpy, _bpx + lengthdir_x(5, _bdir), _bpy + lengthdir_y(5, _bdir));
         }
     }
+
+    // 2c. Floor 10 S.O.S. Live Infection Target / Pinpointed Patient Zero Beacon on Blueprint Radar [M]
+    if (variable_global_exists("sos_active") && global.sos_active && _has_key && (global.sos_phase == 1 || global.sos_phase == 3)) {
+        var _sos_r_inst = noone;
+        if (global.sos_phase == 1 && variable_global_exists("sos_target_pc") && instance_exists(global.sos_target_pc)) {
+            _sos_r_inst = global.sos_target_pc;
+        } else if (global.sos_phase == 3 && variable_global_exists("case_culprit_idx")) {
+            var _cul_r = global.case_culprit_idx;
+            with (obj_dungeon_prop) {
+                if (prop_type == TILE_PROP_PC && suspect_idx == _cul_r) {
+                    _sos_r_inst = id;
+                    break;
+                }
+            }
+        }
+        if (instance_exists(_sos_r_inst)) {
+            var _sc = clamp(floor((_sos_r_inst.x + 8) / _chunk_px_b), 0, LOGIC_GRID_W - 1);
+            var _sr = clamp(floor((_sos_r_inst.y + 8) / _chunk_px_b), 0, LOGIC_GRID_H - 1);
+            var _spx = _grid_ox + _sc * _cell_step + _cell_sz * 0.5;
+            var _spy = _grid_oy + _sr * _cell_step + _cell_sz * 0.5;
+            draw_set_alpha(1.0);
+            draw_set_color((current_time mod 320 < 160) ? c_yellow : make_color_rgb(255, 50, 80));
+            draw_circle(_spx, _spy, 3.8, true);
+            draw_circle(_spx, _spy, 1.8, false);
+        }
+    }
     draw_set_alpha(1.0);
     _next_hud_y = _map_y + _map_h + 6;
     } else {
@@ -1818,7 +1880,20 @@ if (instance_exists(obj_jack)) {
                     _prompt = "[E] Talk to " + myName;
                     _pcol   = make_color_rgb(100, 235, 155);
                 } else if (prop_type == TILE_PROP_PC) {
-                    if (is_holding_clue) {
+                    var _is_sos_flr = (variable_global_exists("sos_active") && global.sos_active && _has_key && !is_holding_clue && !is_vault_hint_pc);
+                    if (_is_sos_flr && global.sos_phase == 1 && variable_global_exists("sos_target_pc") && global.sos_target_pc == id) {
+                        _prompt = "[E] PLUG IN S.O.S. — INTERCEPT LIVE INFECTION (" + string(global.sos_catches + 1) + "/3)!";
+                        _pcol   = (current_time mod 260 < 130) ? c_yellow : make_color_rgb(255, 80, 95);
+                    } else if (_is_sos_flr && global.sos_phase == 2) {
+                        _prompt = "[E / TAB] OPEN S.O.S. — IDENTIFY VIRUS PROFILE (3 SYMPTOMS)!";
+                        _pcol   = make_color_rgb(255, 215, 55);
+                    } else if (_is_sos_flr && global.sos_phase == 3 && variable_global_exists("case_culprit_idx") && suspect_idx == global.case_culprit_idx) {
+                        _prompt = "[E] PLUG IN S.O.S. MASTER KILL-SWITCH — DESTROY PATIENT ZERO!";
+                        _pcol   = (current_time mod 260 < 130) ? c_yellow : make_color_rgb(255, 75, 95);
+                    } else if (_is_sos_flr && variable_instance_exists(id, "sos_locked_infected") && sos_locked_infected) {
+                        _prompt = "[E] Trace Hopped Virus Sector   |   (Locked Until Patient Zero Purged)";
+                        _pcol   = make_color_rgb(255, 110, 110);
+                    } else if (is_holding_clue) {
                         _prompt = "[E] Inspect Holding Cell Terminal";
                         _pcol   = c_aqua;
                     } else if (is_fried) {
@@ -1985,6 +2060,53 @@ draw_set_halign(fa_center);
 draw_set_color(_stat_col);
 draw_text_transformed(_gui_w * 0.5, _mc_y1 + 27, _stat_txt, 0.65, 0.65, 0);
 draw_set_halign(fa_left);
+
+// =========================================================
+// FLOOR 10 FINAL EXAM: TOP-CENTER S.O.S. LIVE OUTBREAK TRACKER
+// =========================================================
+if (variable_global_exists("sos_active") && global.sos_active && _has_key && global.sos_phase >= 1 && global.sos_phase <= 3) {
+    var _sb_w  = 312;
+    var _sb_x1 = (_gui_w - _sb_w) * 0.5 + 36;
+    var _sb_x2 = _sb_x1 + _sb_w;
+    var _sb_y1 = 8;
+    var _sb_y2 = 46;
+    var _sb_col = (global.sos_phase == 3) ? make_color_rgb(255, 70, 95) : ((global.sos_phase == 2) ? make_color_rgb(255, 215, 55) : c_aqua);
+
+    draw_set_alpha(0.90);
+    draw_set_color(make_color_rgb(12, 16, 28));
+    draw_rectangle(_sb_x1, _sb_y1, _sb_x2, _sb_y2, false);
+    draw_set_alpha(1.0);
+    draw_set_color(_sb_col);
+    draw_rectangle(_sb_x1, _sb_y1, _sb_x2, _sb_y2, true);
+
+    draw_set_halign(fa_center);
+    var _sb_cx = (_sb_x1 + _sb_x2) * 0.5;
+    var _sb_t1 = "";
+    var _sb_t2 = "";
+    if (global.sos_phase == 1) {
+        _sb_t1 = "S.O.S. 1/3 SEARCH:  CATCH HOPPING VIRUS (" + string(global.sos_catches) + "/3)";
+        _sb_t2 = "TARGET: " + global.sos_target_room_name + "  |  HOPS IN: " + string(ceil(global.sos_hop_timer / 60)) + "s  |  BREACH: " + string(floor(global.sos_breach_pct)) + "%";
+    } else if (global.sos_phase == 2) {
+        _sb_t1 = "S.O.S. 2/3 IDENTIFY:  3/3 SYMPTOMS CAPTURED!";
+        _sb_t2 = "Press [TAB] or [E] on any PC to Match the 3 Symptoms & Arm Kill-Switch!";
+    } else {
+        var _pz_hud = global.case_suspects[global.case_culprit_idx];
+        _sb_t1 = "S.O.S. 3/3 DESTROY:  PATIENT ZERO PINPOINTED!";
+        _sb_t2 = "Go to Desk " + _pz_hud.nameplate + " (" + _pz_hud.name + " - " + _pz_hud.dept + ") & Press [E]!";
+    }
+    draw_set_color(_sb_col);
+    draw_text_transformed(_sb_cx, _sb_y1 + 11, _sb_t1, 0.62, 0.62, 0);
+    draw_set_color(c_white);
+    draw_text_transformed(_sb_cx, _sb_y1 + 24, _sb_t2, 0.54, 0.54, 0);
+
+    // Breach Progress Mini Bar inside S.O.S. Top Tracker
+    var _bp = clamp(global.sos_breach_pct / 100.0, 0.0, 1.0);
+    draw_set_color(make_color_rgb(26, 32, 46));
+    draw_rectangle(_sb_x1 + 10, _sb_y2 - 8, _sb_x2 - 10, _sb_y2 - 4, false);
+    draw_set_color((_bp < 0.5) ? c_lime : ((_bp < 0.78) ? make_color_rgb(255, 195, 50) : make_color_rgb(255, 65, 75)));
+    draw_rectangle(_sb_x1 + 10, _sb_y2 - 8, _sb_x1 + 10 + (_sb_w - 20) * _bp, _sb_y2 - 4, false);
+    draw_set_halign(fa_left);
+}
 
 draw_set_font(fnt_default);
 draw_set_color(c_white);

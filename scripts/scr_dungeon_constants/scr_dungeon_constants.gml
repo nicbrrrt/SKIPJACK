@@ -3182,6 +3182,7 @@ function scr_init_case_dossier(_case, _floor) {
     var _bs_str = variable_struct_exists(_case, "briefing_spot") ? _case.briefing_spot : "";
     scr_auto_collect_floor_terms([_case.scenario, _case.hint, _case.takeaway, _bw_str, _bs_str]);
     scr_case_recompute();
+    scr_init_sos_final_exam();
 }
 
 // =============================================================================
@@ -4864,9 +4865,15 @@ function scr_draw_preshift_cyber_briefing(_gui_w, _gui_h) {
     draw_line(_x1 + 22, _b2_y1 + 54, _x2 - 22, _b2_y1 + 54);
 
     draw_set_color(make_color_rgb(255, 220, 95));
-    draw_text_transformed(_x1 + 22, _b2_y1 + 65, "3. YOUR SHIFT CHECKLIST (FOLLOW TOP-LEFT QUEST TRACKER):", 0.66, 0.66, 0);
-    draw_set_color(make_color_rgb(195, 225, 245));
-    draw_text_transformed(_x1 + 22, _b2_y1 + 81, "Step 1: Spot the Red Flag at the Gold Key Vault [E] & grab the Cipher Key   ->   Step 2: Audit Suspect Desks [E] & Accuse on [TAB]   ->   Step 3: Override & Fix Breaker!", 0.56, 0.56, 0);
+    if (_flr >= 10) {
+        draw_text_transformed(_x1 + 22, _b2_y1 + 65, "3. FINAL EXAM S.O.S. (SAVE OUR SYSTEM) — SEARCH, IDENTIFY, DESTROY:", 0.66, 0.66, 0);
+        draw_set_color(make_color_rgb(195, 255, 215));
+        draw_text_transformed(_x1 + 22, _b2_y1 + 81, "1. Grab Key in Gold Vault [E]  ->  2. SEARCH: Catch 3 Hopping Infected PCs [E]  ->  3. IDENTIFY on [TAB]  ->  4. DESTROY at Patient Zero's Desk [E]!", 0.54, 0.54, 0);
+    } else {
+        draw_text_transformed(_x1 + 22, _b2_y1 + 65, "3. YOUR SHIFT CHECKLIST (FOLLOW TOP-LEFT QUEST TRACKER):", 0.66, 0.66, 0);
+        draw_set_color(make_color_rgb(195, 225, 245));
+        draw_text_transformed(_x1 + 22, _b2_y1 + 81, "Step 1: Spot the Red Flag at the Gold Key Vault [E] & grab the Cipher Key   ->   Step 2: Audit Suspect Desks [E] & Accuse on [TAB]   ->   Step 3: Override & Fix Breaker!", 0.56, 0.56, 0);
+    }
 
     // 5. Action Buttons: [C] OPEN FULL FIELD MANUAL  &  [E / ENTER / CLICK] START SHIFT >
     var _btn_y1 = _y2 - 64;
@@ -5296,6 +5303,1048 @@ function scr_draw_demo_teleprompter_hud(_gui_w, _gui_h) {
     draw_text_transformed(_cx1 + 6, _cy1 + 33, _say_lines[_beat], _say_sc, _say_sc, 0);
     draw_set_color(make_color_rgb(145, 225, 165));
     draw_text_transformed(_cx1 + 6, _cy1 + 44, "SHORTCUTS: [Ctrl+P] Auto-Solve Minigame  |  [ / ] Change Beat  |  [WARP >] Jump", 0.45, 0.45, 0);
+
+    draw_set_halign(fa_left);
+    draw_set_valign(fa_top);
+    draw_set_color(c_white);
+}
+
+// =============================================================================
+// FLOOR 10 FINAL EXAM: S.O.S. (SAVE OUR SYSTEM) — SEARCH, IDENTIFY, DESTROY
+// =============================================================================
+
+function scr_init_sos_final_exam() {
+    var _flr  = variable_global_exists("chapter_floor") ? global.chapter_floor : 1;
+    var _case = variable_global_exists("floor_case")    ? global.floor_case    : scr_get_floor_incident_case(0);
+
+    global.sos_active             = (_flr >= CHAPTER_MAX_FLOORS);
+    global.sos_phase              = 0;     // 0=Wait for Key, 1=Search (3 catches), 2=Identify (Option 2A), 3=Destroy (Patient Zero), 4=Eradicated
+    global.sos_catches            = 0;     // 0..3 intercepted terminals
+    global.sos_breach_pct         = 14.0;  // 0..100% live network infection meter
+    global.sos_hop_timer_max      = 60 * 30; // 30s per terminal hop window (pauses during UI/locks)
+    global.sos_hop_timer          = global.sos_hop_timer_max;
+    global.sos_target_pc          = noone;
+    global.sos_target_room_name   = "Office Network";
+    global.sos_arc_timer          = 0;
+    global.sos_arc_x1             = 0;
+    global.sos_arc_y1             = 0;
+    global.sos_arc_x2             = 0;
+    global.sos_arc_y2             = 0;
+    global.sos_sonar_cd           = 90;
+    global.sos_ui_open            = false;
+    global.sos_ui_mode            = 1;     // 1=Node Intercept, 2=Identify (3-Symptom Matcher), 3=Destroy (Master Kill-Switch)
+    global.sos_ui_substep         = 0;     // 0=QTE, 1=Cipher Patch, 2=Success Card
+    global.sos_ui_pc              = noone;
+    global.sos_ui_sel             = 0;
+    global.sos_ui_feedback        = "";
+    global.sos_ui_feedback_col    = c_white;
+    global.sos_ui_shake           = 0;
+    global.sos_ui_win_timer       = 0;
+    global.sos_qte_timer_max      = 60 * 16;
+    global.sos_qte_timer          = global.sos_qte_timer_max;
+    global.sos_qte_wave           = 0;     // 0..2 for Phase 3 Destroy 3-Wave QTE
+    global.sos_cipher_plain       = "OK";
+    global.sos_cipher_enc         = "RN";
+    global.sos_cipher_input       = ["", ""];
+    global.sos_cipher_slot        = 0;
+    global.sos_cipher_len         = 2;
+    global.sos_id_sel_symptom     = 0;     // 0..2 selected symptom on Left
+    global.sos_id_matched         = [-1, -1, -1]; // concept index matched to each symptom
+
+    var _w_title = _case.word + " (" + _case.title + ")";
+    var _p_rule  = variable_struct_exists(_case, "prevention_rule") ? _case.prevention_rule : _case.takeaway;
+    var _b_what  = variable_struct_exists(_case, "briefing_what")   ? _case.briefing_what   : _case.scenario;
+    var _b_spot  = variable_struct_exists(_case, "briefing_spot")   ? _case.briefing_spot   : _case.hint;
+
+    // 3 Beginner-Friendly Taught Symptoms & Concepts (1. How it Entered, 2. What it's Doing, 3. How it Hops Between Desks)
+    global.sos_symptoms = [
+        {
+            title: "SYMPTOM #1 (ENTRY POINT)",
+            symptom_text: "Log shows the virus first entered when an employee fell for a " + _case.word + " trick: " + _b_what,
+            plain_hint: "PLAIN ENGLISH: Look for the concept that matches today's main breach topic (" + _case.word + ")!",
+            qte_prompt: "LIVE NODE ALERT #1: This terminal is repeating the initial " + _case.word + " entry exploit! Which safety habit blocks it?",
+            qte_options: [
+                _p_rule,
+                "Share your work password with coworkers so they can check the alert",
+                "Turn off the computer's Firewall and ignore the warning pop-up"
+            ],
+            qte_correct: 0,
+            concept_id: 0
+        },
+        {
+            title: "SYMPTOM #2 (LATERAL PASSWORD HOP)",
+            symptom_text: "The virus is jumping from desk to desk because employees reused the exact same weak password across multiple office computers without 2FA.",
+            plain_hint: "PLAIN ENGLISH: Reusing one weak password lets a virus unlock every desk—a Password Manager + 2FA stops this!",
+            qte_prompt: "LIVE NODE ALERT #2: The virus is guessing a reused office password to hop into this terminal! How do we block the login?",
+            qte_options: [
+                "Require a unique Password Manager login + 2FA / MFA code",
+                "Change the password to '123456' so it is easier to type quickly",
+                "Click 'Approve' on every unexpected login prompt on your phone"
+            ],
+            qte_correct: 0,
+            concept_id: 1
+        },
+        {
+            title: "SYMPTOM #3 (OPEN PORT & FILE LOCK)",
+            symptom_text: "Once inside a desk, the virus opens an unauthorized network port through the Firewall and tries to lock up work files like Ransomware.",
+            plain_hint: "PLAIN ENGLISH: A Firewall blocks unauthorized network ports, and Offline Backups protect files from Ransomware!",
+            qte_prompt: "LIVE NODE ALERT #3: The virus opened an unauthorized network port and started locking files on this PC! What stops it?",
+            qte_options: [
+                "Block the unauthorized port with the Firewall & restore from Offline Backups",
+                "Pay the attacker's ransom demand and leave every network port open",
+                "Plug in an unknown USB drive from the hallway to copy the infected files"
+            ],
+            qte_correct: 0,
+            concept_id: 2
+        }
+    ];
+
+    // Shuffled Concept Cards on the right side of the Phase 2 IDENTIFY (Option 2A) screen
+    global.sos_concept_cards = [
+        {
+            concept_id: 1,
+            name: "PASSWORD REUSE & LACK OF 2FA (IDENTITY)",
+            desc: "Using the same password on multiple computers lets malware hop between desks automatically. Stopped by a Password Manager + 2FA!"
+        },
+        {
+            concept_id: 2,
+            name: "FIREWALL PORT BREACH & RANSOMWARE LOCK",
+            desc: "Sneaking through an unblocked network port to lock up company files. Stopped by a strict Firewall and Offline Backups!"
+        },
+        {
+            concept_id: 0,
+            name: _w_title + " (INITIAL ENTRY)",
+            desc: _b_spot + " Prevented by: " + _p_rule
+        }
+    ];
+
+    global.sos_qte_shuffled_opts = [];
+    global.sos_qte_shuffled_corr = 0;
+}
+
+function scr_sos_get_pc_room_name(_pc_inst) {
+    if (!instance_exists(_pc_inst) || !instance_exists(obj_dungeon_generator)) return "Office Sector";
+    var _gen      = obj_dungeon_generator;
+    var _chunk_px = CHUNK_SIZE * TILE_SIZE;
+    var _c        = clamp(floor((_pc_inst.x + 8) / _chunk_px), 0, LOGIC_GRID_W - 1);
+    var _r        = clamp(floor((_pc_inst.y + 8) / _chunk_px), 0, LOGIC_GRID_H - 1);
+    if (variable_instance_exists(_gen, "room_names") && array_length(_gen.room_names) > _c) {
+        var _rn = _gen.room_names[_c][_r];
+        if (_rn != "") return _rn;
+    }
+    return "Sector (" + string(_c) + "," + string(_r) + ")";
+}
+
+function scr_sos_roll_cipher_challenge(_len) {
+    var _ch      = variable_global_exists("dungeon_chapter")      ? global.dungeon_chapter      : CHAPTER_CAESAR;
+    var _key     = variable_global_exists("dungeon_cipher_key")   ? global.dungeon_cipher_key   : 3;
+    var _vig_key = variable_global_exists("dungeon_vigenere_key") ? global.dungeon_vigenere_key : "CAB";
+
+    var _pool2 = ["OK", "GO", "UP", "ID", "IP", "OS", "DB", "FW"];
+    var _pool4 = ["SAFE", "LOCK", "CURE", "KILL", "STOP", "BOOT", "PORT", "SCAN"];
+    var _plain = (_len >= 4)
+        ? _pool4[irandom(array_length(_pool4) - 1)]
+        : _pool2[irandom(array_length(_pool2) - 1)];
+
+    var _enc = "";
+    for (var _i = 1; _i <= string_length(_plain); _i++) {
+        var _pch   = string_char_at(_plain, _i);
+        var _p_idx = ord(_pch) - ord("A");
+        var _e_ch  = _pch;
+        if (_ch == CHAPTER_ATBASH) {
+            _e_ch = chr(ord("A") + (25 - _p_idx));
+        } else if (_ch == CHAPTER_VIGENERE) {
+            var _k_ch  = string_char_at(_vig_key, ((_i - 1) mod string_length(_vig_key)) + 1);
+            var _k_sh  = ord(_k_ch) - ord("A");
+            // Encode backward by -_k_sh so player shifts forward +_k_sh to decode back to _plain!
+            _e_ch = chr(ord("A") + ((_p_idx - _k_sh + 26) mod 26));
+        } else {
+            // Encode backward by -_key so player shifts by +_key to decode back to _plain!
+            _e_ch = chr(ord("A") + ((_p_idx - _key + 260) mod 26));
+        }
+        _enc += _e_ch;
+    }
+
+    global.sos_cipher_len   = string_length(_plain);
+    global.sos_cipher_plain = _plain;
+    global.sos_cipher_enc   = _enc;
+    global.sos_cipher_input = array_create(global.sos_cipher_len, "");
+    global.sos_cipher_slot  = 0;
+}
+
+function scr_sos_prepare_qte_options(_sym_idx) {
+    var _idx = clamp(_sym_idx, 0, array_length(global.sos_symptoms) - 1);
+    var _sym = global.sos_symptoms[_idx];
+    var _src = _sym.qte_options;
+    var _ok  = _sym.qte_correct;
+    var _ord = [0, 1, 2];
+    for (var _i = 2; _i > 0; _i--) {
+        var _j = irandom(_i);
+        var _t = _ord[_i];
+        _ord[_i] = _ord[_j];
+        _ord[_j] = _t;
+    }
+    global.sos_qte_shuffled_opts = [];
+    global.sos_qte_shuffled_corr = 0;
+    for (var _k = 0; _k < 3; _k++) {
+        array_push(global.sos_qte_shuffled_opts, _src[_ord[_k]]);
+        if (_ord[_k] == _ok) global.sos_qte_shuffled_corr = _k;
+    }
+    global.sos_ui_sel = 0;
+}
+
+function scr_sos_pick_next_terminal(_from_pc) {
+    var _cul_idx = variable_global_exists("case_culprit_idx") ? global.case_culprit_idx : 0;
+    var _fresh   = [];
+    var _any_ok  = [];
+
+    with (obj_dungeon_prop) {
+        if (prop_type == TILE_PROP_PC && !is_scrapped && !is_holding_clue && !is_vault_hint_pc) {
+            if (suspect_idx == _cul_idx) continue; // Keep Patient Zero reserved for Phase 3 Destroy!
+            if (id == _from_pc) continue;
+            var _saved = variable_instance_exists(id, "sos_saved") && sos_saved;
+            var _lck   = variable_instance_exists(id, "sos_locked_infected") && sos_locked_infected;
+            if (!_saved && !_lck) {
+                array_push(_fresh, id);
+            }
+            if (!_saved) {
+                array_push(_any_ok, id);
+            }
+        }
+    }
+
+    var _chosen = noone;
+    if (array_length(_fresh) > 0) {
+        _chosen = _fresh[irandom(array_length(_fresh) - 1)];
+    } else if (array_length(_any_ok) > 0) {
+        _chosen = _any_ok[irandom(array_length(_any_ok) - 1)];
+        _chosen.sos_locked_infected = false;
+    } else {
+        with (obj_dungeon_prop) {
+            if (prop_type == TILE_PROP_PC && !is_holding_clue) {
+                _chosen = id;
+                break;
+            }
+        }
+    }
+
+    if (instance_exists(_chosen)) {
+        var _ox = instance_exists(_from_pc) ? (_from_pc.x + 8) : (instance_exists(obj_jack) ? obj_jack.x : (_chosen.x + 8));
+        var _oy = instance_exists(_from_pc) ? (_from_pc.y + 8) : (instance_exists(obj_jack) ? obj_jack.y : (_chosen.y + 8));
+        global.sos_arc_x1           = _ox;
+        global.sos_arc_y1           = _oy;
+        global.sos_arc_x2           = _chosen.x + 8;
+        global.sos_arc_y2           = _chosen.y + 8;
+        global.sos_arc_timer        = 95;
+        global.sos_target_pc        = _chosen;
+        global.sos_target_room_name = scr_sos_get_pc_room_name(_chosen);
+        global.sos_hop_timer        = global.sos_hop_timer_max;
+    }
+}
+
+function scr_open_sos_ui(_mode, _pc_inst) {
+    if (!variable_global_exists("sos_symptoms")) scr_init_sos_final_exam();
+
+    global.sos_ui_open         = true;
+    global.sos_ui_mode         = _mode;
+    global.sos_ui_pc           = _pc_inst;
+    global.sos_ui_substep      = 0;
+    global.sos_ui_sel          = 0;
+    global.sos_ui_feedback     = "";
+    global.sos_ui_feedback_col = c_white;
+    global.sos_ui_shake        = 0;
+    global.sos_ui_win_timer    = 0;
+    global.sos_qte_wave        = 0;
+
+    if (_mode == 1) {
+        // Phase 1 SEARCH: Intercept Live Node (1 Plain-English QTE + 2-Letter Cipher Patch)
+        var _c_idx = clamp(global.sos_catches, 0, 2);
+        scr_sos_prepare_qte_options(_c_idx);
+        scr_sos_roll_cipher_challenge(2);
+        global.sos_qte_timer_max = 60 * 18;
+        global.sos_qte_timer     = global.sos_qte_timer_max;
+    } else if (_mode == 2) {
+        // Phase 2 IDENTIFY (Option 2A): 3-Symptom Forensic Matcher
+        global.sos_id_sel_symptom = 0;
+        for (var _m = 0; _m < 3; _m++) {
+            if (global.sos_id_matched[_m] == -1) {
+                global.sos_id_sel_symptom = _m;
+                break;
+            }
+        }
+    } else if (_mode == 3) {
+        // Phase 3 DESTROY: Cut the head off the snake at Patient Zero's desk!
+        global.sos_qte_wave = 0;
+        scr_sos_prepare_qte_options(0);
+        scr_sos_roll_cipher_challenge(4);
+        global.sos_qte_timer_max = 60 * 16;
+        global.sos_qte_timer     = global.sos_qte_timer_max;
+    }
+    if (asset_get_type("snd_select") == asset_sound) audio_play_sound(snd_select, 8, false);
+}
+
+function scr_draw_sos_cipher_subpanel(_cx, _y_top, _pw) {
+    var _ch      = variable_global_exists("dungeon_chapter")      ? global.dungeon_chapter      : CHAPTER_CAESAR;
+    var _key     = variable_global_exists("dungeon_cipher_key")   ? global.dungeon_cipher_key   : 3;
+    var _vig_key = variable_global_exists("dungeon_vigenere_key") ? global.dungeon_vigenere_key : "CAB";
+    var _len     = global.sos_cipher_len;
+    var _slot    = clamp(global.sos_cipher_slot, 0, _len - 1);
+
+    // Key Rule Banner
+    draw_set_halign(fa_center);
+    draw_set_valign(fa_middle);
+    var _rule_txt = "";
+    if (_ch == CHAPTER_VIGENERE) {
+        _rule_txt = "VIGENERE FLOOR KEYWORD:  " + _vig_key + "   (Shift each slot right by its Keyword letter: A=+0, B=+1, C=+2...)";
+    } else if (_ch == CHAPTER_ATBASH) {
+        _rule_txt = "ATBASH MIRROR RULE:  A <-> Z,  B <-> Y ... M <-> N   (Swap each letter with its opposite on the Mirror Bar!)";
+    } else {
+        var _k_lbl = (_key > 0) ? ("+" + string(_key) + " (Count Right)") : (string(_key) + " (Count Left)");
+        _rule_txt = "CAESAR FLOOR SHIFT KEY:  " + _k_lbl + "   (Shift each encrypted letter on the A-Z Ruler!)";
+    }
+    draw_set_color(c_lime);
+    draw_text_transformed(_cx, _y_top + 10, _rule_txt, 0.66, 0.66, 0);
+
+    var _enc_ch  = string_char_at(global.sos_cipher_enc, _slot + 1);
+    var _enc_idx = ord(_enc_ch) - ord("A");
+    var _usr_ch  = global.sos_cipher_input[_slot];
+    var _usr_idx = (_usr_ch != "") ? (ord(_usr_ch) - ord("A")) : -1;
+
+    // Draw A-Z Ruler or 2-Row Atbash Mirror Bar
+    if (_ch == CHAPTER_ATBASH) {
+        var _my1  = _y_top + 32;
+        var _my2  = _y_top + 54;
+        var _mcw  = 34;
+        var _mtw  = 13 * _mcw;
+        var _mx1  = _cx - _mtw * 0.5;
+        draw_set_color(make_color_rgb(18, 26, 40));
+        draw_rectangle(_mx1 - 6, _my1 - 10, _mx1 + _mtw + 6, _my2 + 10, false);
+        draw_set_color(make_color_rgb(65, 165, 135));
+        draw_rectangle(_mx1 - 6, _my1 - 10, _mx1 + _mtw + 6, _my2 + 10, true);
+        for (var _m = 0; _m < 13; _m++) {
+            var _mx  = _mx1 + _m * _mcw + _mcw * 0.5;
+            var _ti  = _m;
+            var _bi  = 25 - _m;
+            var _tch = chr(ord("A") + _ti);
+            var _bch = chr(ord("A") + _bi);
+
+            draw_set_color((_ti == _usr_idx) ? c_lime : ((_ti == _enc_idx) ? make_color_rgb(255, 190, 45) : make_color_rgb(175, 200, 225)));
+            draw_text_transformed(_mx, _my1, _tch, 0.76, 0.76, 0);
+            draw_set_color((_bi == _usr_idx) ? c_lime : ((_bi == _enc_idx) ? make_color_rgb(255, 190, 45) : make_color_rgb(175, 200, 225)));
+            draw_text_transformed(_mx, _my2, _bch, 0.76, 0.76, 0);
+        }
+    } else {
+        var _ry   = _y_top + 42;
+        var _rcw  = 19;
+        var _rtw  = 26 * _rcw;
+        var _rx1  = _cx - _rtw * 0.5;
+        draw_set_color(make_color_rgb(18, 26, 40));
+        draw_rectangle(_rx1 - 6, _ry - 13, _rx1 + _rtw + 6, _ry + 13, false);
+        draw_set_color(c_aqua);
+        draw_rectangle(_rx1 - 6, _ry - 13, _rx1 + _rtw + 6, _ry + 13, true);
+        for (var _a = 0; _a < 26; _a++) {
+            var _ax  = _rx1 + _a * _rcw + _rcw * 0.5;
+            var _ach = chr(ord("A") + _a);
+            if (_a == _usr_idx) {
+                draw_set_color(c_lime);
+                draw_rectangle(_ax - 8, _ry - 10, _ax + 8, _ry + 10, false);
+                draw_set_color(c_black);
+                draw_text_transformed(_ax, _ry, _ach, 0.78, 0.78, 0);
+            } else if (_a == _enc_idx) {
+                draw_set_color(make_color_rgb(255, 190, 40));
+                draw_rectangle(_ax - 8, _ry - 10, _ax + 8, _ry + 10, false);
+                draw_set_color(c_black);
+                draw_text_transformed(_ax, _ry, _ach, 0.78, 0.78, 0);
+            } else {
+                draw_set_color(make_color_rgb(165, 185, 210));
+                draw_text_transformed(_ax, _ry, _ach, 0.72, 0.72, 0);
+            }
+        }
+    }
+
+    // Draw Letter Slots
+    var _slot_step = 86;
+    var _sx0       = _cx - ((_len - 1) * _slot_step * 0.5);
+    var _sy        = _y_top + 96;
+    var _demo_on   = (variable_global_exists("demo_mode_active") && global.demo_mode_active);
+
+    for (var _si = 0; _si < _len; _si++) {
+        var _sx     = _sx0 + _si * _slot_step;
+        var _is_sel = (_si == _slot);
+        var _ech    = string_char_at(global.sos_cipher_enc, _si + 1);
+        var _pch    = string_char_at(global.sos_cipher_plain, _si + 1);
+        var _uch    = global.sos_cipher_input[_si];
+
+        if (_ch == CHAPTER_VIGENERE) {
+            var _kwc = string_char_at(_vig_key, (_si mod string_length(_vig_key)) + 1);
+            var _kws = ord(_kwc) - ord("A");
+            draw_set_color(make_color_rgb(215, 155, 255));
+            draw_text_transformed(_sx, _sy - 32, "KEY '" + _kwc + "' (+" + string(_kws) + ")", 0.60, 0.60, 0);
+        }
+
+        draw_set_color(_is_sel ? make_color_rgb(26, 44, 68) : make_color_rgb(16, 22, 34));
+        draw_rectangle(_sx - 32, _sy - 20, _sx + 32, _sy + 22, false);
+        draw_set_color(_is_sel ? c_yellow : c_aqua);
+        draw_rectangle(_sx - 32, _sy - 20, _sx + 32, _sy + 22, true);
+
+        draw_set_color(make_color_rgb(255, 195, 50));
+        draw_text_transformed(_sx, _sy - 8, _ech, 0.86, 0.86, 0);
+        draw_set_color((_uch == _pch) ? c_lime : c_white);
+        draw_text_transformed(_sx, _sy + 11, (_uch == "") ? "_" : _uch, 0.96, 0.96, 0);
+
+        if (_demo_on) {
+            draw_set_color(c_lime);
+            draw_text_transformed(_sx, _sy + 30, "[* " + _pch + "]", 0.56, 0.56, 0);
+        }
+    }
+
+    draw_set_color(make_color_rgb(175, 210, 235));
+    draw_text_transformed(_cx, _y_top + 138, "[LEFT/RIGHT] Pick Slot   |   [UP/DOWN or Type A-Z] Change Letter   |   [ENTER] Apply S.O.S. Patch", 0.62, 0.62, 0);
+}
+
+function scr_handle_sos_cipher_input() {
+    var _len  = global.sos_cipher_len;
+    var _slot = clamp(global.sos_cipher_slot, 0, _len - 1);
+
+    if (keyboard_check_pressed(vk_right)) {
+        global.sos_cipher_slot = min(_len - 1, _slot + 1);
+        audio_play_sound(select1, 8, false);
+    }
+    if (keyboard_check_pressed(vk_left)) {
+        global.sos_cipher_slot = max(0, _slot - 1);
+        audio_play_sound(select1, 8, false);
+    }
+    if (keyboard_check_pressed(vk_up)) {
+        var _ech  = string_char_at(global.sos_cipher_enc, _slot + 1);
+        var _base = (global.sos_cipher_input[_slot] == "") ? _ech : global.sos_cipher_input[_slot];
+        var _ni   = (ord(_base) - ord("A") + 1) mod 26;
+        global.sos_cipher_input[_slot] = chr(ord("A") + _ni);
+        audio_play_sound(select1, 8, false);
+    }
+    if (keyboard_check_pressed(vk_down)) {
+        var _ech2  = string_char_at(global.sos_cipher_enc, _slot + 1);
+        var _base2 = (global.sos_cipher_input[_slot] == "") ? _ech2 : global.sos_cipher_input[_slot];
+        var _ni2   = (ord(_base2) - ord("A") - 1 + 26) mod 26;
+        global.sos_cipher_input[_slot] = chr(ord("A") + _ni2);
+        audio_play_sound(select1, 8, false);
+    }
+    if (!keyboard_check(vk_control)) {
+        for (var _k = ord("A"); _k <= ord("Z"); _k++) {
+            if (keyboard_check_pressed(_k)) {
+                global.sos_cipher_input[_slot] = chr(_k);
+                global.sos_cipher_slot         = min(_len - 1, _slot + 1);
+                audio_play_sound(select1, 8, false);
+            }
+        }
+    }
+
+    if (keyboard_check_pressed(vk_enter)) {
+        var _ans = "";
+        for (var _i = 0; _i < _len; _i++) _ans += global.sos_cipher_input[_i];
+        if (_ans == global.sos_cipher_plain) {
+            return 1; // Solved!
+        } else {
+            return -1; // Mismatch
+        }
+    }
+    return 0;
+}
+
+function scr_draw_sos_ui(_gui_w, _gui_h) {
+    if (!variable_global_exists("sos_ui_open") || !global.sos_ui_open) return;
+    scr_init_cyber_glossary();
+
+    if (global.sos_ui_shake > 0) global.sos_ui_shake--;
+    var _sx = (global.sos_ui_shake > 0) ? irandom_range(-4, 4) : 0;
+    var _sy = (global.sos_ui_shake > 0) ? irandom_range(-4, 4) : 0;
+    var _cx = (_gui_w * 0.5) + _sx;
+    var _cy = (_gui_h * 0.5) - 10 + _sy;
+    var _pw = 584;
+    var _ph = 314;
+    var _x1 = _cx - _pw * 0.5;
+    var _y1 = _cy - _ph * 0.5;
+    var _x2 = _cx + _pw * 0.5;
+    var _y2 = _cy + _ph * 0.5;
+
+    var _gmx        = device_mouse_x_to_gui(0);
+    var _gmy        = device_mouse_y_to_gui(0);
+    var _popup_open = (variable_global_exists("active_term_popup") && global.active_term_popup != undefined);
+    var _demo_on    = (variable_global_exists("demo_mode_active") && global.demo_mode_active);
+    var _mode       = global.sos_ui_mode;
+
+    // 1. Dark Backdrop & S.O.S. Emergency Console Frame
+    draw_set_alpha(0.88);
+    draw_set_color(c_black);
+    draw_rectangle(0, 0, _gui_w, _gui_h, false);
+
+    var _frame_col = (_mode == 3) ? make_color_rgb(255, 75, 95) : ((_mode == 2) ? make_color_rgb(255, 210, 55) : c_aqua);
+    draw_set_alpha(0.98);
+    draw_set_color(make_color_rgb(10, 16, 28));
+    draw_rectangle(_x1, _y1, _x2, _y2, false);
+    draw_set_alpha(1.0);
+    draw_set_color(_frame_col);
+    draw_rectangle(_x1, _y1, _x2, _y2, true);
+    draw_rectangle(_x1 + 3, _y1 + 3, _x2 - 3, _y2 - 3, true);
+
+    draw_set_font(fnt_dialogue);
+    draw_set_halign(fa_center);
+    draw_set_valign(fa_middle);
+
+    // Top Header Banner
+    draw_set_color(make_color_rgb(20, 32, 54));
+    draw_rectangle(_x1 + 6, _y1 + 6, _x2 - 6, _y1 + 38, false);
+
+    var _hdr_title = "S.O.S. (SAVE OUR SYSTEM)  —  PHASE 1/3: SEARCH & NODE INTERCEPT (" + string(min(3, global.sos_catches + 1)) + "/3)";
+    var _hdr_sub   = "Stop the live infection on this terminal to extract a Symptom & triangulate Patient Zero!";
+    if (_mode == 2) {
+        _hdr_title = "S.O.S. (SAVE OUR SYSTEM)  —  PHASE 2/3: IDENTIFY VIRUS PROFILE [OPTION 2A]";
+        _hdr_sub   = "Match the 3 Plain-English Symptoms you captured to their Cybersecurity Concepts to arm the Kill-Switch!";
+    } else if (_mode == 3) {
+        _hdr_title = "S.O.S. (SAVE OUR SYSTEM)  —  PHASE 3/3: DESTROY PATIENT ZERO (MASTER KILL-SWITCH)";
+        _hdr_sub   = "Cut the head off the snake! Deflect the 3 root defenses and enter the 4-Letter Master Cipher Kill-Code!";
+    }
+    draw_set_color(_frame_col);
+    draw_text_transformed(_cx, _y1 + 15, _hdr_title, 0.80, 0.80, 0);
+    draw_set_color(make_color_rgb(195, 230, 255));
+    draw_text_transformed(_cx, _y1 + 30, _hdr_sub, 0.60, 0.60, 0);
+
+    var _scan_strs = [_hdr_title, _hdr_sub];
+
+    // =========================================================================
+    // MODE 1: PHASE 1 SEARCH — S.O.S. NODE INTERCEPT (Substep 0: QTE -> Substep 1: 2-Letter Cipher -> Substep 2: Saved!)
+    // =========================================================================
+    if (_mode == 1) {
+        var _c_idx = clamp(global.sos_catches, 0, 2);
+        var _sym   = global.sos_symptoms[_c_idx];
+        array_push(_scan_strs, _sym.symptom_text, _sym.plain_hint, _sym.qte_prompt);
+
+        if (global.sos_ui_substep == 0) {
+            // Tick QTE bar (pauses while reading a term definition popup!)
+            if (!_popup_open && global.sos_qte_timer > 0) {
+                global.sos_qte_timer--;
+                if (global.sos_qte_timer <= 0) {
+                    // Forgiving refill on timeout with gentle shake + plain-English hint!
+                    global.sos_qte_timer       = global.sos_qte_timer_max;
+                    global.sos_breach_pct      = min(95, global.sos_breach_pct + 4);
+                    global.sos_ui_shake        = 10;
+                    global.sos_ui_feedback     = "TIMER RESET (+4% Breach)! Read the cyan PLAIN ENGLISH box below and pick the safe habit!";
+                    global.sos_ui_feedback_col = make_color_rgb(255, 190, 65);
+                    audio_play_sound(wrong1, 8, false);
+                }
+            }
+
+            // Timer Progress Bar
+            var _pct = clamp(global.sos_qte_timer / max(1, global.sos_qte_timer_max), 0, 1);
+            draw_set_color(make_color_rgb(24, 30, 44));
+            draw_rectangle(_x1 + 18, _y1 + 44, _x2 - 18, _y1 + 56, false);
+            draw_set_color((_pct > 0.35) ? c_lime : make_color_rgb(255, 90, 75));
+            draw_rectangle(_x1 + 18, _y1 + 44, _x1 + 18 + (_pw - 36) * _pct, _y1 + 56, false);
+            draw_set_color(c_white);
+            draw_rectangle(_x1 + 18, _y1 + 44, _x2 - 18, _y1 + 56, true);
+            draw_text_transformed(_cx, _y1 + 50, "STEP 1/2: QUICK-TRIAGE CONCEPT MATCH   (TIME REMAINING: " + string(ceil(global.sos_qte_timer / 60)) + "s)", 0.58, 0.58, 0);
+
+            // Live Prompt + Cyan PLAIN ENGLISH Hint Box
+            draw_set_color(make_color_rgb(16, 28, 46));
+            draw_rectangle(_x1 + 18, _y1 + 62, _x2 - 18, _y1 + 124, false);
+            draw_set_color(c_aqua);
+            draw_rectangle(_x1 + 18, _y1 + 62, _x2 - 18, _y1 + 124, true);
+
+            draw_set_halign(fa_left);
+            draw_set_color(make_color_rgb(255, 215, 65));
+            draw_text_ext_transformed(_x1 + 26, _y1 + 78, _sym.qte_prompt, 13, (_pw - 52) / 0.68, 0.68, 0.68, 0);
+            draw_set_color(make_color_rgb(165, 240, 255));
+            draw_text_ext_transformed(_x1 + 26, _y1 + 108, _sym.plain_hint, 12, (_pw - 52) / 0.62, 0.62, 0.62, 0);
+
+            // 3 Countermeasure Choice Cards
+            var _submit_qte = false;
+            if (!_popup_open) {
+                if (keyboard_check_pressed(vk_up) || keyboard_check_pressed(ord("W"))) {
+                    global.sos_ui_sel = (global.sos_ui_sel + 2) mod 3;
+                    audio_play_sound(select1, 6, false);
+                }
+                if (keyboard_check_pressed(vk_down) || keyboard_check_pressed(ord("S"))) {
+                    global.sos_ui_sel = (global.sos_ui_sel + 1) mod 3;
+                    audio_play_sound(select1, 6, false);
+                }
+                if (keyboard_check_pressed(ord("1"))) { global.sos_ui_sel = 0; _submit_qte = true; }
+                if (keyboard_check_pressed(ord("2"))) { global.sos_ui_sel = 1; _submit_qte = true; }
+                if (keyboard_check_pressed(ord("3"))) { global.sos_ui_sel = 2; _submit_qte = true; }
+                if (keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space)) {
+                    _submit_qte = true;
+                }
+            }
+
+            for (var _oi = 0; _oi < 3; _oi++) {
+                var _oy1  = _y1 + 132 + (_oi * 38);
+                var _oy2  = _oy1 + 32;
+                var _osel = (global.sos_ui_sel == _oi);
+                var _ohov = !_popup_open && point_in_rectangle(_gmx, _gmy, _x1 + 18, _oy1, _x2 - 18, _oy2);
+                if (_ohov && mouse_check_button_pressed(mb_left)) {
+                    global.sos_ui_sel = _oi;
+                    _submit_qte       = true;
+                }
+
+                draw_set_color((_osel || _ohov) ? make_color_rgb(24, 52, 82) : make_color_rgb(16, 22, 34));
+                draw_rectangle(_x1 + 18, _oy1, _x2 - 18, _oy2, false);
+                draw_set_color((_osel || _ohov) ? c_yellow : make_color_rgb(65, 110, 150));
+                draw_rectangle(_x1 + 18, _oy1, _x2 - 18, _oy2, true);
+
+                var _opt_txt = global.sos_qte_shuffled_opts[_oi];
+                array_push(_scan_strs, _opt_txt);
+                var _dtag = (_demo_on && _oi == global.sos_qte_shuffled_corr) ? " [* DEMO]" : "";
+                draw_set_halign(fa_left);
+                draw_set_color((_osel || _ohov) ? c_white : make_color_rgb(205, 225, 245));
+                draw_text_ext_transformed(_x1 + 28, (_oy1 + _oy2) * 0.5, "[" + string(_oi + 1) + "]" + _dtag + "  " + _opt_txt, 12, (_pw - 56) / 0.66, 0.66, 0.66, 0);
+            }
+
+            if (_submit_qte) {
+                if (global.sos_ui_sel == global.sos_qte_shuffled_corr) {
+                    global.sos_ui_substep      = 1;
+                    global.sos_ui_feedback     = "COUNTERMEASURE LOCKED IN! Now enter the 2-Letter Chapter Cipher Quarantine Patch!";
+                    global.sos_ui_feedback_col = c_lime;
+                    audio_play_sound(snd_correct_ping, 10, false);
+                } else {
+                    global.sos_ui_shake        = 10;
+                    global.sos_ui_feedback     = "UNSAFE ACTION! Read the cyan PLAIN ENGLISH tip above and choose the safe cybersecurity habit!";
+                    global.sos_ui_feedback_col = make_color_rgb(255, 110, 95);
+                    audio_play_sound(wrong1, 9, false);
+                }
+            }
+        } else if (global.sos_ui_substep == 1) {
+            // Substep 1: 2-Letter Chapter Cipher Quarantine Patch
+            draw_set_halign(fa_center);
+            draw_set_color(make_color_rgb(255, 215, 65));
+            draw_text_transformed(_cx, _y1 + 52, "STEP 2/2: CHAPTER CIPHER QUARANTINE PATCH — DECODE THE 2-LETTER PATCH CODE!", 0.72, 0.72, 0);
+
+            scr_draw_sos_cipher_subpanel(_cx, _y1 + 64, _pw);
+
+            if (!_popup_open) {
+                var _cres = scr_handle_sos_cipher_input();
+                if (_cres == 1) {
+                    global.sos_catches++;
+                    global.sos_breach_pct = max(5, global.sos_breach_pct - 10);
+                    if (instance_exists(global.sos_ui_pc)) {
+                        global.sos_ui_pc.sos_saved           = true;
+                        global.sos_ui_pc.sos_locked_infected = false;
+                    }
+                    global.sos_ui_substep      = 2;
+                    global.sos_ui_win_timer    = 150;
+                    global.sos_ui_feedback     = "TERMINAL QUARANTINED! Captured " + _sym.title + " & Triangulated " + string(min(100, global.sos_catches * 33 + 1)) + "% of Patient Zero!";
+                    global.sos_ui_feedback_col = c_lime;
+                    audio_play_sound(snd_objective_complete, 10, false);
+                } else if (_cres == -1) {
+                    global.sos_ui_shake        = 10;
+                    global.sos_ui_feedback     = "CIPHER MISMATCH! Use your Floor Key on the ruler above to decode both letters!";
+                    global.sos_ui_feedback_col = make_color_rgb(255, 110, 95);
+                    audio_play_sound(wrong1, 9, false);
+                }
+            }
+        } else {
+            // Substep 2: Node Saved & Triangulation Progress Card
+            var _tri_pct = (global.sos_catches >= 3) ? 100 : (global.sos_catches * 33);
+            var _cul_sus = global.case_suspects[global.case_culprit_idx];
+
+            draw_set_color(make_color_rgb(16, 42, 30));
+            draw_rectangle(_x1 + 22, _y1 + 56, _x2 - 22, _y1 + 148, false);
+            draw_set_color(c_lime);
+            draw_rectangle(_x1 + 22, _y1 + 56, _x2 - 22, _y1 + 148, true);
+
+            draw_set_halign(fa_center);
+            draw_set_color(c_lime);
+            draw_text_transformed(_cx, _y1 + 74, "S.O.S. NODE INTERCEPTED (" + string(global.sos_catches) + "/3)  —  ORIGIN TRIANGULATION: " + string(_tri_pct) + "%", 0.84, 0.84, 0);
+
+            draw_set_halign(fa_left);
+            draw_set_color(c_white);
+            draw_text_ext_transformed(_x1 + 32, _y1 + 104, "CAPTURED " + _sym.title + ": " + _sym.symptom_text, 13, (_pw - 64) / 0.68, 0.68, 0.68, 0);
+
+            var _trace_hint = "";
+            if (global.sos_catches == 1) {
+                _trace_hint = "TRIANGULATION 33%: Origin trace narrowed to the " + _cul_sus.dept + " department! Catch 2 more hopping terminals!";
+            } else if (global.sos_catches == 2) {
+                _trace_hint = "TRIANGULATION 66%: Origin trace locking onto Desk " + _cul_sus.nameplate + "! Catch 1 more hopping terminal to finish triangulation!";
+            } else {
+                _trace_hint = "TRIANGULATION 100% COMPLETE! All 3 Symptoms captured—press [E / ENTER] to open S.O.S. PHASE 2: IDENTIFY VIRUS PROFILE!";
+            }
+            draw_set_color(make_color_rgb(255, 220, 75));
+            draw_text_ext_transformed(_x1 + 32, _y1 + 172, _trace_hint, 14, (_pw - 64) / 0.72, 0.72, 0.72, 0);
+
+            draw_set_halign(fa_center);
+            draw_set_color(c_lime);
+            draw_text_transformed(_cx, _y1 + 224, "[ PRESS E / ENTER / SPACE / CLICK TO CONTINUE ]", 0.78, 0.78, 0);
+
+            if (!_popup_open && (keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space) || mouse_check_button_pressed(mb_left))) {
+                if (global.sos_catches >= 3) {
+                    global.sos_phase = 2;
+                    scr_open_sos_ui(2, global.sos_ui_pc);
+                    return;
+                } else {
+                    global.sos_ui_open = false;
+                    scr_sos_pick_next_terminal(global.sos_ui_pc);
+                    return;
+                }
+            }
+        }
+    }
+    // =========================================================================
+    // MODE 2: PHASE 2 IDENTIFY (Option 2A — 3-Symptom Forensic Matcher)
+    // =========================================================================
+    else if (_mode == 2) {
+        if (global.sos_catches < 3) {
+            // Player pressed [TAB] during Phase 1 Search before catching all 3 terminals -> Show live S.O.S. Search Progress & Symptoms!
+            draw_set_halign(fa_center);
+            draw_set_color(make_color_rgb(255, 215, 65));
+            draw_text_transformed(_cx, _y1 + 54, "PHASE 1 SEARCH IN PROGRESS:  " + string(global.sos_catches) + " / 3 HOPPING TERMINALS INTERCEPTED", 0.78, 0.78, 0);
+            draw_set_color(c_aqua);
+            draw_text_transformed(_cx, _y1 + 72, "CURRENT LIVE INFECTION TARGET:  " + global.sos_target_room_name + "   (Follow the crimson packet trail & Blueprint Radar [M]!)", 0.68, 0.68, 0);
+
+            draw_set_halign(fa_left);
+            for (var _si = 0; _si < 3; _si++) {
+                var _sy1 = _y1 + 90 + (_si * 48);
+                var _sy2 = _sy1 + 42;
+                var _got = (_si < global.sos_catches);
+                draw_set_color(_got ? make_color_rgb(16, 36, 28) : make_color_rgb(18, 22, 32));
+                draw_rectangle(_x1 + 20, _sy1, _x2 - 20, _sy2, false);
+                draw_set_color(_got ? c_lime : make_color_rgb(75, 95, 120));
+                draw_rectangle(_x1 + 20, _sy1, _x2 - 20, _sy2, true);
+
+                draw_set_color(_got ? c_lime : make_color_rgb(160, 180, 200));
+                var _stxt = _got
+                    ? (global.sos_symptoms[_si].title + ": " + global.sos_symptoms[_si].symptom_text)
+                    : ("SYMPTOM #" + string(_si + 1) + ": [LOCKED — Catch another live-infecting terminal with S.O.S. [E] to extract!]");
+                draw_text_ext_transformed(_x1 + 28, (_sy1 + _sy2) * 0.5, _stxt, 13, (_pw - 56) / 0.64, 0.64, 0.64, 0);
+            }
+        } else {
+            // Option 2A: Match each of the 3 Captured Symptoms (Left) to its Cybersecurity Concept Card (Right)!
+            draw_set_halign(fa_left);
+            draw_set_color(make_color_rgb(255, 215, 65));
+            draw_text_transformed(_x1 + 18, _y1 + 48, "CAPTURED SYMPTOMS [W/S or Click]:", 0.66, 0.66, 0);
+            draw_set_color(c_aqua);
+            draw_text_transformed(_cx + 6, _y1 + 48, "MATCH TO CYBERSECURITY CONCEPT [1/2/3 or Click]:", 0.66, 0.66, 0);
+
+            if (!_popup_open) {
+                if (keyboard_check_pressed(vk_up) || keyboard_check_pressed(ord("W"))) {
+                    global.sos_id_sel_symptom = (global.sos_id_sel_symptom + 2) mod 3;
+                    audio_play_sound(select1, 6, false);
+                }
+                if (keyboard_check_pressed(vk_down) || keyboard_check_pressed(ord("S"))) {
+                    global.sos_id_sel_symptom = (global.sos_id_sel_symptom + 1) mod 3;
+                    audio_play_sound(select1, 6, false);
+                }
+            }
+
+            // Left Column: 3 Captured Symptoms
+            for (var _si = 0; _si < 3; _si++) {
+                var _sy1  = _y1 + 60 + (_si * 58);
+                var _sy2  = _sy1 + 52;
+                var _is_s = (_si == global.sos_id_sel_symptom);
+                var _m_ok = (global.sos_id_matched[_si] != -1);
+                var _shov = !_popup_open && point_in_rectangle(_gmx, _gmy, _x1 + 16, _sy1, _cx - 6, _sy2);
+                if (_shov && mouse_check_button_pressed(mb_left)) {
+                    global.sos_id_sel_symptom = _si;
+                    audio_play_sound(select1, 6, false);
+                }
+
+                draw_set_color(_m_ok ? make_color_rgb(16, 44, 30) : (_is_s ? make_color_rgb(26, 46, 74) : make_color_rgb(16, 22, 34)));
+                draw_rectangle(_x1 + 16, _sy1, _cx - 6, _sy2, false);
+                draw_set_color(_m_ok ? c_lime : (_is_s ? c_yellow : make_color_rgb(70, 105, 145)));
+                draw_rectangle(_x1 + 16, _sy1, _cx - 6, _sy2, true);
+
+                var _s_obj = global.sos_symptoms[_si];
+                array_push(_scan_strs, _s_obj.symptom_text);
+                draw_set_color(_m_ok ? c_lime : (_is_s ? c_yellow : c_aqua));
+                draw_text_transformed(_x1 + 22, _sy1 + 10, (_m_ok ? "[+ MATCHED] " : (_is_s ? "[> ACTIVE] " : "")) + _s_obj.title, 0.58, 0.58, 0);
+                draw_set_color(c_white);
+                draw_text_ext_transformed(_x1 + 22, _sy1 + 32, _s_obj.symptom_text, 11, (_pw * 0.5 - 34) / 0.54, 0.54, 0.54, 0);
+            }
+
+            // Right Column: 3 Taught Cybersecurity Concept Cards
+            var _pick_card = -1;
+            if (!_popup_open) {
+                if (keyboard_check_pressed(ord("1"))) _pick_card = 0;
+                if (keyboard_check_pressed(ord("2"))) _pick_card = 1;
+                if (keyboard_check_pressed(ord("3"))) _pick_card = 2;
+            }
+
+            var _need_cid = global.sos_symptoms[global.sos_id_sel_symptom].concept_id;
+            for (var _ci = 0; _ci < 3; _ci++) {
+                var _cy1  = _y1 + 60 + (_ci * 58);
+                var _cy2  = _cy1 + 52;
+                var _card = global.sos_concept_cards[_ci];
+                var _chov = !_popup_open && point_in_rectangle(_gmx, _gmy, _cx + 6, _cy1, _x2 - 16, _cy2);
+                if (_chov && mouse_check_button_pressed(mb_left)) {
+                    _pick_card = _ci;
+                }
+
+                var _already_used = false;
+                for (var _u = 0; _u < 3; _u++) {
+                    if (global.sos_id_matched[_u] == _ci) _already_used = true;
+                }
+
+                draw_set_color(_already_used ? make_color_rgb(16, 40, 28) : (_chov ? make_color_rgb(28, 52, 82) : make_color_rgb(18, 24, 38)));
+                draw_rectangle(_cx + 6, _cy1, _x2 - 16, _cy2, false);
+                draw_set_color(_already_used ? c_lime : (_chov ? c_yellow : c_aqua));
+                draw_rectangle(_cx + 6, _cy1, _x2 - 16, _cy2, true);
+
+                array_push(_scan_strs, _card.name, _card.desc);
+                var _d_tag2 = (_demo_on && !_already_used && _card.concept_id == _need_cid) ? " [* DEMO]" : "";
+                draw_set_color(_already_used ? c_lime : make_color_rgb(255, 215, 65));
+                draw_text_transformed(_cx + 12, _cy1 + 10, "[" + string(_ci + 1) + "]" + _d_tag2 + " " + _card.name, 0.56, 0.56, 0);
+                draw_set_color(make_color_rgb(210, 230, 245));
+                draw_text_ext_transformed(_cx + 12, _cy1 + 32, _card.desc, 11, (_pw * 0.5 - 34) / 0.54, 0.54, 0.54, 0);
+            }
+
+            if (_pick_card != -1) {
+                var _picked_concept = global.sos_concept_cards[_pick_card];
+                var _act_sym        = global.sos_symptoms[global.sos_id_sel_symptom];
+                if (_picked_concept.concept_id == _act_sym.concept_id) {
+                    global.sos_id_matched[global.sos_id_sel_symptom] = _pick_card;
+                    audio_play_sound(snd_correct_ping, 10, false);
+
+                    // Advance to next unmatched symptom or complete Phase 2 IDENTIFY!
+                    var _all_matched = true;
+                    for (var _mi = 0; _mi < 3; _mi++) {
+                        if (global.sos_id_matched[_mi] == -1) {
+                            global.sos_id_sel_symptom = _mi;
+                            _all_matched = false;
+                            break;
+                        }
+                    }
+                    if (_all_matched) {
+                        var _pz_sus = global.case_suspects[global.case_culprit_idx];
+                        global.sos_phase           = 3;
+                        global.sos_ui_feedback     = "VIRUS IDENTIFIED & S.O.S. KILL-SWITCH ARMED! Go to PATIENT ZERO's Desk (" + _pz_sus.nameplate + " - " + _pz_sus.name + ") and press [E] to DESTROY it!";
+                        global.sos_ui_feedback_col = c_lime;
+                        audio_play_sound(snd_objective_complete, 10, false);
+                    } else {
+                        global.sos_ui_feedback     = "SYMPTOM MATCHED! Now match Symptom #" + string(global.sos_id_sel_symptom + 1) + "!";
+                        global.sos_ui_feedback_col = c_lime;
+                    }
+                } else {
+                    global.sos_ui_shake        = 10;
+                    global.sos_ui_feedback     = "NOT QUITE! Read the symptom on the left: " + _act_sym.plain_hint;
+                    global.sos_ui_feedback_col = make_color_rgb(255, 115, 95);
+                    audio_play_sound(wrong1, 9, false);
+                }
+            }
+        }
+    }
+    // =========================================================================
+    // MODE 3: PHASE 3 DESTROY — MASTER KILL-SWITCH AT PATIENT ZERO'S DESK
+    // =========================================================================
+    else if (_mode == 3) {
+        if (global.sos_ui_substep == 0) {
+            // Wave 1: 3-Stage Rapid Concept Counter-QTE (Waves 1/3, 2/3, 3/3)
+            var _w_idx = clamp(global.sos_qte_wave, 0, 2);
+            var _wsym  = global.sos_symptoms[_w_idx];
+            array_push(_scan_strs, _wsym.qte_prompt, _wsym.plain_hint);
+
+            if (!_popup_open && global.sos_qte_timer > 0) {
+                global.sos_qte_timer--;
+                if (global.sos_qte_timer <= 0) {
+                    global.sos_qte_timer       = global.sos_qte_timer_max;
+                    global.sos_ui_shake        = 10;
+                    global.sos_ui_feedback     = "TIMER RESET! Check the cyan PLAIN ENGLISH tip and block Wave " + string(_w_idx + 1) + "/3!";
+                    global.sos_ui_feedback_col = make_color_rgb(255, 190, 65);
+                    audio_play_sound(wrong1, 8, false);
+                }
+            }
+
+            var _wpct = clamp(global.sos_qte_timer / max(1, global.sos_qte_timer_max), 0, 1);
+            draw_set_color(make_color_rgb(28, 18, 24));
+            draw_rectangle(_x1 + 18, _y1 + 44, _x2 - 18, _y1 + 56, false);
+            draw_set_color((_wpct > 0.35) ? make_color_rgb(255, 185, 55) : make_color_rgb(255, 75, 75));
+            draw_rectangle(_x1 + 18, _y1 + 44, _x1 + 18 + (_pw - 36) * _wpct, _y1 + 56, false);
+            draw_set_color(c_white);
+            draw_rectangle(_x1 + 18, _y1 + 44, _x2 - 18, _y1 + 56, true);
+            draw_text_transformed(_cx, _y1 + 50, "KILL-SWITCH WAVE " + string(_w_idx + 1) + "/3: COUNTER ROOT DEFENSE   (TIME: " + string(ceil(global.sos_qte_timer / 60)) + "s)", 0.58, 0.58, 0);
+
+            draw_set_color(make_color_rgb(26, 18, 32));
+            draw_rectangle(_x1 + 18, _y1 + 62, _x2 - 18, _y1 + 124, false);
+            draw_set_color(make_color_rgb(255, 95, 115));
+            draw_rectangle(_x1 + 18, _y1 + 62, _x2 - 18, _y1 + 124, true);
+
+            draw_set_halign(fa_left);
+            draw_set_color(make_color_rgb(255, 215, 65));
+            draw_text_ext_transformed(_x1 + 26, _y1 + 78, "PATIENT ZERO COUNTER-HACK (" + string(_w_idx + 1) + "/3): " + _wsym.qte_prompt, 13, (_pw - 52) / 0.66, 0.66, 0.66, 0);
+            draw_set_color(make_color_rgb(165, 240, 255));
+            draw_text_ext_transformed(_x1 + 26, _y1 + 108, _wsym.plain_hint, 12, (_pw - 52) / 0.62, 0.62, 0.62, 0);
+
+            var _sub_w = false;
+            if (!_popup_open) {
+                if (keyboard_check_pressed(vk_up) || keyboard_check_pressed(ord("W"))) {
+                    global.sos_ui_sel = (global.sos_ui_sel + 2) mod 3;
+                    audio_play_sound(select1, 6, false);
+                }
+                if (keyboard_check_pressed(vk_down) || keyboard_check_pressed(ord("S"))) {
+                    global.sos_ui_sel = (global.sos_ui_sel + 1) mod 3;
+                    audio_play_sound(select1, 6, false);
+                }
+                if (keyboard_check_pressed(ord("1"))) { global.sos_ui_sel = 0; _sub_w = true; }
+                if (keyboard_check_pressed(ord("2"))) { global.sos_ui_sel = 1; _sub_w = true; }
+                if (keyboard_check_pressed(ord("3"))) { global.sos_ui_sel = 2; _sub_w = true; }
+                if (keyboard_check_pressed(ord("E")) || keyboard_check_pressed(vk_enter) || keyboard_check_pressed(vk_space)) {
+                    _sub_w = true;
+                }
+            }
+
+            for (var _wi = 0; _wi < 3; _wi++) {
+                var _wy1  = _y1 + 132 + (_wi * 38);
+                var _wy2  = _wy1 + 32;
+                var _wsel = (global.sos_ui_sel == _wi);
+                var _whov = !_popup_open && point_in_rectangle(_gmx, _gmy, _x1 + 18, _wy1, _x2 - 18, _wy2);
+                if (_whov && mouse_check_button_pressed(mb_left)) {
+                    global.sos_ui_sel = _wi;
+                    _sub_w            = true;
+                }
+
+                draw_set_color((_wsel || _whov) ? make_color_rgb(56, 26, 42) : make_color_rgb(18, 20, 32));
+                draw_rectangle(_x1 + 18, _wy1, _x2 - 18, _wy2, false);
+                draw_set_color((_wsel || _whov) ? c_yellow : make_color_rgb(155, 75, 105));
+                draw_rectangle(_x1 + 18, _wy1, _x2 - 18, _wy2, true);
+
+                var _wopt = global.sos_qte_shuffled_opts[_wi];
+                array_push(_scan_strs, _wopt);
+                var _wdtag = (_demo_on && _wi == global.sos_qte_shuffled_corr) ? " [* DEMO]" : "";
+                draw_set_halign(fa_left);
+                draw_set_color((_wsel || _whov) ? c_white : make_color_rgb(225, 215, 235));
+                draw_text_ext_transformed(_x1 + 28, (_wy1 + _wy2) * 0.5, "[" + string(_wi + 1) + "]" + _wdtag + "  " + _wopt, 12, (_pw - 56) / 0.66, 0.66, 0.66, 0);
+            }
+
+            if (_sub_w) {
+                if (global.sos_ui_sel == global.sos_qte_shuffled_corr) {
+                    global.sos_qte_wave++;
+                    audio_play_sound(snd_correct_ping, 10, false);
+                    if (global.sos_qte_wave >= 3) {
+                        global.sos_ui_substep      = 1;
+                        global.sos_ui_feedback     = "ALL 3 VIRUS SHIELDS SHATTERED! Enter the 4-Letter Master Chapter Cipher Kill-Code to DESTROY it!";
+                        global.sos_ui_feedback_col = c_lime;
+                    } else {
+                        scr_sos_prepare_qte_options(global.sos_qte_wave);
+                        global.sos_qte_timer       = global.sos_qte_timer_max;
+                        global.sos_ui_feedback     = "SHIELD " + string(global.sos_qte_wave) + "/3 BROKEN! Next wave incoming!";
+                        global.sos_ui_feedback_col = c_lime;
+                    }
+                } else {
+                    global.sos_ui_shake        = 10;
+                    global.sos_ui_feedback     = "COUNTER-HACK BLOCKED YOU! Read the cyan PLAIN ENGLISH tip and pick the safe defense!";
+                    global.sos_ui_feedback_col = make_color_rgb(255, 110, 95);
+                    audio_play_sound(wrong1, 9, false);
+                }
+            }
+        } else if (global.sos_ui_substep == 1) {
+            // Wave 2: 4-Letter Master Chapter Cipher Kill-Code
+            draw_set_halign(fa_center);
+            draw_set_color(make_color_rgb(255, 215, 65));
+            draw_text_transformed(_cx, _y1 + 52, "FINAL KILL-SWITCH: DECODE THE 4-LETTER MASTER CHAPTER CIPHER KILL-CODE!", 0.72, 0.72, 0);
+
+            scr_draw_sos_cipher_subpanel(_cx, _y1 + 64, _pw);
+
+            if (!_popup_open) {
+                var _kres = scr_handle_sos_cipher_input();
+                if (_kres == 1) {
+                    // OUTBREAK ERADICATED!
+                    global.sos_phase           = 4;
+                    global.sos_breach_pct      = 0;
+                    global.incident_solved     = true;
+                    global.lockdown_overridden = true;
+                    global.sos_ui_open         = false;
+
+                    with (obj_dungeon_prop) {
+                        if (prop_type == TILE_PROP_PC) {
+                            sos_locked_infected = false;
+                            sos_saved           = true;
+                        }
+                    }
+                    audio_play_sound(snd_player_packet_win, 10, false);
+                    audio_play_sound(snd_objective_complete, 10, false);
+                    return;
+                } else if (_kres == -1) {
+                    global.sos_ui_shake        = 10;
+                    global.sos_ui_feedback     = "KILL-CODE MISMATCH! Use your Floor Key on the ruler above to decode all 4 letters!";
+                    global.sos_ui_feedback_col = make_color_rgb(255, 110, 95);
+                    audio_play_sound(wrong1, 9, false);
+                }
+            }
+        }
+    }
+
+    // DEMO / PRESENTER SHORTCUT: [Ctrl + P] auto-solves the active S.O.S. step!
+    if (!_popup_open && keyboard_check(vk_control) && keyboard_check_pressed(ord("P"))) {
+        audio_play_sound(snd_correct_ping, 9, false);
+        if (_mode == 1) {
+            if (global.sos_ui_substep == 0) {
+                global.sos_ui_substep = 1;
+            } else if (global.sos_ui_substep == 1) {
+                for (var _pi = 0; _pi < global.sos_cipher_len; _pi++) {
+                    global.sos_cipher_input[_pi] = string_char_at(global.sos_cipher_plain, _pi + 1);
+                }
+            }
+        } else if (_mode == 2) {
+            global.sos_catches = 3;
+            for (var _mi2 = 0; _mi2 < 3; _mi2++) {
+                var _cid = global.sos_symptoms[_mi2].concept_id;
+                for (var _cj = 0; _cj < 3; _cj++) {
+                    if (global.sos_concept_cards[_cj].concept_id == _cid) global.sos_id_matched[_mi2] = _cj;
+                }
+            }
+            global.sos_phase       = 3;
+            var _pz_s2             = global.case_suspects[global.case_culprit_idx];
+            global.sos_ui_feedback = "VIRUS IDENTIFIED! Go to PATIENT ZERO's Desk (" + _pz_s2.nameplate + " - " + _pz_s2.name + ") and press [E]!";
+            global.sos_ui_feedback_col = c_lime;
+        } else if (_mode == 3) {
+            if (global.sos_ui_substep == 0) {
+                global.sos_qte_wave   = 3;
+                global.sos_ui_substep = 1;
+            } else {
+                for (var _pi2 = 0; _pi2 < global.sos_cipher_len; _pi2++) {
+                    global.sos_cipher_input[_pi2] = string_char_at(global.sos_cipher_plain, _pi2 + 1);
+                }
+            }
+        }
+    }
+
+    // Bottom Feedback & Controls Footer inside S.O.S. Window
+    draw_set_color(make_color_rgb(14, 22, 36));
+    draw_rectangle(_x1 + 16, _y2 - 58, _x2 - 16, _y2 - 24, false);
+    draw_set_color((global.sos_ui_feedback != "") ? global.sos_ui_feedback_col : make_color_rgb(70, 115, 155));
+    draw_rectangle(_x1 + 16, _y2 - 58, _x2 - 16, _y2 - 24, true);
+
+    draw_set_halign(fa_center);
+    var _fmsg = (global.sos_ui_feedback != "")
+        ? global.sos_ui_feedback
+        : ((_mode == 2 && global.sos_phase == 3)
+            ? ("KILL-SWITCH READY! Close [ESC / TAB] and head to Desk " + global.case_suspects[global.case_culprit_idx].nameplate + " (" + global.case_suspects[global.case_culprit_idx].name + ")!")
+            : "TIP: Click any cybersecurity term below for a plain-English definition, or press [Ctrl+P] in Demo Mode!");
+    draw_set_color((global.sos_ui_feedback != "") ? global.sos_ui_feedback_col : make_color_rgb(200, 225, 245));
+    draw_text_ext_transformed(_cx, _y2 - 41, _fmsg, 12, (_pw - 44) / 0.62, 0.62, 0.62, 0);
+
+    draw_set_color(make_color_rgb(160, 195, 225));
+    draw_text_transformed(_cx, _y2 - 12, "[ESC / TAB] Close S.O.S. Console   |   [C] Open Full Cyber Field Manual", 0.60, 0.60, 0);
+
+    // Clickable Cyber Terms Bar below S.O.S. Console + Quick-Definition Popup
+    var _sos_terms = scr_scan_clickable_terms(_scan_strs, 5);
+    if (array_length(_sos_terms) > 0) {
+        scr_draw_clickable_term_bar(_x1 + 12, _y2 + 4, _pw - 24, _sos_terms, "CLICK ANY TERM FOR A QUICK DEFINITION:");
+    }
+    scr_draw_term_quick_popup();
+
+    if (!_popup_open) {
+        if (keyboard_check_pressed(ord("C"))) {
+            keyboard_clear(ord("C"));
+            global.sos_ui_open = false;
+            scr_open_codex_to_current_floor_topic();
+            return;
+        }
+        if (keyboard_check_pressed(vk_escape) || (_mode == 2 && keyboard_check_pressed(vk_tab))) {
+            if (keyboard_check_pressed(vk_escape)) {
+                global.esc_block_frames = 2;
+                keyboard_clear(vk_escape);
+            }
+            if (keyboard_check_pressed(vk_tab)) keyboard_clear(vk_tab);
+            global.sos_ui_open = false;
+            audio_play_sound(snd_button_click, 6, false);
+        }
+    }
 
     draw_set_halign(fa_left);
     draw_set_valign(fa_top);

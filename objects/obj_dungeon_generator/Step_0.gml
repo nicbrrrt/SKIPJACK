@@ -106,6 +106,7 @@ var _any_ui_busy = instance_exists(obj_textbox)
     || (variable_global_exists("override_ui_open")   && global.override_ui_open)
     || (variable_global_exists("breaker_ui_open")    && global.breaker_ui_open)
     || (variable_global_exists("scrap_ui_open")      && global.scrap_ui_open)
+    || (variable_global_exists("sos_ui_open")        && global.sos_ui_open)
     || (variable_global_exists("bot_grapple_active") && global.bot_grapple_active)
     || instance_exists(obj_cipher)
     || instance_exists(obj_dungeon_quiz)
@@ -289,9 +290,12 @@ if (!intro_pending && instance_exists(obj_jack) && !_any_ui_busy && !_pan_active
     // Milestone C (ALL Floors 1-10): Lockdown Overridden -> Pan to Power Breaker Room (watch door unseal!)
     else if (!cutscene_override_shown && global.lockdown_overridden) {
         cutscene_override_shown = true;
+        var _c_line = (variable_global_exists("sos_active") && global.sos_active)
+            ? "S.O.S. MASTER KILL-SWITCH EXECUTED! Patient Zero is purged, every locked computer on the floor is restored, the patrol bots are asleep, and the Power Breaker Room just unsealed! Head inside with 2 Scrap [RMB] to fix the 3 fuses!"
+            : "Lockdown overridden! The patrol bots are now harmless, and the Power Breaker Room door just unsealed—make sure you have at least 2 Scrap (Right-Click [RMB] on terminals) and head inside to fix the 3 fuses!";
         scr_trigger_dungeon_camera_cutscene(
-            ["Lockdown overridden! The patrol bots are now harmless, and the Power Breaker Room door just unsealed—make sure you have at least 2 Scrap (Right-Click [RMB] on terminals) and head inside to fix the 3 fuses!"],
-            [{ tx: _brk_tx, ty: _brk_ty, label: "LOCKDOWN OVERRIDDEN! -> BREAKER ROOM UNSEALED", sublabel: "Need 2 Scrap [RMB] -> Enter & Fix the 3 Breaker Fuses [E]!", col: c_aqua }]
+            [_c_line],
+            [{ tx: _brk_tx, ty: _brk_ty, label: "OUTBREAK PURGED! -> BREAKER ROOM UNSEALED", sublabel: "Need 2 Scrap [RMB] -> Enter & Fix the 3 Breaker Fuses [E]!", col: c_aqua }]
         );
         _pan_active = true;
     }
@@ -323,6 +327,41 @@ if (!intro_pending && instance_exists(obj_jack) && !_any_ui_busy && !_pan_active
         audio_play_sound(snd_select, 8, false);
     }
 
+    // Floor 10 Final Exam S.O.S. Live Outbreak Trigger & Per-Frame Hop / Breach Manager
+    if (!_pan_active && !_any_ui_busy && variable_global_exists("sos_active") && global.sos_active
+        && variable_global_exists("has_dungeon_cipher_key") && global.has_dungeon_cipher_key) {
+
+        if (global.sos_phase == 0) {
+            // Cipher Key acquired -> Launch Phase 1 SEARCH Outbreak Manhunt!
+            global.sos_phase = 1;
+            // Lock 2 background non-suspect terminals right at the start so the floor already feels under attack
+            var _pre_locked = 0;
+            var _cul_i      = variable_global_exists("case_culprit_idx") ? global.case_culprit_idx : 0;
+            with (obj_dungeon_prop) {
+                if (_pre_locked < 2 && prop_type == TILE_PROP_PC && !is_scrapped && !is_holding_clue && !is_vault_hint_pc && suspect_idx < 0) {
+                    sos_locked_infected = true;
+                    _pre_locked++;
+                }
+            }
+            scr_sos_pick_next_terminal(noone);
+
+            var _t_pc = global.sos_target_pc;
+            var _tx_s = instance_exists(_t_pc) ? (_t_pc.x + 8) : obj_jack.x;
+            var _ty_s = instance_exists(_t_pc) ? (_t_pc.y + 8) : obj_jack.y;
+            scr_trigger_dungeon_camera_cutscene(
+                [
+                    "KYLE: EMERGENCY ALERT, JACK! The Floor 10 virus just went LIVE—it's actively hopping from terminal to terminal across the building network!",
+                    "KYLE: Launch S.O.S. (Save Our System): (1) SEARCH — Follow the crimson packet stream & Blueprint Radar [M] to catch 3 live-infecting terminals [E], (2) IDENTIFY — Match the 3 captured symptoms on [TAB], and (3) DESTROY — Cut the head off the snake at Patient Zero's desk!"
+                ],
+                [
+                    { tx: _tx_s,      ty: _ty_s,          label: "S.O.S. PHASE 1/3: SEARCH LIVE TERMINALS!", sublabel: "Follow the Crimson Packet Stream & Radar [M] -> Press [E]!", col: make_color_rgb(255, 75, 95) },
+                    { tx: obj_jack.x, ty: obj_jack.y - 12, label: "S.O.S. (SAVE OUR SYSTEM) ACTIVE",          sublabel: "1. Search (3 Catches) -> 2. Identify [TAB] -> 3. Destroy!",  col: c_aqua }
+                ]
+            );
+            _pan_active = true;
+        }
+    }
+
     // One-Time Visual Mechanic Demos (Clickable Terms, Security Bots, Scrapping)
     if (!_pan_active && !_any_ui_busy && !global.preshift_briefing_open && global.visual_tut_kind == "") {
         if (!global.tut_seen_terms && global.chapter_floor == 1 && !intro_pending) {
@@ -334,6 +373,51 @@ if (!intro_pending && instance_exists(obj_jack) && !_any_ui_busy && !_pan_active
         } else if (!global.tut_seen_scrap && cutscene_key_shown && global.has_dungeon_cipher_key) {
             global.tut_seen_scrap  = true;
             global.visual_tut_kind = "scrapping";
+        }
+    }
+}
+
+// Tick Floor 10 S.O.S. Packet Arc, Hop Timer, Breach Progress % & Proximity Sonar when not paused or in UI
+if (variable_global_exists("sos_active") && global.sos_active && !(variable_global_exists("is_paused") && global.is_paused)) {
+    if (global.sos_arc_timer > 0) global.sos_arc_timer--;
+
+    if (!_any_ui_busy && !_pan_active && global.sos_phase >= 1 && global.sos_phase <= 3) {
+        // Slowly tick floor-wide Network Breach Progress % upward
+        var _b_rate = (global.sos_phase == 1) ? (0.30 / 60.0) : (0.18 / 60.0);
+        global.sos_breach_pct = min(99.0, global.sos_breach_pct + _b_rate);
+
+        if (global.sos_phase == 1) {
+            if (!instance_exists(global.sos_target_pc) || global.sos_target_pc.is_scrapped) {
+                scr_sos_pick_next_terminal(noone);
+            }
+            global.sos_hop_timer--;
+            if (global.sos_hop_timer <= 0) {
+                var _old_pc = global.sos_target_pc;
+                if (instance_exists(_old_pc)) {
+                    _old_pc.sos_locked_infected = true;
+                }
+                global.sos_breach_pct = min(98.0, global.sos_breach_pct + 8.0);
+                scr_sos_pick_next_terminal(_old_pc);
+                quest_toast_timer = 155;
+                quest_toast_title = "TERMINAL INFECTED — VIRUS HOPPED!";
+                quest_toast_sub   = "New Live Infection Target: " + global.sos_target_room_name + " (Check Radar [M]!)";
+                quest_toast_col   = make_color_rgb(255, 85, 95);
+                audio_play_sound(wrong1, 7, false);
+            }
+
+            // Subtle proximity Geiger/Sonar audio ping as Jack gets closer to the active infecting terminal
+            if (instance_exists(obj_jack) && instance_exists(global.sos_target_pc)) {
+                var _d_sos = point_distance(obj_jack.x, obj_jack.y, global.sos_target_pc.x, global.sos_target_pc.y);
+                global.sos_sonar_cd--;
+                if (global.sos_sonar_cd <= 0) {
+                    global.sos_sonar_cd = clamp(floor(_d_sos / 5), 24, 110);
+                    if (_d_sos < 260) {
+                        var _s_ping = audio_play_sound(snd_button_hover, 2, false);
+                        audio_sound_gain(_s_ping, clamp(1.0 - (_d_sos / 280), 0.15, 0.55), 0);
+                        audio_sound_pitch(_s_ping, 1.35);
+                    }
+                }
+            }
         }
     }
 }

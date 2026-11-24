@@ -53,6 +53,7 @@ if (instance_exists(obj_textevent)
     || (variable_global_exists("override_ui_open")  && global.override_ui_open)
     || (variable_global_exists("breaker_ui_open")   && global.breaker_ui_open)
     || (variable_global_exists("scrap_ui_open")     && global.scrap_ui_open)
+    || (variable_global_exists("sos_ui_open")       && global.sos_ui_open)
     || instance_exists(obj_cipher)
     || instance_exists(obj_dungeon_quiz)
     || instance_exists(obj_dungeon_victory))
@@ -380,6 +381,22 @@ if (player_near && _wrench_pressed && !is_scrapped && (prop_type == TILE_PROP_PC
         audio_play_sound(wrong1, 6, false);
         exit;
     }
+    if (prop_type == TILE_PROP_PC && variable_global_exists("sos_active") && global.sos_active
+        && variable_global_exists("has_dungeon_cipher_key") && global.has_dungeon_cipher_key
+        && global.sos_phase >= 1 && global.sos_phase <= 3) {
+        if (global.sos_phase == 1 && variable_global_exists("sos_target_pc") && global.sos_target_pc == id) {
+            scrap_pop_timer = 85;
+            scrap_pop_text  = "LIVE INFECTION! PRESS [E] FOR S.O.S. INTERCEPT!";
+            audio_play_sound(wrong1, 6, false);
+            exit;
+        }
+        if (variable_global_exists("case_culprit_idx") && suspect_idx == global.case_culprit_idx) {
+            scrap_pop_timer = 85;
+            scrap_pop_text  = "PATIENT ZERO HOST! PRESS [E] FOR S.O.S.!";
+            audio_play_sound(wrong1, 6, false);
+            exit;
+        }
+    }
 
     // If circuits were fried by Anti-Tamper on a previous wrong encryption, spend 1 Scrap to fix!
     if (is_fried) {
@@ -445,6 +462,44 @@ if (player_near && keyboard_check_pressed(ord("E"))) {
             global.bot_grapple_active = true;
             audio_play_sound(snd_select, 8, false);
             exit;
+        }
+    }
+
+    // Floor 10 Final Exam S.O.S. (Save Our System) Live Outbreak Terminal Interactions
+    var _sos_on = (variable_global_exists("sos_active") && global.sos_active
+                && variable_global_exists("has_dungeon_cipher_key") && global.has_dungeon_cipher_key
+                && !is_holding_clue && !is_vault_hint_pc);
+    if (prop_type == TILE_PROP_PC && _sos_on && global.sos_phase >= 1 && global.sos_phase <= 3) {
+        keyboard_clear(ord("E"));
+        if (global.sos_phase == 1) {
+            if (variable_global_exists("sos_target_pc") && global.sos_target_pc == id) {
+                scr_open_sos_ui(1, id);
+                exit;
+            } else if (variable_instance_exists(id, "sos_locked_infected") && sos_locked_infected) {
+                scrap_pop_timer = 110;
+                scrap_pop_text  = "VIRUS HOPPED TO: " + string_upper(global.sos_target_room_name) + "!";
+                audio_play_sound(wrong1, 6, false);
+                exit;
+            } else {
+                scrap_pop_timer = 110;
+                scrap_pop_text  = "S.O.S. TRACE -> " + string_upper(global.sos_target_room_name) + " (" + string(global.sos_catches) + "/3)";
+                audio_play_sound(snd_button_hover, 6, false);
+                exit;
+            }
+        } else if (global.sos_phase == 2) {
+            scr_open_sos_ui(2, id);
+            exit;
+        } else if (global.sos_phase == 3) {
+            if (variable_global_exists("case_culprit_idx") && suspect_idx == global.case_culprit_idx) {
+                scr_open_sos_ui(3, id);
+                exit;
+            } else {
+                var _pz_s = global.case_suspects[global.case_culprit_idx];
+                scrap_pop_timer = 115;
+                scrap_pop_text  = "GO TO PATIENT ZERO: DESK " + _pz_s.nameplate + " (" + _pz_s.name + ")!";
+                audio_play_sound(snd_button_hover, 6, false);
+                exit;
+            }
         }
     }
 

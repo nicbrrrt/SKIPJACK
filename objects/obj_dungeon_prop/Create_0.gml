@@ -64,3 +64,5 @@ spawn_room_type  = -1;    // Room type this PC spawned in
 spawn_in_enc     = false; // True if spawned inside an encrypted room
 is_vault_hint_pc = false; // True for the dedicated Security Sector PC holding the Key Vault hint
 npc_info_tier    = 0;     // 0 = unaware coworker, 1 = surface lead, 2 = corroborating witness
+sos_locked_infected = false; // Floor 10 S.O.S.: True when hopping virus locked this terminal before Jack caught it
+sos_saved           = false; // Floor 10 S.O.S.: True once Jack intercepted & patched this terminal with S.O.S.

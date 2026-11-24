@@ -111,5 +111,57 @@ if (!_power_restored && !_lockdown_lifted && instance_exists(obj_jack) && obj_ja
     draw_circle(obj_jack.x, obj_jack.y - 8, 14, false);
 }
 
+// Floor 10 S.O.S. Physical Packet-Hop Stream & Live Directional Network Vector
+if (variable_global_exists("sos_active") && global.sos_active && variable_global_exists("has_dungeon_cipher_key") && global.has_dungeon_cipher_key) {
+    // 1. High-visibility Crimson Network Packet Stream physically leaping from Old Terminal -> New Terminal!
+    if (variable_global_exists("sos_arc_timer") && global.sos_arc_timer > 0) {
+        var _ax1  = global.sos_arc_x1;
+        var _ay1  = global.sos_arc_y1;
+        var _ax2  = global.sos_arc_x2;
+        var _ay2  = global.sos_arc_y2;
+        var _apct = 1.0 - (global.sos_arc_timer / 95.0);
+
+        draw_set_alpha(0.55);
+        draw_set_color(make_color_rgb(255, 55, 85));
+        draw_line_width(_ax1, _ay1, _ax2, _ay2, 2);
+
+        for (var _pk = 0; _pk < 4; _pk++) {
+            var _t = clamp(_apct * 1.35 - (_pk * 0.14), 0.0, 1.0);
+            var _px = lerp(_ax1, _ax2, _t);
+            var _py = lerp(_ay1, _ay2, _t) - sin(_t * pi) * 18;
+            draw_set_alpha(0.95);
+            draw_set_color((_pk == 0) ? c_yellow : make_color_rgb(255, 70, 95));
+            draw_circle(_px, _py, (_pk == 0) ? 4.5 : 3.0, false);
+        }
+    }
+
+    // 2. Subtle Directional Subnet Trace Arrow around Jack pointing toward the active S.O.S. Target / Patient Zero
+    if (instance_exists(obj_jack) && obj_jack.visible && (global.sos_phase == 1 || global.sos_phase == 3)) {
+        var _t_inst = noone;
+        if (global.sos_phase == 1 && variable_global_exists("sos_target_pc") && instance_exists(global.sos_target_pc)) {
+            _t_inst = global.sos_target_pc;
+        } else if (global.sos_phase == 3 && variable_global_exists("case_culprit_idx")) {
+            var _c_i = global.case_culprit_idx;
+            with (obj_dungeon_prop) {
+                if (prop_type == TILE_PROP_PC && suspect_idx == _c_i) {
+                    _t_inst = id;
+                    break;
+                }
+            }
+        }
+        if (instance_exists(_t_inst) && point_distance(obj_jack.x, obj_jack.y, _t_inst.x + 8, _t_inst.y + 8) > 36) {
+            var _ang = point_direction(obj_jack.x, obj_jack.y - 8, _t_inst.x + 8, _t_inst.y + 8);
+            var _px1 = obj_jack.x + lengthdir_x(18, _ang);
+            var _py1 = (obj_jack.y - 8) + lengthdir_y(18, _ang);
+            var _px2 = obj_jack.x + lengthdir_x(25, _ang);
+            var _py2 = (obj_jack.y - 8) + lengthdir_y(25, _ang);
+            draw_set_alpha(0.75);
+            draw_set_color((current_time mod 300 < 150) ? c_yellow : make_color_rgb(255, 75, 95));
+            draw_line_width(_px1, _py1, _px2, _py2, 2);
+            draw_circle(_px2, _py2, 2.2, false);
+        }
+    }
+}
+
 draw_set_color(c_white);
 draw_set_alpha(1.0);
