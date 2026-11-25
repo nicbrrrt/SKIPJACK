@@ -135,20 +135,11 @@ if (variable_global_exists("sos_active") && global.sos_active && variable_global
         }
     }
 
-    // 2. Subtle Directional Subnet Trace Arrow around Jack pointing toward the active S.O.S. Target / Patient Zero
+    // 2. Subtle Directional Subnet Trace Arrow around Jack pointing toward the active S.O.S. Target / Patient Zero (O(1) cached!)
     if (instance_exists(obj_jack) && obj_jack.visible && (global.sos_phase == 1 || global.sos_phase == 3)) {
-        var _t_inst = noone;
-        if (global.sos_phase == 1 && variable_global_exists("sos_target_pc") && instance_exists(global.sos_target_pc)) {
-            _t_inst = global.sos_target_pc;
-        } else if (global.sos_phase == 3 && variable_global_exists("case_culprit_idx")) {
-            var _c_i = global.case_culprit_idx;
-            with (obj_dungeon_prop) {
-                if (prop_type == TILE_PROP_PC && suspect_idx == _c_i) {
-                    _t_inst = id;
-                    break;
-                }
-            }
-        }
+        var _t_inst = (global.sos_phase == 1)
+            ? (variable_global_exists("sos_target_pc") ? global.sos_target_pc : noone)
+            : scr_sos_get_pz_pc();
         if (instance_exists(_t_inst) && point_distance(obj_jack.x, obj_jack.y, _t_inst.x + 8, _t_inst.y + 8) > 36) {
             var _ang = point_direction(obj_jack.x, obj_jack.y - 8, _t_inst.x + 8, _t_inst.y + 8);
             var _px1 = obj_jack.x + lengthdir_x(18, _ang);

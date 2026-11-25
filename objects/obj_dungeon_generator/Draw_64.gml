@@ -1695,20 +1695,11 @@ if (variable_instance_exists(id, "room_discovered")) {
         }
     }
 
-    // 2c. Floor 10 S.O.S. Live Infection Target / Pinpointed Patient Zero Beacon on Blueprint Radar [M]
+    // 2c. Floor 10 S.O.S. Live Infection Target / Pinpointed Patient Zero Beacon on Blueprint Radar [M] (O(1) cached!)
     if (variable_global_exists("sos_active") && global.sos_active && _has_key && (global.sos_phase == 1 || global.sos_phase == 3)) {
-        var _sos_r_inst = noone;
-        if (global.sos_phase == 1 && variable_global_exists("sos_target_pc") && instance_exists(global.sos_target_pc)) {
-            _sos_r_inst = global.sos_target_pc;
-        } else if (global.sos_phase == 3 && variable_global_exists("case_culprit_idx")) {
-            var _cul_r = global.case_culprit_idx;
-            with (obj_dungeon_prop) {
-                if (prop_type == TILE_PROP_PC && suspect_idx == _cul_r) {
-                    _sos_r_inst = id;
-                    break;
-                }
-            }
-        }
+        var _sos_r_inst = (global.sos_phase == 1)
+            ? (variable_global_exists("sos_target_pc") ? global.sos_target_pc : noone)
+            : scr_sos_get_pz_pc();
         if (instance_exists(_sos_r_inst)) {
             var _sc = clamp(floor((_sos_r_inst.x + 8) / _chunk_px_b), 0, LOGIC_GRID_W - 1);
             var _sr = clamp(floor((_sos_r_inst.y + 8) / _chunk_px_b), 0, LOGIC_GRID_H - 1);

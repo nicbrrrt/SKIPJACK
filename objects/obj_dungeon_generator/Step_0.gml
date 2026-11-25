@@ -338,7 +338,7 @@ if (!intro_pending && instance_exists(obj_jack) && !_any_ui_busy && !_pan_active
             var _pre_locked = 0;
             var _cul_i      = variable_global_exists("case_culprit_idx") ? global.case_culprit_idx : 0;
             with (obj_dungeon_prop) {
-                if (_pre_locked < 2 && prop_type == TILE_PROP_PC && !is_scrapped && !is_holding_clue && !is_vault_hint_pc && suspect_idx < 0) {
+                if (_pre_locked < 2 && prop_type == TILE_PROP_PC && spawn_room_type == ROOM_NORMAL && !is_scrapped && !is_holding_clue && !is_vault_hint_pc && suspect_idx < 0) {
                     sos_locked_infected = true;
                     _pre_locked++;
                 }

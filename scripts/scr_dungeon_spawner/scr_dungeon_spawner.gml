@@ -209,6 +209,15 @@ function scr_dungeon_spawn(logic_map, path_list) {
                         break;
 
                     case TILE_PROP_PC:
+                        // Never spawn office PCs inside special facility rooms (Breaker, Key Vault, Override, Elevator, Start)
+                        if (room_type == ROOM_POWER || room_type == ROOM_CAESAR_KEY || room_type == ROOM_CAESAR_LOCKED
+                            || room_type == ROOM_END || room_type == ROOM_START) {
+                            var _pf_spc = instance_create_layer(px, py, layer_name, obj_floor);
+                            _pf_spc.depth       = 50;
+                            _pf_spc.floor_style = 0;
+                            _pf_spc.room_theme  = room_type;
+                            break;
+                        }
                     case TILE_PROP_CHAIR:
                     case TILE_PROP_PAPER:
                     case TILE_PROP_OVERRIDE:
@@ -220,6 +229,7 @@ function scr_dungeon_spawn(logic_map, path_list) {
                         var _pr = instance_create_layer(px, py, layer_name, obj_dungeon_prop);
                         _pr.depth       = (tile_val == TILE_PROP_PAPER) ? 45 : (28 - tile_row);
                         _pr.prop_type   = tile_val;
+                        _pr.spawn_room_type = room_type;
                         if (tile_val == TILE_PROP_OVERRIDE) {
                             global.override_prop_inst = _pr;
                         } else if (tile_val == TILE_PROP_BREAKER) {

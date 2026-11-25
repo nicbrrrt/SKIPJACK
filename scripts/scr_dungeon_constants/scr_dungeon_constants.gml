@@ -5324,6 +5324,9 @@ function scr_init_sos_final_exam() {
     global.sos_hop_timer_max      = 60 * 30; // 30s per terminal hop window (pauses during UI/locks)
     global.sos_hop_timer          = global.sos_hop_timer_max;
     global.sos_target_pc          = noone;
+    global.sos_pz_pc              = noone;
+    global.sos_terms_cache_key    = "";
+    global.sos_cached_terms       = [];
     global.sos_target_room_name   = "Office Network";
     global.sos_arc_timer          = 0;
     global.sos_arc_x1             = 0;
@@ -5499,7 +5502,7 @@ function scr_sos_pick_next_terminal(_from_pc) {
     var _any_ok  = [];
 
     with (obj_dungeon_prop) {
-        if (prop_type == TILE_PROP_PC && !is_scrapped && !is_holding_clue && !is_vault_hint_pc) {
+        if (prop_type == TILE_PROP_PC && spawn_room_type == ROOM_NORMAL && !is_scrapped && !is_holding_clue && !is_vault_hint_pc) {
             if (suspect_idx == _cul_idx) continue; // Keep Patient Zero reserved for Phase 3 Destroy!
             if (id == _from_pc) continue;
             var _saved = variable_instance_exists(id, "sos_saved") && sos_saved;
@@ -5521,7 +5524,7 @@ function scr_sos_pick_next_terminal(_from_pc) {
         _chosen.sos_locked_infected = false;
     } else {
         with (obj_dungeon_prop) {
-            if (prop_type == TILE_PROP_PC && !is_holding_clue) {
+            if (prop_type == TILE_PROP_PC && spawn_room_type == ROOM_NORMAL && !is_holding_clue && !is_vault_hint_pc) {
                 _chosen = id;
                 break;
             }
@@ -6321,8 +6324,13 @@ function scr_draw_sos_ui(_gui_w, _gui_h) {
     draw_set_color(make_color_rgb(160, 195, 225));
     draw_text_transformed(_cx, _y2 - 12, "[ESC / TAB] Close S.O.S. Console   |   [C] Open Full Cyber Field Manual", 0.60, 0.60, 0);
 
-    // Clickable Cyber Terms Bar below S.O.S. Console + Quick-Definition Popup
-    var _sos_terms = scr_scan_clickable_terms(_scan_strs, 5);
+    // Clickable Cyber Terms Bar below S.O.S. Console + Quick-Definition Popup (cached per screen state!)
+    var _t_key = string(_mode) + "_" + string(global.sos_ui_substep) + "_" + string(global.sos_catches) + "_" + string(global.sos_qte_wave);
+    if (!variable_global_exists("sos_terms_cache_key") || global.sos_terms_cache_key != _t_key) {
+        global.sos_terms_cache_key = _t_key;
+        global.sos_cached_terms    = scr_scan_clickable_terms(_scan_strs, 5);
+    }
+    var _sos_terms = global.sos_cached_terms;
     if (array_length(_sos_terms) > 0) {
         scr_draw_clickable_term_bar(_x1 + 12, _y2 + 4, _pw - 24, _sos_terms, "CLICK ANY TERM FOR A QUICK DEFINITION:");
     }
@@ -6349,4 +6357,20 @@ function scr_draw_sos_ui(_gui_w, _gui_h) {
     draw_set_halign(fa_left);
     draw_set_valign(fa_top);
     draw_set_color(c_white);
+}
+
+function scr_sos_get_pz_pc() {
+    if (variable_global_exists("sos_pz_pc") && instance_exists(global.sos_pz_pc)) {
+        return global.sos_pz_pc;
+    }
+    if (variable_global_exists("case_culprit_idx")) {
+        var _ci = global.case_culprit_idx;
+        with (obj_dungeon_prop) {
+            if (prop_type == TILE_PROP_PC && suspect_idx == _ci) {
+                global.sos_pz_pc = id;
+                return id;
+            }
+        }
+    }
+    return noone;
 }

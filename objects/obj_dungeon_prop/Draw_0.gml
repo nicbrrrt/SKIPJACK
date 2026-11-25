@@ -177,7 +177,7 @@ if (prop_type == TILE_PROP_PC) {
         draw_line(_sx1, _sy1 - 2, _sx1, _sy1 + 2);
     }
 
-    // Floor 10 Final Exam S.O.S. (Save Our System) Live Outbreak Monitor Overlays
+    // Floor 10 Final Exam S.O.S. (Save Our System) Live Outbreak Monitor Overlays (Camera-Culled!)
     if (!is_scrapped && variable_global_exists("sos_active") && global.sos_active
         && variable_global_exists("has_dungeon_cipher_key") && global.has_dungeon_cipher_key) {
         var _is_sos_target = (global.sos_phase == 1 && variable_global_exists("sos_target_pc") && global.sos_target_pc == id);
@@ -185,52 +185,65 @@ if (prop_type == TILE_PROP_PC) {
         var _is_sos_locked = (variable_instance_exists(id, "sos_locked_infected") && sos_locked_infected);
         var _is_sos_saved  = (variable_instance_exists(id, "sos_saved") && sos_saved);
 
-        draw_set_font(fnt_dialogue);
-        draw_set_halign(fa_center);
-        draw_set_valign(fa_middle);
+        if (_is_sos_target || _is_sos_pz || _is_sos_locked || _is_sos_saved) {
+            var _cam = view_camera[0];
+            var _vx  = camera_get_view_x(_cam) - 36;
+            var _vy  = camera_get_view_y(_cam) - 36;
+            var _vw  = camera_get_view_width(_cam) + 72;
+            var _vh  = camera_get_view_height(_cam) + 72;
 
-        if (_is_sos_target || _is_sos_pz) {
-            var _sp = 0.5 + 0.5 * sin(current_time / 95);
-            draw_set_alpha(0.18 + 0.14 * _sp);
-            draw_set_color(make_color_rgb(255, 45, 75));
-            draw_circle(_cx, y + 10, 18, false);
-            draw_set_alpha(0.90);
-            draw_set_color((current_time mod 260 < 130) ? c_red : c_yellow);
-            draw_circle(_cx, y + 10, 14 + 3 * _sp, true);
+            if (x >= _vx && x <= _vx + _vw && y >= _vy && y <= _vy + _vh) {
+                if (_is_sos_target || _is_sos_pz) {
+                    var _sp = 0.5 + 0.5 * sin(current_time / 95);
+                    draw_set_alpha(0.18 + 0.14 * _sp);
+                    draw_set_color(make_color_rgb(255, 45, 75));
+                    draw_circle(_cx, y + 10, 18, false);
+                    draw_set_alpha(0.90);
+                    draw_set_color((current_time mod 260 < 130) ? c_red : c_yellow);
+                    draw_circle(_cx, y + 10, 14 + 3 * _sp, true);
 
-            var _b_txt = _is_sos_pz
-                ? "[! PATIENT ZERO: S.O.S. DESTROY !]"
-                : ("[! S.O.S. INFECTING: " + string(ceil(global.sos_hop_timer / 60)) + "s !]");
-            var _bw = string_width(_b_txt) * 0.44 + 5;
-            var _by_b = y - 16 - 1.5 * _sp;
-            draw_set_alpha(0.92);
-            draw_set_color(make_color_rgb(38, 10, 18));
-            draw_rectangle(_cx - _bw, _by_b - 6, _cx + _bw, _by_b + 6, false);
-            draw_set_alpha(1.0);
-            draw_set_color((current_time mod 260 < 130) ? c_yellow : make_color_rgb(255, 75, 95));
-            draw_rectangle(_cx - _bw, _by_b - 6, _cx + _bw, _by_b + 6, true);
-            draw_text_transformed(_cx, _by_b, _b_txt, 0.44, 0.44, 0);
-        } else if (_is_sos_locked) {
-            draw_set_alpha(0.14);
-            draw_set_color(c_red);
-            draw_circle(_cx, y + 10, 12, false);
-            var _lw = 34;
-            draw_set_alpha(0.88);
-            draw_set_color(make_color_rgb(36, 12, 16));
-            draw_rectangle(_cx - _lw, y - 15, _cx + _lw, y - 5, false);
-            draw_set_alpha(1.0);
-            draw_set_color(make_color_rgb(255, 80, 80));
-            draw_rectangle(_cx - _lw, y - 15, _cx + _lw, y - 5, true);
-            draw_text_transformed(_cx, y - 10, "[VIRUS LOCKED]", 0.42, 0.42, 0);
-        } else if (_is_sos_saved) {
-            draw_set_alpha(0.10);
-            draw_set_color(c_lime);
-            draw_circle(_cx, y + 10, 11, false);
+                    var _b_txt = _is_sos_pz
+                        ? "[! PATIENT ZERO: S.O.S. DESTROY !]"
+                        : ("[! S.O.S. INFECTING: " + string(ceil(global.sos_hop_timer / 60)) + "s !]");
+                    var _bw   = _is_sos_pz ? 64 : 52;
+                    var _by_b = y - 16 - 1.5 * _sp;
+                    draw_set_alpha(0.92);
+                    draw_set_color(make_color_rgb(38, 10, 18));
+                    draw_rectangle(_cx - _bw, _by_b - 6, _cx + _bw, _by_b + 6, false);
+                    draw_set_alpha(1.0);
+                    draw_set_color((current_time mod 260 < 130) ? c_yellow : make_color_rgb(255, 75, 95));
+                    draw_rectangle(_cx - _bw, _by_b - 6, _cx + _bw, _by_b + 6, true);
+                    draw_set_font(fnt_dialogue);
+                    draw_set_halign(fa_center);
+                    draw_set_valign(fa_middle);
+                    draw_text_transformed(_cx, _by_b, _b_txt, 0.44, 0.44, 0);
+                    draw_set_halign(fa_left);
+                    draw_set_valign(fa_top);
+                } else if (_is_sos_locked) {
+                    draw_set_alpha(0.14);
+                    draw_set_color(c_red);
+                    draw_circle(_cx, y + 10, 12, false);
+                    var _lw = 34;
+                    draw_set_alpha(0.88);
+                    draw_set_color(make_color_rgb(36, 12, 16));
+                    draw_rectangle(_cx - _lw, y - 15, _cx + _lw, y - 5, false);
+                    draw_set_alpha(1.0);
+                    draw_set_color(make_color_rgb(255, 80, 80));
+                    draw_rectangle(_cx - _lw, y - 15, _cx + _lw, y - 5, true);
+                    draw_set_font(fnt_dialogue);
+                    draw_set_halign(fa_center);
+                    draw_set_valign(fa_middle);
+                    draw_text_transformed(_cx, y - 10, "[VIRUS LOCKED]", 0.42, 0.42, 0);
+                    draw_set_halign(fa_left);
+                    draw_set_valign(fa_top);
+                } else if (_is_sos_saved) {
+                    draw_set_alpha(0.10);
+                    draw_set_color(c_lime);
+                    draw_circle(_cx, y + 10, 11, false);
+                }
+                draw_set_alpha(1.0);
+            }
         }
-
-        draw_set_halign(fa_left);
-        draw_set_valign(fa_top);
-        draw_set_alpha(1.0);
     }
 }
 else if (prop_type == TILE_PROP_CHAIR) {
